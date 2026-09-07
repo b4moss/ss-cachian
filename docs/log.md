@@ -2,6 +2,7 @@
 
 ## 2026-09-07
 
+* **Update**: 分散 L1 無効化通知は後続任意とし、PoC では作らない。
 * **Update**: 旧 version 列挙・取得 API は後続任意とし、PoC では作らない。
 * **Update**: シリアライズ形式は Go PoC では未決定とし、最初の他言語ポート時に決める。
 * **Update**: current-version を L1・データキー同系の `__version__` サフィックスに決定。
