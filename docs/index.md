@@ -65,9 +65,38 @@ Cache Type
 - セッション: L1 Memory → L2 共有ストア（Firestore または Valkey）
 - 大きめの成果物: Memory → Object Storage（高速キャッシュというより再計算回避）
 
-上位 hit 時は下位を見ない。下位 hit 時の書き戻し範囲・L1 無効化の扱いは **未決（後続で相談）**。
+上位 hit 時は下位を見ない。
 
 Read-through（Loader 付き）を基本にしつつ、Cache-aside / 明示 Set も許容する。
+
+## 多層の書き戻し / 無効化（確定方針）
+
+### Populate（書き戻し）
+
+下位 hit または Loader 成功時、**上位 Layer へ無条件で書き戻す**。
+
+例: L1 → L2 → Loader で Loader 成功なら L2 と L1 の両方へ Set。
+
+- TTL は **Layer ごとに別値**を持てる（仕様として正しい）。
+- 例: L1=30s、L2=1h など。Policy は Layer 単位で保持する。
+
+### Version bump 時
+
+能動的な Layer クリアはしない。
+
+- データキーに version を含めるため、bump 後は新キーだけが参照される。
+- 旧 version のエントリは各 Layer の TTL で自然消滅する。
+
+### Purge の到達範囲
+
+- **デフォルト: 定義されている全 Layer** に対して purge する。
+- 引数 / オプションで Layer の配列を渡し、**指定した単一または複数 Layer だけ**に絞れる。
+
+### L1 の意味
+
+- 階層の基本は **L1 から始まる**（Cache Type が定義する順序）。
+- **L1 = インメモリとは限らない**。多いパターンではあるが、Cache Type の設計次第。
+- したがって「L2 が常に共有ストア」「Memory 以外が共有」といった固定対応にはしない。
 
 ## キー設計
 
@@ -87,7 +116,8 @@ my-app:cache:0123456:client_list_page1:7
 
 マルチテナント衝突回避、一覧ページ、設定・マスタなど業務キーを自然に表現できることを重視する。
 
-Version は **共有 Layer 上で、固定のキー名パターンの一部として埋め込む**（専用 Version Store 抽象は置かない）。
+Version は **固定のキー名パターンの一部として埋め込む**（専用 Version Store 抽象は置かない）。  
+どの物理ストアに載るかは Cache Type の Layer 構成次第（L1 が共有 Driver なら L1 上でもよい）。
 
 ## Invalidation（確定方針）
 
@@ -97,6 +127,7 @@ Version は **共有 Layer 上で、固定のキー名パターンの一部と�
   - 大量キーの個別 DELETE を避ける（一覧・ページネーション向けに特に有効）。
 - **Purge API: 多彩な手法**
   - Exact / Prefix / Tag など、明示パージの引き出しを提供する。
+  - デフォルトは全 Layer。Layer 配列指定で対象を絞れる。
   - 日常のアプリ設計は Version、運用・例外・強制削除は Purge、という二段構え。
 
 役割分担の覚え方:
@@ -112,10 +143,13 @@ Purge   = 明示的・多様な削除手段
 共通面は **薄く保つ（方針 A）**。
 
 - 共通: Get / Set / Delete + 任意 TTL 程度
+- TTL 値は Layer ごとに異なる値を指定可能
 - 原子性・Prefix・Tag・INCR などは Driver 固有 API
 - 高度機能を全 Driver でエミュレートして揃えることはしない
 
 Object Storage なども差し込み口は同じだが、レイテンシや TTL の意味まで同一保証はしない。
+
+L1 / L2 / L3 は **Cache Type が並べた順序上の名前**であり、Driver 種別の固定マッピングではない。
 
 ## エントリメタ（確定方針・初期）
 
@@ -185,12 +219,9 @@ Go ではまず型安全 API を優先し、YAML 等の設定ファイル駆動�
 
 ## まだ開いている設計論点
 
-- **多層の書き戻し / 無効化**（先送り・要相談）
-  - Miss 後の populate 範囲（全 Layer か Layer ごと opt-in か）
-  - Version bump 時の L1 扱い（短 TTL 任せ / 能動削除 / 無効化）
-  - Purge 時の L1 と共有 Layer の役割分担
 - シリアライズとマルチランタイム間のセマンティクス同一性
 - Entry メタの拡張タイミング（SWR / SIE / negative 等）
+- Version カウンタ自体の読み書きを、複数 Layer 構成時にどの Layer へ寄せるかの細部（キー埋め込み方針は確定済み）
 
 ## 既存ライブラリとの関係
 
@@ -229,9 +260,12 @@ Go ではまず型安全 API を優先し、YAML 等の設定ファイル駆動�
 | Driver 優先: Memory → Firestore → Valkey | [note.md](./note.md) および対話で確定 |
 | Invalidation 第1級は Version、Purge は多彩 | 対話で確定 |
 | Layer 共通契約は薄い（A） | 対話で確定 |
-| Version は共有 Layer の固定キー名に埋め込み | 対話で確定 |
+| Version は固定キー名に埋め込み | 対話で確定 |
 | Entry メタ初期は created_at / expires_at | 対話で確定 |
 | Valkey 固有機能は Driver 先モジュールへ委譲 | 対話で確定 |
-| 多層書き戻し / L1 無効化 | 未決・要相談 |
+| Populate は上位へ無条件書き戻し、TTL は Layer 単位 | 対話で確定 |
+| Version bump 時は能動クリアせず TTL 任せ | 対話で確定 |
+| Purge デフォルト全 Layer、配列で絞り込み可 | 対話で確定 |
+| L1 は順序上の先頭であり Memory 固定ではない | 対話で確定 |
 
 壁打ちメモは生成 AI との整理結果を含むため、個別文は未確定案が混ざる。衝突時は **本 index の「確定方針」と [note.md](./note.md) / [concept.md](./concept.md)** を優先して読む。
