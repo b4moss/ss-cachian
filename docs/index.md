@@ -84,8 +84,24 @@ Read-through（Loader 付き）を基本にしつつ、Cache-aside / 明示 Set 
 
 能動的な Layer クリアはしない。
 
-- データキーに version を含めるため、bump 後は新キーだけが参照される。
+- version 入りデータキーは **全 Layer で同一キー名**。
+- bump 後、Get が見るのは新 version のキーだけ。
 - 旧 version のエントリは各 Layer の TTL で自然消滅する。
+
+### 初期の Get 方針（最新 version のみ）
+
+初期実装では **常に最新 version のエントリだけを返す**。
+
+- 旧 version を意図的に読まない・返さない。
+- 利用者から見えるキャッシュは常に現在版のみ。
+- 旧キーの存在は許容し、掃除は TTL 任せ。
+
+「最新 version 番号」を知る手段は、初期は次のいずれかで足りる。
+
+- current-version を表す 1 キーを持つ（O(1) で参照）
+- アプリ側が version を渡す／単一世代運用にする
+
+旧世代の列挙や「任意 version の取得」は初期スコープ外。
 
 ### Purge の到達範囲
 
@@ -114,15 +130,23 @@ Read-through（Loader 付き）を基本にしつつ、Cache-aside / 明示 Set 
 my-app:cache:0123456:client_list_page1:7
 ```
 
+同一論理エントリは、L1 / L2 / … のいずれでも **同じキー名**を使う。
+
+```text
+L1  my-app:cache:0123456:client_list_page1:7
+L2  my-app:cache:0123456:client_list_page1:7
+```
+
 マルチテナント衝突回避、一覧ページ、設定・マスタなど業務キーを自然に表現できることを重視する。
 
-Version は **固定のキー名パターンの一部として埋め込む**（専用 Version Store 抽象は置かない）。  
-どの物理ストアに載るかは Cache Type の Layer 構成次第（L1 が共有 Driver なら L1 上でもよい）。
+Version は **固定のキー名パターンの一部として埋め込む**（専用の巨大な Version Store 抽象は置かない）。  
+現在版番号の参照用に current-version 1 キーを置くのは、初期方針として許容する。
 
 ## Invalidation（確定方針）
 
 - **第1級: Version**
   - Mutation 後は該当スコープの version を進める（論理 invalidate）。
+  - Get は常に最新 version のみ（初期方針）。
   - 旧 version のキーは参照されなくなり、TTL で物理 cleanup される。
   - 大量キーの個別 DELETE を避ける（一覧・ページネーション向けに特に有効）。
 - **Purge API: 多彩な手法**
@@ -221,7 +245,7 @@ Go ではまず型安全 API を優先し、YAML 等の設定ファイル駆動�
 
 - シリアライズとマルチランタイム間のセマンティクス同一性
 - Entry メタの拡張タイミング（SWR / SIE / negative 等）
-- Version カウンタ自体の読み書きを、複数 Layer 構成時にどの Layer へ寄せるかの細部（キー埋め込み方針は確定済み）
+- current-version 1 キーを置く場合の、具体的なキー規約と配置 Layer（初期は最新 version のみ返す方針で先行可）
 
 ## 既存ライブラリとの関係
 
@@ -260,11 +284,12 @@ Go ではまず型安全 API を優先し、YAML 等の設定ファイル駆動�
 | Driver 優先: Memory → Firestore → Valkey | [note.md](./note.md) および対話で確定 |
 | Invalidation 第1級は Version、Purge は多彩 | 対話で確定 |
 | Layer 共通契約は薄い（A） | 対話で確定 |
-| Version は固定キー名に埋め込み | 対話で確定 |
+| Version は固定キー名に埋め込み（全 Layer 同一キー） | 対話で確定 |
 | Entry メタ初期は created_at / expires_at | 対話で確定 |
 | Valkey 固有機能は Driver 先モジュールへ委譲 | 対話で確定 |
 | Populate は上位へ無条件書き戻し、TTL は Layer 単位 | 対話で確定 |
 | Version bump 時は能動クリアせず TTL 任せ | 対話で確定 |
+| Get は初期は最新 version のみ返す | 対話で確定 |
 | Purge デフォルト全 Layer、配列で絞り込み可 | 対話で確定 |
 | L1 は順序上の先頭であり Memory 固定ではない | 対話で確定 |
 
