@@ -263,6 +263,7 @@ Go ではまず型安全 API を優先し、YAML 等の設定ファイル駆動�
 
 ## 設計メモ
 
+* [アプリケーション API（仮定）](./api.md) - 初期 PoC 必須とそれ以降任意に分けたアプリ向け API リスト
 * [キービルダー](./key-builder.md) - アプリ・テナント・クエリ種別・version を含むキー構造の種
 * [壁打ち参考その1](./note-refs1.md) - Cache Type 中心の API・多層・Policy・Invalidation・MVP の詳細壁打ち
 * [壁打ちメモその2](./note-refs2.md) - 業務 Web アプリでのキャッシュ判断、Versioned Cache、TTL 役割分担
@@ -292,5 +293,6 @@ Go ではまず型安全 API を優先し、YAML 等の設定ファイル駆動�
 | Get は初期は最新 version のみ返す | 対話で確定 |
 | Purge デフォルト全 Layer、配列で絞り込み可 | 対話で確定 |
 | L1 は順序上の先頭であり Memory 固定ではない | 対話で確定 |
+| アプリ向け API 面（PoC / 任意の切り分け） | [api.md](./api.md)（仮定） |
 
 壁打ちメモは生成 AI との整理結果を含むため、個別文は未確定案が混ざる。衝突時は **本 index の「確定方針」と [note.md](./note.md) / [concept.md](./concept.md)** を優先して読む。
