@@ -6,6 +6,12 @@ okf_version: "0.1"
 
 サーバーサイドのキャッシュ戦略ライブラリ構想。実装未着手。本ディレクトリが知識バンドルの正本。
 
+# 入口
+
+* [main](./main.md) - プロダクト仕様ハブ
+* [憲章（charter）](./charter/) - 開発方針の最上位ルール（サブモジュール）
+* [憲章オーバーライド](./override-charter.md) - 当プロジェクト固有の上書き
+
 # 決定事項
 
 * [コンセプト](./concept.md) - 目的、中心概念、キャッシュの位置づけ
@@ -13,10 +19,16 @@ okf_version: "0.1"
 * [Driver と Layer 契約](./drivers.md) - Driver 優先順と薄い共通契約
 * [アプリケーション API](./api.md) - 初期 PoC 必須 API と後続任意 API
 * [ロードマップ](./roadmap.md) - 実装フェーズとマルチランタイム方針
+* [開発・CI/CD](./development.md) - devcontainer、テスト、CI/CD、バッジ
 
 # 未決定
 
 * [未決事項](./open-questions.md) - 未決定・未詳細の設計論点
+
+# 作業用
+
+* [plans](./plans/) - これからやる内容
+* [specs](./specs/) - 現行機能の仕様正本（実装後）
 
 # アーカイブ
 
