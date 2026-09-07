@@ -8,8 +8,11 @@ timestamp: 2026-09-07T13:00:00Z
 
 # 開発・CI/CD
 
-規範は `b4moss/charter` と `b4moss/crudian` を参考にする。  
-当リポジトリ固有の決定のみをここに記す。
+規範は [憲章（charter）](./charter/) と `b4moss/crudian` を参考にする。  
+憲章本体は編集せず、`external/charter` サブモジュール（`docs` ブランチ）経由で [docs/charter/](./charter/) に取り込む。  
+プロジェクト固有の上書きは [override-charter.md](./override-charter.md) に書く。
+
+当リポジトリ固有の決定のみを以下に記す。
 
 ## 開発環境
 
@@ -23,7 +26,7 @@ timestamp: 2026-09-07T13:00:00Z
 - 全関数または全メソッドに対してテストを書く。
 - これを **単体結合テスト** と呼ぶ。
 - 各テストに **正常系** と **異常系** を用意する。
-- 具体的な書き方・テスト仕様書の形式は `b4moss/charter`（特に TDD 方針）に従う。
+- 具体的な書き方・テスト仕様書の形式は [憲章の TDD 方針](./charter/tdd.md) に従う。
 
 ### 補足（charter 踏襲）
 

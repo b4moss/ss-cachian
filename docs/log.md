@@ -2,6 +2,8 @@
 
 ## 2026-09-07
 
+* **Creation**: `b4moss/charter`（`docs` ブランチ）を `external/charter` サブモジュールとして追加し、`docs/charter` へ取り込み。
+* **Creation**: `docs/main.md` / `docs/override-charter.md` / `docs/plans` / `docs/specs` を追加。
 * **Creation**: `development.md` に開発環境・単体結合テスト・CI/CD・バッジ方針を追加。Go は 1.26。
 * **Update**: 分散 L1 無効化通知は後続任意とし、PoC では作らない。
 * **Update**: 旧 version 列挙・取得 API は後続任意とし、PoC では作らない。
