@@ -11,8 +11,10 @@ timestamp: 2026-09-07T12:00:00Z
 ## 方針
 
 - マルチランタイム移植を前提とする（`b4moss/crudian` / `b4moss/cachian` と同様）。
-- 先行実装は Go。
+- 先行実装は Go（**Go 1.26**）。
 - Go では型安全 API を優先する。設定ファイル駆動は後回しでよい。
+
+開発環境・CI/CD の詳細は [開発・CI/CD](./development.md) を参照。
 
 ## Phase 1（PoC）
 

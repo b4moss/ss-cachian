@@ -13,6 +13,7 @@ okf_version: "0.1"
 * [Driver と Layer 契約](./drivers.md) - Driver 優先順と薄い共通契約
 * [アプリケーション API](./api.md) - 初期 PoC 必須 API と後続任意 API
 * [ロードマップ](./roadmap.md) - 実装フェーズとマルチランタイム方針
+* [開発・CI/CD](./development.md) - devcontainer、テスト、CI/CD、バッジ
 
 # 未決定
 
