@@ -1,12 +1,8 @@
----
-okf_version: "0.1"
----
-
-# ss-cachian 構想バンドル
+# ss-cachian 構想まとめ
 
 サーバーサイドキャッシュ戦略ライブラリ **ss-cachian**（Server Side Cachian）の構想知識。実装コードは未着手で、本ディレクトリのメモ群が現時点の正本に近い。
 
-本ファイルは OKF v0.1 のルート `index.md` として、(1) 構想の統合解釈、(2) 確定した前提、(3) 各コンセプト文書への索引、を提供する。
+本ファイルは (1) 構想の統合解釈、(2) 確定した前提、(3) 各メモへの索引、をまとめた入口。
 
 ---
 
@@ -36,10 +32,11 @@ ss-cachian は **単一キャッシュストアの薄い抽象**ではない。
 | --- | --- |
 | Cache Type | 商品・セッション・記事など、種類ごとの戦略定義単位 |
 | Key Builder | ビジネス文脈（tenant / locale / query_type / version 等）を含むキー生成 |
-| Layer / Driver | 「どこに保存するか」。階層数は固定しない |
-| Policy | TTL、（将来）SWR / SIE / stampede 等 |
+| Layer / Driver | 「どこに保存するか」。階層数は固定しない。共通契約は薄い |
+| Policy | TTL、（将来）SWR / SIE 等 |
 | Loader | Cache Miss 時の取得（Read-through） |
 | Invalidation | 第1級は Version。Purge API で多彩な明示削除も提供 |
+| Entry メタ | 当面は `created_at` / `expires_at`。以後拡張 |
 
 利用側は、保存先・階層構成・キー生成・Miss 時の取得を意識せず、概ね次で済むことを理想とする。
 
@@ -68,7 +65,7 @@ Cache Type
 - セッション: L1 Memory → L2 共有ストア（Firestore または Valkey）
 - 大きめの成果物: Memory → Object Storage（高速キャッシュというより再計算回避）
 
-上位 hit 時は下位を見ない。下位 hit 時は必要に応じて上位へ populate する。
+上位 hit 時は下位を見ない。下位 hit 時の書き戻し範囲・L1 無効化の扱いは **未決（後続で相談）**。
 
 Read-through（Loader 付き）を基本にしつつ、Cache-aside / 明示 Set も許容する。
 
@@ -90,6 +87,8 @@ my-app:cache:0123456:client_list_page1:7
 
 マルチテナント衝突回避、一覧ページ、設定・マスタなど業務キーを自然に表現できることを重視する。
 
+Version は **共有 Layer 上で、固定のキー名パターンの一部として埋め込む**（専用 Version Store 抽象は置かない）。
+
 ## Invalidation（確定方針）
 
 - **第1級: Version**
@@ -107,6 +106,34 @@ Version = 論理的な invalidate
 TTL     = 物理的な cleanup
 Purge   = 明示的・多様な削除手段
 ```
+
+## Layer 契約（確定方針）
+
+共通面は **薄く保つ（方針 A）**。
+
+- 共通: Get / Set / Delete + 任意 TTL 程度
+- 原子性・Prefix・Tag・INCR などは Driver 固有 API
+- 高度機能を全 Driver でエミュレートして揃えることはしない
+
+Object Storage なども差し込み口は同じだが、レイテンシや TTL の意味まで同一保証はしない。
+
+## エントリメタ（確定方針・初期）
+
+Layer に載せる値の封筒は、当面次のみ。
+
+- `created_at`
+- `expires_at`
+
+SWR / SIE / negative cache 等は開発が進んでから拡張する。
+
+## Valkey 固有機能（確定方針）
+
+Rate Limit / Lock / Stampede など Valkey 文脈の機能は、
+
+- Cache Type が Valkey を選んだときだけ有効なオプション
+- 当ライブラリ本体は実装せず、**Valkey Driver が操作するモジュールへ渡すだけ**
+
+とする。
 
 ## 業務判断（いつキャッシュするか）
 
@@ -158,14 +185,12 @@ Go ではまず型安全 API を優先し、YAML 等の設定ファイル駆動�
 
 ## まだ開いている設計論点
 
-次は構想メモ上まだ薄い／未決。特に Layer 契約の同列化については後続で深掘りする。
-
-- Version カウンタの配置（どの Layer に置くか、L1 に載せてよいか、INCR の保証）
-- SWR / SIE / negative cache 用のエントリメタデータ（生 `[]byte` 以上の封筒形式）
-- 異種 Layer（Memory / Firestore / Valkey / S3）を同一契約に載せる範囲
-- 分散環境での L1 無効化（短 TTL 任せる / pub-sub / 無視）
-- Rate Limit・Lock・Stampede をライブラリ責務に含める範囲
+- **多層の書き戻し / 無効化**（先送り・要相談）
+  - Miss 後の populate 範囲（全 Layer か Layer ごと opt-in か）
+  - Version bump 時の L1 扱い（短 TTL 任せ / 能動削除 / 無効化）
+  - Purge 時の L1 と共有 Layer の役割分担
 - シリアライズとマルチランタイム間のセマンティクス同一性
+- Entry メタの拡張タイミング（SWR / SIE / negative 等）
 
 ## 既存ライブラリとの関係
 
@@ -187,9 +212,9 @@ Go ではまず型安全 API を優先し、YAML 等の設定ファイル駆動�
 * [壁打ち参考その1](./note-refs1.md) - Cache Type 中心の API・多層・Policy・Invalidation・MVP の詳細壁打ち
 * [壁打ちメモその2](./note-refs2.md) - 業務 Web アプリでのキャッシュ判断、Versioned Cache、TTL 役割分担
 
-## 本索引
+## 本ファイル
 
-* [index（本ファイル）](./index.md) - OKF v0.1 ルート索引と構想の統合解釈
+* [index（本ファイル）](./index.md) - 構想の統合解釈と確定方針の入口
 
 ---
 
@@ -201,7 +226,12 @@ Go ではまず型安全 API を優先し、YAML 等の設定ファイル駆動�
 | Cache Type / Layer / Policy / Loader | [note-refs1.md](./note-refs1.md) |
 | Version = 論理 invalidate、TTL = cleanup | [note-refs2.md](./note-refs2.md)、[key-builder.md](./key-builder.md) |
 | Go 先行・マルチランタイム前提 | [note.md](./note.md) |
-| Driver 優先: Memory → Firestore → Valkey | [note.md](./note.md) および対話で確定（refs1 の Valkey 先行 MVP は後から読み替え） |
-| Invalidation 第1級は Version、Purge は多彩 | 対話で確定（refs1 の Tag/Prefix は Purge 側に位置づけ） |
+| Driver 優先: Memory → Firestore → Valkey | [note.md](./note.md) および対話で確定 |
+| Invalidation 第1級は Version、Purge は多彩 | 対話で確定 |
+| Layer 共通契約は薄い（A） | 対話で確定 |
+| Version は共有 Layer の固定キー名に埋め込み | 対話で確定 |
+| Entry メタ初期は created_at / expires_at | 対話で確定 |
+| Valkey 固有機能は Driver 先モジュールへ委譲 | 対話で確定 |
+| 多層書き戻し / L1 無効化 | 未決・要相談 |
 
 壁打ちメモは生成 AI との整理結果を含むため、個別文は未確定案が混ざる。衝突時は **本 index の「確定方針」と [note.md](./note.md) / [concept.md](./concept.md)** を優先して読む。
