@@ -1,8 +1,10 @@
 ---
 type: Note
 title: 壁打ちメモその2
-description: 生成AIと壁打ちした内容です
+description: 生成AIと壁打ちした内容の旧稿。現行決定は docs/ 直下を正とする。
+tags: [archived]
 role: note
+timestamp: 2026-09-07T12:00:00Z
 ---
 
 # 業務Webアプリにおけるサーバーサイドキャッシュ戦略
