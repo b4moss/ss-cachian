@@ -2,6 +2,8 @@
 
 ## 2026-09-07
 
+* **Update**: current-version を L1・データキー同系の `__version__` サフィックスに決定。
+* **Update**: SWR / SIE / negative cache は PoC 対象外とし、後続実装メモを `open-questions.md` に記載。
 * **Update**: 構想ドキュメントを OKF v0.1 に再構成。決定事項と未決事項を分離。
 * **Update**: `note-refs1.md` / `note-refs2.md` を `_archived/` へ移動。
 * **Creation**: `behavior.md` / `drivers.md` / `roadmap.md` / `open-questions.md` を追加。

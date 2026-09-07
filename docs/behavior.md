@@ -25,6 +25,23 @@ my-app:cache:0123456:client_list_page1:7
 - Version はキー名の一部として埋め込む。
 - 同一論理エントリは、全 Layer で **同じキー名** を使う。
 
+### current-version
+
+ライブラリが現在版番号を表す 1 キーを持ち、`Get` / `BumpVersion` がそれを参照・更新する。
+
+- 置き場: Cache Type の **L1**
+- キー名: データキーと同系で、末尾を version 用にする
+
+```text
+{app_slug}:cache:{tenant_id}:{query_type}:__version__
+```
+
+例:
+
+```text
+my-app:cache:0123456:client_list_page1:__version__
+```
+
 ## 多層キャッシュ
 
 ```text
@@ -44,7 +61,7 @@ Version = 論理 invalidate
 TTL     = 物理 cleanup
 ```
 
-- Mutation 後は該当スコープの version を進める。
+- Mutation 後は該当スコープの version を進める（`BumpVersion` → L1 の current-version を更新）。
 - Version bump 時に Layer を能動クリアしない。旧キーは TTL で消える。
 - 初期の Get は **最新 version のみ** 返す。旧世代の取得・列挙は初期スコープ外。
 
@@ -60,4 +77,5 @@ TTL     = 物理 cleanup
 - `created_at`
 - `expires_at`
 
-これ以外は後続で拡張する。
+PoC ではこれ以外を設計しない。SWR / SIE / negative cache 用フィールドは後続 Phase で追加する。  
+用語と追加忘れ防止のメモは [未決事項](./open-questions.md) を参照。
