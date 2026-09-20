@@ -1,5 +1,9 @@
 # Directory Update Log
 
+## 2026-09-20
+
+* **Update**: charter の取り込みをサブモジュールからリモート `charter`（`b4moss/charter:docs`）による `docs/charter` 直接取り込みへ変更。
+
 ## 2026-09-07
 
 * **Creation**: `b4moss/charter`（`docs` ブランチ）を `external/charter` サブモジュールとして追加し、`docs/charter` へ取り込み。

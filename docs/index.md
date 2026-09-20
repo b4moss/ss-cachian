@@ -9,7 +9,7 @@ okf_version: "0.1"
 # 入口
 
 * [main](./main.md) - プロダクト仕様ハブ
-* [憲章（charter）](./charter/) - 開発方針の最上位ルール（サブモジュール）
+* [憲章（charter）](./charter/) - 開発方針の最上位ルール（`charter` リモートから取り込み）
 * [憲章オーバーライド](./override-charter.md) - 当プロジェクト固有の上書き
 
 # 決定事項

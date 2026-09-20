@@ -1,6 +1,6 @@
 # このプロジェクト独自のルール（憲章をオーバーライドする範囲）
 
-憲章本体は [docs/charter/](./charter/)（`external/charter` サブモジュール経由）。  
+憲章本体は [docs/charter/](./charter/)（リモート `charter` の `docs` ブランチから直接取り込み）。  
 ここに書いた内容は憲章より優先する。
 
 ## ドキュメント入口

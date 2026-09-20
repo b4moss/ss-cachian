@@ -9,8 +9,16 @@ timestamp: 2026-09-07T13:00:00Z
 # 開発・CI/CD
 
 規範は [憲章（charter）](./charter/) と `b4moss/crudian` を参考にする。  
-憲章本体は編集せず、`external/charter` サブモジュール（`docs` ブランチ）経由で [docs/charter/](./charter/) に取り込む。  
+憲章本体は編集せず、リモート `charter`（`b4moss/charter` の `docs` ブランチ）から [docs/charter/](./charter/) に直接取り込む。  
 プロジェクト固有の上書きは [override-charter.md](./override-charter.md) に書く。
+
+更新手順:
+
+```bash
+git remote add -t docs charter https://github.com/b4moss/charter.git  # 未追加時のみ
+git fetch charter docs
+git checkout charter/docs -- docs/charter
+```
 
 当リポジトリ固有の決定のみを以下に記す。
 
