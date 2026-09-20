@@ -1,4 +1,0 @@
-[submodule "external/charter"]
-	path = external/charter
-	url = https://github.com/b4moss/charter.git
-	branch = docs
