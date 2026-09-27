@@ -3,6 +3,7 @@ package memory
 import (
 	"context"
 	"math"
+	"strings"
 	"sync"
 	"time"
 
@@ -117,6 +118,20 @@ func (s *Store) PurgeExact(_ context.Context, logicalPrefix string) error {
 	defer s.mu.Unlock()
 	for k := range s.m {
 		if sscachian.IsVersionDataKey(logicalPrefix, k) {
+			delete(s.m, k)
+		}
+	}
+	return nil
+}
+
+func (s *Store) PurgePrefix(_ context.Context, prefix string) error {
+	if prefix == "" {
+		return sscachian.ErrEmptyKey
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for k := range s.m {
+		if strings.HasPrefix(k, prefix) {
 			delete(s.m, k)
 		}
 	}

@@ -24,6 +24,8 @@ type Layer interface {
 	// PurgeExact deletes all version data keys "{logicalPrefix}:{n}" (n digits ≥1 shape).
 	// It must not delete "{logicalPrefix}:__version__".
 	PurgeExact(ctx context.Context, logicalPrefix string) error
+	// PurgePrefix deletes every key whose ID starts with prefix (broader than PurgeExact).
+	PurgePrefix(ctx context.Context, prefix string) error
 }
 
 // IsVersionDataKey reports whether key is "{logicalPrefix}:{digits}" (digits non-empty).

@@ -1,9 +1,9 @@
 ---
 type: TestSpec
 title: driver-firestore テスト仕様
-description: Firestore Layer（Emulator）。Go v0.5.0 導入・Node v0.8.0 再適用。正常≈3 / 異常≈3〜5。
-tags: [tests, driver-firestore, v0.5.0, v0.8.0, node]
-timestamp: 2026-09-27T05:30:00Z
+description: Firestore Layer（Emulator）。Go v0.5.0 導入・Node v0.8.0・PurgePrefix v0.10.0。正常≈3 / 異常≈3〜5。
+tags: [tests, driver-firestore, v0.5.0, v0.8.0, v0.10.0, node]
+timestamp: 2026-09-27T07:57:34Z
 ---
 
 # driver-firestore
@@ -125,3 +125,22 @@ timestamp: 2026-09-27T05:30:00Z
 - 空の logicalPrefix は ErrEmptyKey
 - クライアントエラーは error として返す
 - `__version__` ドキュメントだけがあるときも残る
+
+---
+
+### PurgePrefix
+
+- `PurgePrefix(..., prefix)` はコレクション内のドキュメント ID が `prefix` で **始まるすべて**を削除する（`__version__`・非数字サフィックス含む）。
+- Exact より広い。対象が無くても成功（冪等）。Emulator 上で検証。空 prefix は `ErrEmptyKey`。
+
+#### テスト：正常系
+
+- `prefix:1` / `prefix:2` / `prefix:__version__` / `prefix:extra` があるとき PurgePrefix(`prefix`) 後はすべて Miss
+- 別先頭 `other:1` は残る
+- 対象ドキュメントが無い状態でもエラーにならない
+
+#### テスト: 異常系
+
+- 空 prefix は ErrEmptyKey
+- クライアントエラーは error として返す
+- 先頭一致のみ（途中一致では消さない）

@@ -3,8 +3,10 @@ import test from "node:test";
 
 import {
   CacheType,
+  ErrEmptyKey,
   ErrInvalidContext,
   ErrInvalidVersion,
+  ErrNegativeTTL,
   ErrNoKeyBuilder,
   ErrNoLayer,
   ErrNoLoader,
@@ -210,4 +212,106 @@ test("concurrent ensureCurrentVersion", async () => {
 test("SSCACHIAN_RUNTIME", async () => {
   const { SSCACHIAN_RUNTIME } = await import("./index.js");
   assert.equal(SSCACHIAN_RUNTIME, "node");
+});
+
+test("has exists getEntry forget", async () => {
+  const ct = define<string>("t").withLayers(newMemoryStore()).withLayerTTL(3_600_000).build();
+  const kc = sampleKC();
+  assert.equal(await ct.has(kc), false);
+  assert.equal(await ct.exists(kc), false);
+  assert.equal((await ct.getEntry(kc)).ok, false);
+
+  await ct.set(kc, "v");
+  assert.equal(await ct.has(kc), true);
+  assert.equal(await ct.exists(kc), true);
+  const ge = await ct.getEntry(kc);
+  assert.equal(ge.ok, true);
+  if (ge.ok) {
+    assert.equal(ge.entry.value, "v");
+    assert.ok(ge.entry.createdAt.getTime() > 0);
+    assert.ok(ge.entry.expiresAt != null && ge.entry.expiresAt.getTime() > 0);
+  }
+  const before = await ct.currentVersion(kc);
+  await ct.forget(kc);
+  assert.ok((await ct.currentVersion(kc)) > before);
+  assert.equal(await ct.has(kc), false);
+});
+
+test("remember hit miss forever", async () => {
+  let loads = 0;
+  const loader = async () => {
+    loads += 1;
+    return "loaded";
+  };
+  const ct = newStringCache();
+  const kc = sampleKC();
+  assert.equal(await ct.remember(kc, 3_600_000, loader), "loaded");
+  assert.equal(loads, 1);
+  const before = await ct.currentVersion(kc);
+  assert.equal(await ct.remember(kc, 3_600_000, loader), "loaded");
+  assert.equal(loads, 1);
+  assert.equal(await ct.currentVersion(kc), before);
+  const ge = await ct.getEntry(kc);
+  assert.equal(ge.ok, true);
+  if (ge.ok) assert.ok(ge.entry.expiresAt != null);
+
+  const ct2 = newStringCache();
+  assert.equal(await ct2.rememberForever(kc, loader), "loaded");
+  const ge2 = await ct2.getEntry(kc);
+  assert.equal(ge2.ok, true);
+  if (ge2.ok) assert.equal(ge2.entry.expiresAt, null);
+});
+
+test("remember errors", async () => {
+  const ct = newStringCache();
+  const kc = sampleKC();
+  await assert.rejects(() => ct.remember(kc, -1, async () => "x"), ErrNegativeTTL);
+  await assert.rejects(() => ct.remember(kc, 1000, null), ErrNoLoader);
+});
+
+test("purgeExact alias and purgePrefix", async () => {
+  const ct = define<string>("t").withLayers(newMemoryStore()).build();
+  const kc = sampleKC();
+  await ct.set(kc, "a");
+  await ct.set(kc, "b");
+  const before = await ct.currentVersion(kc);
+  await ct.purgeExact(kc);
+  assert.equal(await ct.currentVersion(kc), before);
+  assert.equal((await ct.get(kc)).ok, false);
+
+  const ct2 = define<string>("t").withLayers(newMemoryStore()).build();
+  const kc1 = { appSlug: "app", tenantId: "t", queryType: "q1" };
+  const kc2 = { appSlug: "app", tenantId: "t", queryType: "q2" };
+  const other = { appSlug: "app", tenantId: "other", queryType: "q1" };
+  await ct2.set(kc1, "a");
+  await ct2.set(kc2, "b");
+  await ct2.set(other, "keep");
+  await ct2.purgePrefix("app:cache:t:");
+  assert.equal((await ct2.get(kc1)).ok, false);
+  assert.equal((await ct2.get(kc2)).ok, false);
+  const kept = await ct2.get(other);
+  assert.equal(kept.ok, true);
+  if (kept.ok) assert.equal(kept.value, "keep");
+  await assert.rejects(() => ct2.purgePrefix(""), ErrEmptyKey);
+});
+
+test("purgeTag with tags and defaults", async () => {
+  const ct = define<string>("t").withLayers(newMemoryStore()).withDefaultTags("tenant:123").build();
+  const kcA = { appSlug: "app", tenantId: "1", queryType: "a" };
+  const kcB = { appSlug: "app", tenantId: "1", queryType: "b" };
+  const kcC = { appSlug: "app", tenantId: "1", queryType: "c" };
+  await ct.set(kcA, "a", { tags: ["product:456"] });
+  await ct.set(kcB, "b", { tags: ["product:456"] });
+  await ct.set(kcC, "c");
+  const before = await ct.currentVersion(kcA);
+  await ct.purgeTag("product:456");
+  assert.equal((await ct.get(kcA)).ok, false);
+  assert.equal((await ct.get(kcB)).ok, false);
+  assert.equal(await ct.currentVersion(kcA), before);
+  assert.equal((await ct.get(kcC)).ok, true);
+  await ct.purgeTag("product:456");
+  await ct.purgeTag("tenant:123");
+  assert.equal((await ct.get(kcC)).ok, false);
+  await assert.rejects(() => ct.purgeTag(""), ErrEmptyKey);
+  await ct.purgeTag("missing:tag");
 });

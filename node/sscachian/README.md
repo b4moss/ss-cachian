@@ -2,7 +2,7 @@
 
 TypeScript / JavaScript port of [ss-cachian](https://github.com/b4moss/ss-cachian).
 
-Semantics match the Go package at `go/sscachian` (**v0.9.0**): versioned keys, multilayer
+Semantics match the Go package at `go/sscachian` (**v0.10.0**): versioned keys, multilayer
 write-back, Exact Purge, Memory / Firestore drivers, and **config-driven** `loadTypes`.
 Specs: [docs/specs](../../docs/specs/). Config schema notes: [docs/specs/config](../../docs/specs/config/).
 
@@ -235,10 +235,10 @@ Semantics match code-built types (upper hit skips lower layers, write-back, Exac
 - Non-string or invalid/negative `ttl`
 - Unknown `options` keys or non-string option values
 
-### Out of scope (v0.9.0)
+### Out of scope (v0.10.0)
 
 - Valkey / PHP / browser bundles
-- SWR · SIE · PurgePrefix/Tag (later)
+- SWR · SIE (later)
 - Secrets embedded in the config file
 
 ---

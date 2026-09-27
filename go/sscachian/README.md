@@ -1,6 +1,6 @@
 # ss-cachian (Go)
 
-Go module: `github.com/b4moss/ss-cachian` · **VERSION `0.9.0`**
+Go module: `github.com/b4moss/ss-cachian` · **VERSION `0.10.0`**
 
 Shared product overview, config schema, and pitfalls: [root README](../../README.md).  
 Specs: [docs/specs](../../docs/specs/).
@@ -8,7 +8,7 @@ Specs: [docs/specs](../../docs/specs/).
 ## Install
 
 ```bash
-go get github.com/b4moss/ss-cachian@v0.9.0
+go get github.com/b4moss/ss-cachian@v0.10.0
 ```
 
 Requires **Go 1.26+**.

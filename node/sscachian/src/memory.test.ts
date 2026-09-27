@@ -56,6 +56,22 @@ test("memory purgeExact", async () => {
   await assert.rejects(() => s.purgeExact(""), ErrEmptyKey);
 });
 
+test("memory purgePrefix", async () => {
+  const s = newMemoryStore();
+  await s.set("prefix:1", { value: 1, createdAt: new Date(), expiresAt: null }, 0);
+  await s.set("prefix:2", { value: 2, createdAt: new Date(), expiresAt: null }, 0);
+  await s.set("prefix:__version__", { value: 9, createdAt: new Date(), expiresAt: null }, 0);
+  await s.set("prefix:extra", { value: 4, createdAt: new Date(), expiresAt: null }, 0);
+  await s.set("other:1", { value: 3, createdAt: new Date(), expiresAt: null }, 0);
+  await s.purgePrefix("prefix");
+  assert.equal((await s.get("prefix:1")).hit, false);
+  assert.equal((await s.get("prefix:2")).hit, false);
+  assert.equal((await s.get("prefix:__version__")).hit, false);
+  assert.equal((await s.get("prefix:extra")).hit, false);
+  assert.equal((await s.get("other:1")).hit, true);
+  await assert.rejects(() => s.purgePrefix(""), ErrEmptyKey);
+});
+
 test("isVersionDataKey", () => {
   assert.equal(isVersionDataKey("p", "p:1"), true);
   assert.equal(isVersionDataKey("p", "p:12"), true);
