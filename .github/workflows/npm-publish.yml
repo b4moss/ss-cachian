@@ -79,4 +79,8 @@ jobs:
         run: npm version "${{ steps.ver.outputs.version }}" --no-git-tag-version --allow-same-version
 
       - name: Publish (Trusted Publisher / OIDC)
+        # setup-node with registry-url may inject NODE_AUTH_TOKEN from org secrets;
+        # that bypasses OIDC Trusted Publisher and often yields npm E404.
+        env:
+          NODE_AUTH_TOKEN: ""
         run: npm publish --access public --provenance
