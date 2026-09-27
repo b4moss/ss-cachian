@@ -2,8 +2,9 @@
 
 TypeScript / JavaScript port of [ss-cachian](https://github.com/b4moss/ss-cachian).
 
-Semantics match the Go package at `go/sscachian` (**v0.7.0** PoC): versioned keys, multilayer
-write-back, Exact Purge, Memory and Firestore drivers. Specs: [docs/specs](../../docs/specs/).
+Semantics match the Go package at `go/sscachian` (**v0.9.0**): versioned keys, multilayer
+write-back, Exact Purge, Memory / Firestore drivers, and **config-driven** `loadTypes`.
+Specs: [docs/specs](../../docs/specs/).
 
 ## Install
 
@@ -24,6 +25,17 @@ const cache = define<string>("users")
 const kc = { appSlug: "app", tenantId: "t1", queryType: "user" };
 await cache.set(kc, "alice");
 const got = await cache.get(kc); // { ok: true, value: "alice" }
+```
+
+### Config-driven (v0.9.0)
+
+```ts
+import { createRegistry, loadTypes } from "@b4moss/ss-cachian";
+
+const reg = createRegistry();
+reg.registerLoader("load_users", async () => "alice");
+const types = await loadTypes(reg, "./sscachian.yaml");
+const cache = types.get("users");
 ```
 
 Firestore (Emulator / GCP):

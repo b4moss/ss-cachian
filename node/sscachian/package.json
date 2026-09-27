@@ -1,7 +1,7 @@
 {
   "name": "@b4moss/ss-cachian",
-  "version": "0.8.0",
-  "description": "Server-side cache strategy library (TypeScript/JavaScript). Go v0.7.0 semantics parity.",
+  "version": "0.9.0",
+  "description": "Server-side cache strategy library (TypeScript/JavaScript). Config-driven Cache Types (v0.9.0) with Go parity.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -49,10 +49,11 @@
     "versioned-cache"
   ],
   "devDependencies": {
-    "@types/node": "^22.13.10",
+    "@types/node": "^22.20.4",
     "typescript": "^5.8.2"
   },
   "dependencies": {
-    "@google-cloud/firestore": "^7.11.6"
+    "@google-cloud/firestore": "^7.11.6",
+    "yaml": "^2.7.0"
   }
 }

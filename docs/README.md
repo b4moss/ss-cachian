@@ -9,8 +9,8 @@ timestamp: 2026-09-27T05:56:00Z
 # ss-cachian
 
 サーバーサイドのキャッシュ戦略ライブラリ。  
-**Phase 1 PoC 完了（v0.7.0）** — コード正本は `go/sscachian`（モジュール `github.com/b4moss/ss-cachian`、`VERSION=0.7.0`）。  
-**Phase 2 v0.8.0 完了** — Node（`node/sscachian` / `@b4moss/ss-cachian@0.8.0`）は Go v0.7.0 パリティ実装済み（CacheType / Memory / Firestore / Exact Purge）。
+**Phase 1 PoC 完了（v0.7.0）** — コード正本は `go/sscachian`（モジュール `github.com/b4moss/ss-cachian`）。  
+**Phase 2** — Node（`@b4moss/ss-cachian@0.9.0`）パリティ済み。**v0.9.0** で設定ファイル駆動（YAML/JSON `LoadTypes`）を追加。
 
 OKF の版索引は [index.md](./index.md)（`okf_version` のみ）。本文の pillar 正本は本ファイル。
 
@@ -24,8 +24,8 @@ ss-cachian は、単一キャッシュストアの薄い抽象ではない。
 
 ## スコープ
 
-- やること: Cache Type による多層キャッシュ、Version 第1級 invalidate、Exact Purge、Driver（memory / Firestore ほか）
-- やらぬこと（現行）: SWR / SIE / negative cache、Purge Prefix/Tag、分散 L1 無効化（後続は [roadmap](./roadmap.md) / [plans](./plans/)）。設定ファイル駆動は **v0.9.0**。
+- やること: Cache Type による多層キャッシュ、Version 第1級 invalidate、Exact Purge、Driver（memory / Firestore ほか）、設定ファイル駆動（v0.9.0）
+- やらぬこと（現行）: SWR / SIE / negative cache、Purge Prefix/Tag、分散 L1 無効化（後続は [roadmap](./roadmap.md) / [plans](./plans/)）。
 
 ### 中心概念
 
