@@ -1,23 +1,28 @@
 ---
 type: TestSpec
 title: cache-type テスト仕様
-description: Define/Build・Key・読み書き API（v0.3.0・単一 L1）。正常≈3 / 異常≈3〜5。
-tags: [tests, cache-type, v0.3.0]
-timestamp: 2026-09-27T01:40:00Z
+description: Define/Build・Key・読み書き API。Go v0.3.0 導入・Node v0.8.0 再適用。正常≈3 / 異常≈3〜5。
+tags: [tests, cache-type, v0.3.0, v0.8.0, node]
+timestamp: 2026-09-27T04:23:00Z
 ---
 
 # cache-type
 
-対象: `go/sscachian` 公開 API（単一インメモリ L1）  
-前提: [api](../../api.md) / [behavior](../../behavior.md)  
-この版では多層・Purge・Firestore は対象外。
+対象:
+
+- Go: `go/sscachian` 公開 API
+- Node: `node/sscachian` 公開 API（`define` / `Builder` / `CacheType`）
+
+前提: [api](../../api.md) / [behavior](../../behavior.md) / [tests 索引（Node 差分）](../README.md)
+
+意味論は Go / Node 同一。Node はすべて `async`。単一 L1 のケースは Memory で検証し、多層は [layer](../layer/) を参照。
 
 ---
 
 ### Build / Define
 
 - Cache Type を Define し、Layer・KeyBuilder・Policy/TTL・Loader をオプションで付与して Build する。
-- v0.3.0 は Layer 1 本（memory）を前提とする。
+- 単一 Layer（memory）を前提とするケースと、多層ケースを分ける（多層は layer ドメイン）。
 
 #### テスト：正常系
 
@@ -54,7 +59,7 @@ timestamp: 2026-09-27T01:40:00Z
 
 ### Get
 
-- 最新 version のデータキーだけを L1 から読む。
+- 最新 version のデータキーだけを L1 から読む（単一 Layer 前提。多層は layer）。
 - 戻りは `value` のみ（Entry メタは露出しない）。
 - 必要なら先に current-version を初期化（未作成→1）。
 
@@ -62,12 +67,12 @@ timestamp: 2026-09-27T01:40:00Z
 
 - Set 済みの最新キーを Get すると同じ値が返る
 - 初回 Get（version 未作成・データなし）では `__version__=1` が作られ、データは Miss
-- Miss 時は「値なし」が分かり、パニックしない（ok=false または専用エラー。実装で一方に固定）
+- Miss 時は「値なし」が分かり、パニック／未処理例外にしない（ok=false または専用エラー。実装で一方に固定）
 
 #### テスト: 異常系
 
 - L1 Get 失敗時はエラーを返す
-- 保存型と取り出し型が不一致のときエラーになる（generics / 型アサーション失敗）
+- 保存型と取り出し型が不一致のときエラーになる（Go: generics / 型アサーション。Node: 実行時の型ガードまたはデコード失敗）
 - 文脈不正でキーが組めないときエラーになる
 
 ---
@@ -104,7 +109,7 @@ timestamp: 2026-09-27T01:40:00Z
 
 #### テスト: 異常系
 
-- データが無くても Delete は成功扱いで Bump する、または no-op+Bump なし（**PoC: 冪等 Delete 成功 + Bump する**）
+- データが無くても Delete は成功扱いで Bump する（**PoC: 冪等 Delete 成功 + Bump する**）
 - L1 Delete 失敗時は Bump しない
 - 文脈不正ではエラー
 
@@ -113,9 +118,8 @@ timestamp: 2026-09-27T01:40:00Z
 ### GetOrLoad
 
 - Get して Hit ならその値を返す。
-- Miss なら Loader を呼び、成功したら L1 に書き戻して値を返す（**この版の書き戻し先は L1 のみ**）。
-- Loader 成功後の Set と同様、書き込み成功後に自動 Bump するかは「キャッシュ充填」と「明示 Set」で分けてよい。  
-  **PoC: GetOrLoad の書き戻しは Bump しない**（読み取り充填のみ。Mutation の Set/Delete だけ自動 Bump）。
+- Miss なら Loader を呼び、成功したら L1 に書き戻して値を返す（単一 Layer 前提の書き戻し先は L1）。
+- **GetOrLoad の書き戻しは Bump しない**（読み取り充填のみ。Mutation の Set/Delete だけ自動 Bump）。
 
 #### テスト：正常系
 

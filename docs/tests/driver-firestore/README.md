@@ -1,36 +1,40 @@
 ---
 type: TestSpec
 title: driver-firestore テスト仕様
-description: Firestore Layer（v0.5.0・Emulator）。正常≈3 / 異常≈3〜5。
-tags: [tests, driver-firestore, v0.5.0]
-timestamp: 2026-09-27T02:10:00Z
+description: Firestore Layer（Emulator）。Go v0.5.0 導入・Node v0.8.0 再適用。正常≈3 / 異常≈3〜5。
+tags: [tests, driver-firestore, v0.5.0, v0.8.0, node]
+timestamp: 2026-09-27T04:23:00Z
 ---
 
 # driver-firestore
 
-対象: `go/sscachian/driver/firestore`  
-前提: [drivers](../../drivers.md) / [behavior](../../behavior.md)  
-実行: Firestore Emulator（`FIRESTORE_EMULATOR_HOST`）。CI / compose で起動する。
+対象:
+
+- Go: `go/sscachian/driver/firestore`
+- Node: `node/sscachian` の Firestore ドライバ（`@google-cloud/firestore`）
+
+前提: [drivers](../../drivers.md) / [behavior](../../behavior.md) / [tests 索引（Node 差分）](../README.md)  
+実行: Firestore Emulator（`FIRESTORE_EMULATOR_HOST`）。Go は既存 `test-go`、Node は `test-node` で起動する。
 
 ドキュメント:
 
 - 1 キャッシュキー = 1 ドキュメント
-- フィールド: `value`（JSON バイト）、`created_at`、`expires_at`
+- フィールド: `value`（JSON）、`created_at`、`expires_at`
 - TTL は Get 時に `expires_at` 判定（ネイティブ TTL ポリシーは使わない）
 - ドキュメント ID: キー文字列をそのまま使う（使用不可文字があれば URL セーフにエンコードして固定）
 
-PoC 固定:
+固定セマンティクス:
 
-- `Incr` 未作成 → **0+1 → 1**（トランザクション）
-- `value` は JSON。アプリ型 `T` への復元は CacheType 側。Driver は `[]byte` またはデコード済み `any` を Entry.Value に載せる（**PoC: Entry.Value はデコード後の `any`（map/slice/スカラー）。CacheType が JSON 経由で T に合わせる場合は Driver が `json.RawMessage`/`[]byte` を返し CacheType が Unmarshal — 実装は「Driver が JSON 往復し、Get 時は `json.Unmarshal` して `any`」で固定**）
-- nil value の Set は空 JSON `null` として保存可
+- `Incr` 未作成 → **0+1 → 1**（トランザクション。Aborted はリトライ）
+- Driver は JSON 往復し、Get 時はデコードして Entry.Value に載せる
+- null value の Set は JSON `null` として保存可
 
 ---
 
 ### Get
 
 - ドキュメントを読み Entry を返す。
-- `expires_at` が過去なら Miss（ドキュメント削除はしてもよい／しなくてもよい。**PoC: 論理 Miss とし、削除は必須としない**）。
+- `expires_at` が過去なら Miss（**論理 Miss とし、削除は必須としない**）。
 
 #### テスト：正常系
 
@@ -41,7 +45,7 @@ PoC 固定:
 #### テスト: 異常系
 
 - 空キーは ErrEmptyKey
-- `value` が壊れた JSON でもパニックせずエラーまたは Miss
+- `value` が壊れた JSON でもパニック／未処理例外にせずエラーまたは Miss
 - Emulator 未接続などクライアントエラーは error として返す
 
 ---
@@ -62,7 +66,7 @@ PoC 固定:
 
 - 空キーはエラー
 - 負の TTL は ErrNegativeTTL
-- JSON 化できない値（chan 等）はエラー
+- JSON 化できない値はエラー（Node: BigInt や循環参照など）
 
 ---
 
@@ -88,7 +92,7 @@ PoC 固定:
 
 - トランザクションで整数カウンタを +1。
 - 未作成は 1。既存 n は n+1。
-- 値は Entry 互換で格納（整数フィールドまたは value JSON 内の整数。**PoC: `value` に JSON 数値として保持**）。
+- 値は `value` に JSON 数値として保持。
 
 #### テスト：正常系
 
@@ -100,13 +104,13 @@ PoC 固定:
 
 - 空キーはエラー
 - 整数以外が格納されているキーへ Incr すると ErrNotInteger
-- MaxInt64 付近は ErrIncrOverflow
+- Number.MAX_SAFE_INTEGER / MaxInt64 付近は ErrIncrOverflow（実装の上限に合わせて固定）
 
 ---
 
-### PurgeExact（v0.7.0）
+### PurgeExact
 
-- `PurgeExact(ctx, logicalPrefix)` はコレクション内のドキュメント ID が `{logicalPrefix}:{n}`（n≥1 の数字）のものだけ削除する。
+- `PurgeExact(..., logicalPrefix)` はコレクション内のドキュメント ID が `{logicalPrefix}:{n}`（n≥1 の数字）のものだけ削除する。
 - `{logicalPrefix}:__version__` および別プレフィックスは残す。
 - 対象が無くても成功（冪等）。Emulator 上で検証する。
 

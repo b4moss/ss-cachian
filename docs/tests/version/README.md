@@ -1,15 +1,19 @@
 ---
 type: TestSpec
 title: version テスト仕様
-description: current-version / Bump / 初回 Get（v0.3.0）。正常≈3 / 異常≈3〜5。
-tags: [tests, version, v0.3.0]
-timestamp: 2026-09-27T01:40:00Z
+description: current-version / Bump / 初回 Get。Go v0.3.0 導入・Node v0.8.0 再適用。正常≈3 / 異常≈3〜5。
+tags: [tests, version, v0.3.0, v0.8.0, node]
+timestamp: 2026-09-27T04:23:00Z
 ---
 
 # version
 
-対象: Cache Type の Version まわり（L1 = インメモリ前提）  
-前提: [behavior](../../behavior.md)  
+対象:
+
+- Go: Cache Type の Version まわり（L1 = インメモリ前提）
+- Node: 同 API（`currentVersion` / `bumpVersion` 等。公開名は実装で Go と同型に揃える）
+
+前提: [behavior](../../behavior.md) / [tests 索引（Node 差分）](../README.md)  
 キー例: `{app}:cache:{tenant}:{query}:__version__`  
 初回: `__version__` 未作成なら **1** を L1 に作成する。
 
@@ -64,7 +68,7 @@ timestamp: 2026-09-27T01:40:00Z
 
 - 未作成時に呼ばれると `__version__=1` が作られ、戻りは 1
 - 既存 5 のときは 5 のまま（Set し直さない）
-- 複数ゴルーチンから同時に呼んでも最終的に有効な正の整数が残る（競合負け許容）
+- 複数の並行呼び出しから同時に呼んでも最終的に有効な正の整数が残る（競合負け許容。Go: ゴルーチン / Node: `Promise.all`）
 
 #### テスト: 異常系
 

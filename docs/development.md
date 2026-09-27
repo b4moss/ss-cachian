@@ -36,7 +36,7 @@ docs/                   # 知識バンドル正本
 
 - 先行実装は **Go 1.26**（Phase 1 PoC 完了 / v0.7.0）。
 - Go 公開面は `go/sscachian`。Driver は `go/sscachian/driver/...`。
-- Node 公開面は `node/sscachian`（npm: `@b4moss/ss-cachian`）。TS 実装は後続。
+- Node 公開面は `node/sscachian`（npm: `@b4moss/ss-cachian`）。v0.8.0 で Go パリティ実装（計画・テスト仕様は [plans/v0.8.0](./plans/v0.8.0/) / [tests](./tests/)）。
 
 ## 開発環境（devcontainer）
 
