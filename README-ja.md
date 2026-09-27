@@ -7,7 +7,7 @@
 
 サーバーサイドの **キャッシュ戦略** ライブラリです。アプリケーションが **Cache Type** を宣言し、ライブラリが複数の保存先（**Layer**）にまたがって実行します。
 
-単一ストアの薄い抽象ではありません。キー生成・TTL・多層書き戻し・Version 無効化・Exact Purge といった「どうキャッシュするか」を型として持ちます。
+単一ストアの薄い抽象ではありません。キー生成・TTL・多層書き戻し・Version 無効化・Exact/Prefix/Tag Purge といった「どうキャッシュするか」を型として持ちます。
 
 - [English README (default)](./README.md)
 
@@ -18,9 +18,10 @@
 | 機能 | 内容 |
 |------|------|
 | **Cache Type API** | `Define` / `define` → Layer・KeyBuilder・TTL・任意 Loader → Get / Set / Delete / GetOrLoad / Purge |
-| **Version キー** | current-version は L1。Mutation で Bump。`GetOrLoad` の充填は Bump しない |
+| **便利 API（v0.10.0）** | `Has` / `Exists` / `GetEntry` / `Forget` / `Remember` / `RememberForever` |
+| **Version キー** | current-version は L1。Mutation で Bump。`GetOrLoad` / `Remember` の充填は Bump しない |
 | **多層** | L1→L2→…。下位 hit / Loader 成功時は上位へ書き戻し |
-| **Exact Purge** | 論理プレフィックスの version データキーを削除。`__version__` は残す |
+| **Purge（v0.10.0）** | Exact（`Purge` / `PurgeExact`）、Prefix（先頭一致）、Tag（L1 索引 → Exact） |
 | **Driver** | **memory** / **Firestore**（`FIRESTORE_EMULATOR_HOST` 対応） |
 | **設定駆動（v0.9.0）** | YAML（正）または同等 JSON → `LoadTypes` / `loadTypes` |
 

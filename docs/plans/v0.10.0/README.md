@@ -3,16 +3,16 @@ type: Plan
 title: v0.10.0 Purge 拡張と便利 API
 description: PurgePrefix/Tag と Has/GetEntry/Remember 系を同一マイルストーンで実装する。Go / Node パリティ。
 tags: [plan, phase2, v0.10.0]
-timestamp: 2026-09-27T08:05:00Z
+timestamp: 2026-09-27T09:27:00Z
 ---
 
 # v0.10.0 Purge 拡張 ＋ 便利読み書き API
 
-- **状態:** 実装済み（`dev-v0.10.0` 向け。タグ / npm は main 昇格後）
+- **状態:** 完了（タグ `v0.10.0` + npm `@b4moss/ss-cachian@0.10.0`）
 - **マイルストーン:** v0.10.0（[roadmap](../../roadmap.md) Phase 2）
 - **作業ブランチ:** `dev-v0.10.0` → `develop` → `main`
 - **テスト仕様:** [tests/purge](../../tests/purge/) / [tests/cache-type](../../tests/cache-type/) / driver PurgePrefix 節
-- **意味論正本（実装後）:** [specs/purge](../../specs/purge/) / [specs/cache-type](../../specs/cache-type/) / [specs/layer](../../specs/layer/)
+- **意味論正本:** [specs/purge](../../specs/purge/) / [specs/cache-type](../../specs/cache-type/) / [specs/layer](../../specs/layer/)
 
 ## 目的
 
@@ -57,15 +57,15 @@ YAML 変更なし。タグ付き書き込みは下記 Tags。
 ## 作業順（TDD）
 
 1. ~~テスト仕様~~ — 済
-2. Layer `PurgePrefix`（memory + firestore）
-3. CacheType: 便利 API → `PurgePrefix` / `PurgeExact` → タグ索引 + `PurgeTag`
-4. specs 更新（purge / cache-type / layer）
-5. `VERSION` / `package.json` = `0.10.0`
-6. 昇格: `dev-v0.10.0` → `develop` → `main` → タグ / npm（承認後）
+2. ~~Layer `PurgePrefix`（memory + firestore）~~ — 済
+3. ~~CacheType: 便利 API → `PurgePrefix` / `PurgeExact` → タグ索引 + `PurgeTag`~~ — 済
+4. ~~specs 更新（purge / cache-type / layer）~~ — 済
+5. ~~`VERSION` / `package.json` = `0.10.0`~~ — 済
+6. ~~昇格: `dev-v0.10.0` → `develop` → `main` → タグ / npm~~ — 済
 
 ## 受け入れ条件
 
 - [x] テスト仕様（purge 拡張 ＋ cache-type 便利 API）
 - [x] Go / Node Green・パリティ
 - [x] Exact Purge / config LoadTypes 回帰なし
-- [x] `VERSION` / package = `0.10.0`（タグ・npm は main 昇格後）
+- [x] `VERSION` / package = `0.10.0`（タグ `v0.10.0` + npm 公開済み）
