@@ -8,7 +8,7 @@ timestamp: 2026-09-27T02:37:00Z
 
 # v0.7.0 Purge・PoC 締め
 
-- **状態:** テスト仕様作成中
+- **状態:** 実装完了（`dev-v0.7.0`・テスト Green）
 - **マイルストーン:** v0.7.0（[roadmap](../../roadmap.md)）
 - **作業ブランチ:** `dev-v0.7.0` → PR → `develop` → `main`
 - **方針正本:** [poc-pre-impl-decisions.md](./poc-pre-impl-decisions.md)
@@ -32,8 +32,8 @@ Exact Purge（全 version データ削除・`__version__` 非接触）を実装�
 
 ## 受け入れ条件
 
-- [ ] `docs/tests/purge` 本文あり
-- [ ] memory + firestore で Exact Purge Green
-- [ ] 多層・既存テスト Green / `make lint test`
-- [ ] `VERSION` = `0.7.0`（タグは main マージ時）
-- [ ] PoC 最小成功条件（Define + Get/Set + Bump + Exact Purge）を満たす
+- [x] `docs/tests/purge` 本文あり
+- [x] memory + firestore で Exact Purge Green
+- [x] 多層・既存テスト Green / `make lint test`
+- [x] `VERSION` = `0.7.0`（タグは main マージ時）
+- [x] PoC 最小成功条件（Define + Get/Set + Bump + Exact Purge）を満たす
