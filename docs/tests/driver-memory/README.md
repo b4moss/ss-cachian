@@ -90,3 +90,23 @@ Entry 形: `{ value, created_at, expires_at }`。値は `any`。TTL は Get 時�
 - 空キーで Incr するとエラーになる
 - 整数以外が格納されているキーへ Incr するとエラーになる
 - オーバーフローしうる極大値付近ではエラーまたはラップを契約どおりに扱う（PoC は error でよい）
+
+---
+
+### PurgeExact（v0.7.0）
+
+- `PurgeExact(ctx, logicalPrefix)` は `{logicalPrefix}:{n}`（n が 1 以上の数字）のエントリだけ削除する。
+- `{logicalPrefix}:__version__` および別プレフィックスのキーは残す。
+- 対象が無くても成功（冪等）。mutex 下で map を走査する。
+
+#### テスト：正常系
+
+- `prefix:1` / `prefix:2` / `prefix:__version__` があるとき PurgeExact 後、数字キーだけ Miss で `__version__` は Hit
+- 別プレフィックス `other:1` は影響を受けない
+- 対象キーが無い状態でもエラーにならない
+
+#### テスト: 異常系
+
+- 空の logicalPrefix は ErrEmptyKey
+- 並行に Set と PurgeExact してもパニックしない
+- `prefix:__version__` だけがあるときも `__version__` は残る
