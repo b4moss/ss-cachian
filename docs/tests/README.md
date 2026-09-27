@@ -14,7 +14,7 @@
 | cache-type | [cache-type/](./cache-type/) | v0.3.0 | 本文あり |
 | layer | [layer/](./layer/) | v0.5.0 | 本文あり |
 | driver-firestore | [driver-firestore/](./driver-firestore/) | v0.5.0 | 本文あり |
-| purge | `purge/` | v0.7.0 | 未着手 |
+| purge | [purge/](./purge/) | v0.7.0 | 本文あり |
 
 ## v0.3.0 で決めた PoC 固定
 
@@ -31,3 +31,9 @@
 - Layer TTL は `WithLayerTTLs`（不足分は 0）。負の TTL は Build 時拒否
 - Firestore: 1キー1doc、`value` JSON、読み時 TTL。Incr はトランザクション。期限切れは論理 Miss（削除は必須でない）
 - Firestore ドキュメント ID はキー文字列（必要ならエンコードを実装で固定）
+
+## v0.7.0 で決めた PoC 固定
+
+- アプリ `Purge` = Exact（全 version データキー削除）。Layer メソッドは `PurgeExact`
+- `{prefix}:__version__` は残す・進めない。数字サフィックスのキーだけ削除
+- デフォルト全 Layer。`layerIdx ...int` で絞り込み。失敗方針は Delete と同型（L1 エラー / L2+ ログ）
