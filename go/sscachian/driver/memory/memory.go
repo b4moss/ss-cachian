@@ -109,5 +109,19 @@ func (s *Store) Incr(_ context.Context, key string) (int64, error) {
 	return n, nil
 }
 
+func (s *Store) PurgeExact(_ context.Context, logicalPrefix string) error {
+	if logicalPrefix == "" {
+		return sscachian.ErrEmptyKey
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for k := range s.m {
+		if sscachian.IsVersionDataKey(logicalPrefix, k) {
+			delete(s.m, k)
+		}
+	}
+	return nil
+}
+
 // Interface guard.
 var _ sscachian.Layer = (*Store)(nil)

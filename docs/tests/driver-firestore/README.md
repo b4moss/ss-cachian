@@ -101,3 +101,23 @@ PoC 固定:
 - 空キーはエラー
 - 整数以外が格納されているキーへ Incr すると ErrNotInteger
 - MaxInt64 付近は ErrIncrOverflow
+
+---
+
+### PurgeExact（v0.7.0）
+
+- `PurgeExact(ctx, logicalPrefix)` はコレクション内のドキュメント ID が `{logicalPrefix}:{n}`（n≥1 の数字）のものだけ削除する。
+- `{logicalPrefix}:__version__` および別プレフィックスは残す。
+- 対象が無くても成功（冪等）。Emulator 上で検証する。
+
+#### テスト：正常系
+
+- `prefix:1` / `prefix:2` / `prefix:__version__` があるとき PurgeExact 後、数字キーだけ Miss で `__version__` は Hit
+- 別プレフィックス `other:1` は影響を受けない
+- 対象ドキュメントが無い状態でもエラーにならない
+
+#### テスト: 異常系
+
+- 空の logicalPrefix は ErrEmptyKey
+- クライアントエラーは error として返す
+- `__version__` ドキュメントだけがあるときも残る

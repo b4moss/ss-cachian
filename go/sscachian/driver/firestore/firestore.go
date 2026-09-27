@@ -129,44 +129,56 @@ func (s *Store) Incr(ctx context.Context, key string) (int64, error) {
 	}
 	ref := s.doc(key)
 	var out int64
-	err := s.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		snap, err := tx.Get(ref)
-		var n int64
-		if err != nil {
-			if status.Code(err) != codes.NotFound {
-				return err
-			}
-			n = 0
-		} else {
-			var f docFields
-			if err := snap.DataTo(&f); err != nil {
-				return err
-			}
-			var val any
-			if err := json.Unmarshal(f.Value, &val); err != nil {
-				return sscachian.ErrNotInteger
-			}
-			parsed, err := asInt64(val)
+	var last error
+	for attempt := 0; attempt < 8; attempt++ {
+		out = 0
+		err := s.client.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
+			snap, err := tx.Get(ref)
+			var n int64
 			if err != nil {
-				return sscachian.ErrNotInteger
+				if status.Code(err) != codes.NotFound {
+					return err
+				}
+				n = 0
+			} else {
+				var f docFields
+				if err := snap.DataTo(&f); err != nil {
+					return err
+				}
+				var val any
+				if err := json.Unmarshal(f.Value, &val); err != nil {
+					return sscachian.ErrNotInteger
+				}
+				parsed, err := asInt64(val)
+				if err != nil {
+					return sscachian.ErrNotInteger
+				}
+				n = parsed
 			}
-			n = parsed
-		}
-		if n == math.MaxInt64 {
-			return sscachian.ErrIncrOverflow
-		}
-		n++
-		out = n
-		raw, err := json.Marshal(n)
-		if err != nil {
-			return err
-		}
-		return tx.Set(ref, docFields{
-			Value:     raw,
-			CreatedAt: time.Now().UTC(),
+			if n == math.MaxInt64 {
+				return sscachian.ErrIncrOverflow
+			}
+			n++
+			out = n
+			raw, err := json.Marshal(n)
+			if err != nil {
+				return err
+			}
+			return tx.Set(ref, docFields{
+				Value:     raw,
+				CreatedAt: time.Now().UTC(),
+			})
 		})
-	})
-	return out, err
+		if err == nil {
+			return out, nil
+		}
+		last = err
+		if status.Code(err) != codes.Aborted {
+			return 0, err
+		}
+		time.Sleep(time.Duration(attempt+1) * 5 * time.Millisecond)
+	}
+	return 0, last
 }
 
 func asInt64(v any) (int64, error) {
@@ -181,6 +193,29 @@ func asInt64(v any) (int64, error) {
 		return n.Int64()
 	}
 	return 0, sscachian.ErrNotInteger
+}
+
+func (s *Store) PurgeExact(ctx context.Context, logicalPrefix string) error {
+	if logicalPrefix == "" {
+		return sscachian.ErrEmptyKey
+	}
+	iter := s.client.Collection(s.collection).Documents(ctx)
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		if !sscachian.IsVersionDataKey(logicalPrefix, doc.Ref.ID) {
+			continue
+		}
+		if _, err := doc.Ref.Delete(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ClearCollection deletes all docs (tests only).
