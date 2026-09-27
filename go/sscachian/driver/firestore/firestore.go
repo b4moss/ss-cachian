@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"strings"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -209,6 +210,29 @@ func (s *Store) PurgeExact(ctx context.Context, logicalPrefix string) error {
 			return err
 		}
 		if !sscachian.IsVersionDataKey(logicalPrefix, doc.Ref.ID) {
+			continue
+		}
+		if _, err := doc.Ref.Delete(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *Store) PurgePrefix(ctx context.Context, prefix string) error {
+	if prefix == "" {
+		return sscachian.ErrEmptyKey
+	}
+	iter := s.client.Collection(s.collection).Documents(ctx)
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		if !strings.HasPrefix(doc.Ref.ID, prefix) {
 			continue
 		}
 		if _, err := doc.Ref.Delete(ctx); err != nil {

@@ -454,3 +454,109 @@ func TestGetOrLoad_WriteBackFailureStillReturns(t *testing.T) {
 		t.Fatalf("v=%q err=%v", v, err)
 	}
 }
+
+func TestHasExists_GetEntry_Forget(t *testing.T) {
+	t.Parallel()
+	ct := newStringCache(t, func(b *sscachian.Builder[string]) { b.WithLayerTTL(time.Hour) })
+	ctx := context.Background()
+	kc := sampleKC()
+
+	ok, err := ct.Has(ctx, kc)
+	if err != nil || ok {
+		t.Fatalf("has miss: ok=%v err=%v", ok, err)
+	}
+	ex, err := ct.Exists(ctx, kc)
+	if err != nil || ex {
+		t.Fatalf("exists miss: ok=%v err=%v", ex, err)
+	}
+	if _, hit, err := ct.GetEntry(ctx, kc); err != nil || hit {
+		t.Fatalf("getentry miss: hit=%v err=%v", hit, err)
+	}
+
+	if err := ct.Set(ctx, kc, "v"); err != nil {
+		t.Fatal(err)
+	}
+	ok, err = ct.Has(ctx, kc)
+	if err != nil || !ok {
+		t.Fatalf("has hit: ok=%v err=%v", ok, err)
+	}
+	ex, err = ct.Exists(ctx, kc)
+	if err != nil || !ex {
+		t.Fatalf("exists hit: ok=%v err=%v", ex, err)
+	}
+	ce, hit, err := ct.GetEntry(ctx, kc)
+	if err != nil || !hit || ce.Value != "v" || ce.CreatedAt.IsZero() || ce.ExpiresAt.IsZero() {
+		t.Fatalf("entry=%+v hit=%v err=%v", ce, hit, err)
+	}
+
+	before, _ := ct.CurrentVersion(ctx, kc)
+	if err := ct.Forget(ctx, kc); err != nil {
+		t.Fatal(err)
+	}
+	after, _ := ct.CurrentVersion(ctx, kc)
+	if after <= before {
+		t.Fatalf("forget should bump: before=%d after=%d", before, after)
+	}
+	if ok, _ := ct.Has(ctx, kc); ok {
+		t.Fatal("should miss after forget")
+	}
+}
+
+func TestRemember_HitMissAndForever(t *testing.T) {
+	t.Parallel()
+	var loads int32
+	loader := func(ctx context.Context, kc sscachian.KeyContext) (string, error) {
+		atomic.AddInt32(&loads, 1)
+		return "loaded", nil
+	}
+	ct := newStringCache(t)
+	ctx := context.Background()
+	kc := sampleKC()
+
+	v, err := ct.Remember(ctx, kc, time.Hour, loader)
+	if err != nil || v != "loaded" || atomic.LoadInt32(&loads) != 1 {
+		t.Fatalf("v=%q loads=%d err=%v", v, loads, err)
+	}
+	before, _ := ct.CurrentVersion(ctx, kc)
+	v, err = ct.Remember(ctx, kc, time.Hour, loader)
+	if err != nil || v != "loaded" || atomic.LoadInt32(&loads) != 1 {
+		t.Fatalf("hit: v=%q loads=%d err=%v", v, loads, err)
+	}
+	after, _ := ct.CurrentVersion(ctx, kc)
+	if after != before {
+		t.Fatalf("remember must not bump: %d→%d", before, after)
+	}
+	ce, hit, _ := ct.GetEntry(ctx, kc)
+	if !hit || ce.ExpiresAt.IsZero() {
+		t.Fatalf("ttl should set expires_at: %+v", ce)
+	}
+
+	ct2 := newStringCache(t)
+	v, err = ct2.RememberForever(ctx, kc, loader)
+	if err != nil || v != "loaded" {
+		t.Fatalf("forever: v=%q err=%v", v, err)
+	}
+	ce, hit, _ = ct2.GetEntry(ctx, kc)
+	if !hit || !ce.ExpiresAt.IsZero() {
+		t.Fatalf("forever should have zero expires: %+v", ce)
+	}
+}
+
+func TestRemember_Errors(t *testing.T) {
+	t.Parallel()
+	ct := newStringCache(t)
+	ctx := context.Background()
+	kc := sampleKC()
+	if _, err := ct.Remember(ctx, kc, -time.Second, nil); !errors.Is(err, sscachian.ErrNegativeTTL) {
+		t.Fatalf("neg ttl: %v", err)
+	}
+	if _, err := ct.Remember(ctx, kc, time.Second, nil); !errors.Is(err, sscachian.ErrNoLoader) {
+		t.Fatalf("nil loader: %v", err)
+	}
+	boom := errors.New("boom")
+	if _, err := ct.Remember(ctx, kc, time.Second, func(ctx context.Context, kc sscachian.KeyContext) (string, error) {
+		return "", boom
+	}); !errors.Is(err, boom) {
+		t.Fatalf("loader err: %v", err)
+	}
+}

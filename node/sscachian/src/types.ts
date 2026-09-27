@@ -48,6 +48,7 @@ export type Layer = {
   delete(key: string, signal?: AbortSignal): Promise<void>;
   incr(key: string, signal?: AbortSignal): Promise<number>;
   purgeExact(logicalPrefix: string, signal?: AbortSignal): Promise<void>;
+  purgePrefix(prefix: string, signal?: AbortSignal): Promise<void>;
 };
 
 /** True when key is `{logicalPrefix}:{digits}` (digits non-empty). */
