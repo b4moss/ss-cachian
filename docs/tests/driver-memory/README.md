@@ -1,9 +1,9 @@
 ---
 type: TestSpec
 title: driver-memory テスト仕様
-description: インメモリ Layer。Go v0.3.0 導入・Node v0.8.0 再適用。正常≈3 / 異常≈3〜5。
-tags: [tests, driver-memory, v0.3.0, v0.8.0, node]
-timestamp: 2026-09-27T05:30:00Z
+description: インメモリ Layer。Go v0.3.0 導入・Node v0.8.0・PurgePrefix v0.10.0。正常≈3 / 異常≈3〜5。
+tags: [tests, driver-memory, v0.3.0, v0.8.0, v0.10.0, node]
+timestamp: 2026-09-27T07:57:34Z
 ---
 
 # driver-memory
@@ -114,3 +114,22 @@ Node: 単一プロセス内の同期 Map + 排他（mutex 相当）。公開メ�
 - 空の logicalPrefix は ErrEmptyKey
 - 並行に Set と PurgeExact してもパニックしない
 - `prefix:__version__` だけがあるときも `__version__` は残る
+
+---
+
+### PurgePrefix
+
+- `PurgePrefix(..., prefix)` はキー（ドキュメント ID）が `prefix` で **始まるすべて**を削除する（数字サフィックス以外・`__version__` も含む）。
+- Exact（`IsVersionDataKey`）より広い。対象が無くても成功（冪等）。空 prefix は `ErrEmptyKey`。
+
+#### テスト：正常系
+
+- `prefix:1` / `prefix:2` / `prefix:__version__` / `prefix:extra` があるとき PurgePrefix(`prefix`) 後はすべて Miss
+- 別先頭 `other:1` は残る。より短い共通先頭（例: `pre`）でも `prefix:…` は消える
+- 対象キーが無い状態でもエラーにならない
+
+#### テスト: 異常系
+
+- 空 prefix は ErrEmptyKey
+- 並行に Set と PurgePrefix してもパニックしない
+-（任意）`prefix` が他キーの途中一致だけでは消さない（**先頭一致のみ**）

@@ -13,13 +13,13 @@
 
 | ドメイン | パス | 導入版 | Go テスト | Node |
 | --- | --- | --- | --- | --- |
-| driver-memory | [driver-memory/](./driver-memory/) | v0.3.0 | `driver/memory/*_test.go` | v0.8.0 適用 |
+| driver-memory | [driver-memory/](./driver-memory/) | v0.3.0 | `driver/memory/*_test.go` | v0.8.0 適用（v0.10.0: PurgePrefix） |
 | version | [version/](./version/) | v0.3.0 | `cache_test.go`（Version 節） | v0.8.0 適用 |
-| cache-type | [cache-type/](./cache-type/) | v0.3.0 | `cache_test.go`（単一 L1） | v0.8.0 適用 |
+| cache-type | [cache-type/](./cache-type/) | v0.3.0 | `cache_test.go`（単一 L1） | v0.8.0 適用（v0.10.0: 便利 API） |
 | layer | [layer/](./layer/) | v0.5.0 | `layer_test.go` | v0.8.0 適用 |
-| driver-firestore | [driver-firestore/](./driver-firestore/) | v0.5.0 | `driver/firestore/*_test.go` | v0.8.0 適用 |
-| purge | [purge/](./purge/) | v0.7.0 | `purge_test.go` + driver PurgeExact | v0.8.0 適用 |
-| config | [config/](./config/) | v0.9.0 | `config*_test.go`（予定） | v0.9.0 適用 |
+| driver-firestore | [driver-firestore/](./driver-firestore/) | v0.5.0 | `driver/firestore/*_test.go` | v0.8.0 適用（v0.10.0: PurgePrefix） |
+| purge | [purge/](./purge/) | v0.7.0 | `purge_test.go` + driver PurgeExact/Prefix | v0.8.0 適用（v0.10.0: Prefix/Tag） |
+| config | [config/](./config/) | v0.9.0 | `config*_test.go` | v0.9.0 適用 |
 
 ## ランタイム差分（Node）
 
@@ -39,3 +39,4 @@
 - Layer TTL は `WithLayerTTLs`（不足分 0）。負 TTL は Build 拒否
 - Firestore: 1キー1doc、読み時 TTL、ドキュメント ID = キー文字列（エンコードなし）。既定 collection `sscachian`
 - `Purge` = Exact。`layerIdx ...int`（重複除去）。`__version__` 非接触。失敗方針は Delete と同型
+- v0.10.0: `PurgePrefix`（先頭一致・`__version__` 含む）/ `PurgeTag`（L1 タグ索引 → Exact）/ 便利 API（`Has`/`Exists`/`GetEntry`/`Forget`/`Remember`/`RememberForever`）。`Remember` 充填は Bump しない
