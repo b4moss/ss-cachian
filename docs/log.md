@@ -2,6 +2,7 @@
 
 ## 2026-09-27
 
+* **Release**: v0.3.0 を `main` にマージし、タグ `v0.3.0` を付与（GitHub Release は作成しない）。
 * **Update**: v0.3.0 実装（インメモリ Layer、Cache Type API、Version）。`make lint test` Green。
 * **Creation**: v0.3.0 向けテスト仕様（`docs/tests/driver-memory` / `version` / `cache-type`）。
 * **Creation**: `docs/plans/v0.3.0/` — コア + インメモリ方針。v0.2.0 は欠番（タグなし）。
