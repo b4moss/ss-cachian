@@ -6,12 +6,21 @@ HOST="${FIRESTORE_EMULATOR_LISTEN:-127.0.0.1}"
 JAR="${FIRESTORE_EMULATOR_JAR:-/tmp/cloud-firestore-emulator.jar}"
 URL="${FIRESTORE_EMULATOR_JAR_URL:-https://storage.googleapis.com/firebase-preview-drop/emulator/cloud-firestore-emulator-v1.19.8.jar}"
 
+port_open() {
+  if command -v nc >/dev/null 2>&1; then
+    nc -z "$HOST" "$PORT" 2>/dev/null
+    return $?
+  fi
+  # Bash /dev/tcp (no nc required)
+  (echo >/dev/tcp/"$HOST"/"$PORT") >/dev/null 2>&1
+}
+
 if [[ ! -f "$JAR" ]]; then
   echo "Downloading Firestore emulator JAR..."
   curl -fsSL "$URL" -o "$JAR"
 fi
 
-if nc -z "$HOST" "$PORT" 2>/dev/null; then
+if port_open; then
   echo "Port $HOST:$PORT already open; assuming emulator is running."
   exit 0
 fi
@@ -22,6 +31,11 @@ echo $! > /tmp/firestore-emu.pid
 for i in $(seq 1 60); do
   if grep -q 'Dev App Server is now running' /tmp/firestore-emu.log 2>/dev/null; then
     echo "Firestore emulator ready (FIRESTORE_EMULATOR_HOST=$HOST:$PORT)"
+    exit 0
+  fi
+  # Bind race: another process claimed the port while we were starting.
+  if port_open && ! kill -0 "$(cat /tmp/firestore-emu.pid 2>/dev/null)" 2>/dev/null; then
+    echo "Port $HOST:$PORT already open; assuming emulator is running."
     exit 0
   fi
   sleep 0.5
