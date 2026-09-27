@@ -10,7 +10,7 @@ timestamp: 2026-09-27T05:56:00Z
 
 サーバーサイドのキャッシュ戦略ライブラリ。  
 **Phase 1 PoC 完了（v0.7.0）** — コード正本は `go/sscachian`（モジュール `github.com/b4moss/ss-cachian`）。  
-**Phase 2** — Node（`@b4moss/ss-cachian@0.9.0`）パリティ済み。**v0.9.0** で設定ファイル駆動（YAML/JSON `LoadTypes`）を追加。
+**Phase 2** — Node（`@b4moss/ss-cachian@0.10.0`）パリティ済み。**v0.9.0** 設定駆動、**v0.10.0** Purge 拡張（Prefix/Tag）＋ 便利 API。
 
 OKF の版索引は [index.md](./index.md)（`okf_version` のみ）。本文の pillar 正本は本ファイル。
 
@@ -24,8 +24,8 @@ ss-cachian は、単一キャッシュストアの薄い抽象ではない。
 
 ## スコープ
 
-- やること: Cache Type による多層キャッシュ、Version 第1級 invalidate、Exact Purge、Driver（memory / Firestore ほか）、設定ファイル駆動（v0.9.0）
-- やらぬこと（現行）: SWR / SIE / negative cache、Purge Prefix/Tag、分散 L1 無効化（後続は [roadmap](./roadmap.md) / [plans](./plans/)）。
+- やること: Cache Type による多層キャッシュ、Version 第1級 invalidate、Exact / Prefix / Tag Purge、便利 API（Has/GetEntry/Remember 等）、Driver（memory / Firestore ほか）、設定ファイル駆動（v0.9.0）
+- やらぬこと（現行）: SWR / SIE / negative cache、分散 L1 無効化、Valkey、PHP（後続は [roadmap](./roadmap.md) / [plans](./plans/)）。
 
 設定ファイルの書き方: [ルート README（英語）](../README.md#config-file-yaml--json) ／ [雛形](./plans/v0.9.0/sscachian.example.yaml) ／ [仕様](./specs/config/) ／ [日本語ルート](../README-ja.md)。
 
@@ -50,7 +50,7 @@ ss-cachian は、単一キャッシュストアの薄い抽象ではない。
 
 - マルチランタイム移植を前提に、言語ごとにトップレベルディレクトリを並べる。
 - 先行実装は **Go 1.26**（`go/sscachian`、Driver は `go/sscachian/driver/...`）。import: `github.com/b4moss/ss-cachian`。
-- Node 公開面は `node/sscachian`（npm: `@b4moss/ss-cachian@0.8.0`）。Go v0.7.0 パリティ実装済み。
+- Node 公開面は `node/sscachian`（npm: `@b4moss/ss-cachian@0.10.0`）。Go パリティ（v0.8.0 以降）。
 - 開発は **devcontainer**（Go 1.26 / Firestore Emulator / `act`）。
 - テストは単体結合（正常系・異常系）。仕様は [tests](./tests/)、方針は [憲章 TDD](./charter/tdd.md)。
 - CI/CD・バッジの詳細は [.github/CI.md](../.github/CI.md)。
@@ -58,7 +58,7 @@ ss-cachian は、単一キャッシュストアの薄い抽象ではない。
 ```text
 go/sscachian/           # Go 公開モジュール
 go/sscachian/driver/    # Driver 実装（memory, firestore, …）
-node/sscachian/         # @b4moss/ss-cachian（v0.8.0 実装済み）
+node/sscachian/         # @b4moss/ss-cachian（v0.10.0）
 docs/                   # 知識バンドル正本（OKF v0.1）
 ```
 
