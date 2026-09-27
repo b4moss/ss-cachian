@@ -3,17 +3,17 @@ type: TestSpec
 title: driver-firestore テスト仕様
 description: Firestore Layer（Emulator）。Go v0.5.0 導入・Node v0.8.0 再適用。正常≈3 / 異常≈3〜5。
 tags: [tests, driver-firestore, v0.5.0, v0.8.0, node]
-timestamp: 2026-09-27T04:23:00Z
+timestamp: 2026-09-27T05:30:00Z
 ---
 
 # driver-firestore
 
 対象:
 
-- Go: `go/sscachian/driver/firestore`
+- Go: `go/sscachian/driver/firestore`（`New` 既定: ProjectID `ss-cachian-dev` / Collection `sscachian`）
 - Node: `node/sscachian` の Firestore ドライバ（`@google-cloud/firestore`）
 
-前提: [drivers](../../drivers.md) / [behavior](../../behavior.md) / [tests 索引（Node 差分）](../README.md)  
+前提: [specs/driver-firestore](../../specs/driver-firestore/) / [specs/layer](../../specs/layer/) / [tests 索引（Node 差分）](../README.md)  
 実行: Firestore Emulator（`FIRESTORE_EMULATOR_HOST`）。Go は既存 `test-go`、Node は `test-node` で起動する。
 
 ドキュメント:
@@ -21,7 +21,7 @@ timestamp: 2026-09-27T04:23:00Z
 - 1 キャッシュキー = 1 ドキュメント
 - フィールド: `value`（JSON）、`created_at`、`expires_at`
 - TTL は Get 時に `expires_at` 判定（ネイティブ TTL ポリシーは使わない）
-- ドキュメント ID: キー文字列をそのまま使う（使用不可文字があれば URL セーフにエンコードして固定）
+- ドキュメント ID: キー文字列をそのまま使う（URL エンコード／サニタイズは現行では行わない）
 
 固定セマンティクス:
 

@@ -3,7 +3,7 @@ type: TestSpec
 title: cache-type テスト仕様
 description: Define/Build・Key・読み書き API。Go v0.3.0 導入・Node v0.8.0 再適用。正常≈3 / 異常≈3〜5。
 tags: [tests, cache-type, v0.3.0, v0.8.0, node]
-timestamp: 2026-09-27T04:23:00Z
+timestamp: 2026-09-27T05:30:00Z
 ---
 
 # cache-type
@@ -13,16 +13,16 @@ timestamp: 2026-09-27T04:23:00Z
 - Go: `go/sscachian` 公開 API
 - Node: `node/sscachian` 公開 API（`define` / `Builder` / `CacheType`）
 
-前提: [api](../../api.md) / [behavior](../../behavior.md) / [tests 索引（Node 差分）](../README.md)
+前提: [specs/cache-type](../../specs/cache-type/) / [specs/version](../../specs/version/) / [tests 索引（Node 差分）](../README.md)
 
-意味論は Go / Node 同一。Node はすべて `async`。単一 L1 のケースは Memory で検証し、多層は [layer](../layer/) を参照。
+意味論は Go / Node 同一。Node はすべて `async`。本スイートは **単一インメモリ L1** で検証。多層は [layer](../layer/)、Purge は [purge](../purge/)、Firestore は [driver-firestore](../driver-firestore/) を参照。
 
 ---
 
 ### Build / Define
 
 - Cache Type を Define し、Layer・KeyBuilder・Policy/TTL・Loader をオプションで付与して Build する。
-- 単一 Layer（memory）を前提とするケースと、多層ケースを分ける（多層は layer ドメイン）。
+- 本スイートは Layer 1 本（memory）を前提とする。多層ケースは [layer](../layer/) ドメイン。
 
 #### テスト：正常系
 
@@ -118,7 +118,8 @@ timestamp: 2026-09-27T04:23:00Z
 ### GetOrLoad
 
 - Get して Hit ならその値を返す。
-- Miss なら Loader を呼び、成功したら L1 に書き戻して値を返す（単一 Layer 前提の書き戻し先は L1）。
+- Miss なら Loader を呼び、成功したら書き戻して値を返す。
+- **現行:** 書き戻し先は設定された **全 Layer**（[layer](../layer/)）。本スイートは単一 L1 構成のため L1 のみ観測する。
 - **GetOrLoad の書き戻しは Bump しない**（読み取り充填のみ。Mutation の Set/Delete だけ自動 Bump）。
 
 #### テスト：正常系

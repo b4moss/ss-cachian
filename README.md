@@ -2,7 +2,7 @@
 
 サーバーサイドのキャッシュ戦略を抽象化するライブラリです。
 
-詳細は [docs/index.md](./docs/index.md)。現行仕様は [docs/specs/](./docs/specs/)。マイルストーンは [docs/roadmap.md](./docs/roadmap.md)。
+詳細は [docs/README.md](./docs/README.md)（pillar）。OKF 索引は [docs/index.md](./docs/index.md)。現行仕様は [docs/specs/](./docs/specs/)。マイルストーンは [docs/roadmap.md](./docs/roadmap.md)。
 
 ## 現状（v0.7.0 / Phase 1 PoC 完了 · Node スキャフォールド）
 
@@ -24,10 +24,10 @@ make act         # ローカル CI スモーク（Docker 必要）
 
 ## 憲章
 
-リモート `charter`（`b4moss/charter` の `docs` ブランチ）から [docs/charter/](./docs/charter/) に直接取り込み。
+リモート `charter`（`b4moss/charter` の **`main`**）から [docs/charter/](./docs/charter/) に取り込む（OKF v0.1）。
 
 ```bash
-git remote add -t docs charter https://github.com/b4moss/charter.git
-git fetch charter docs
-git checkout charter/docs -- docs/charter
+git remote add charter https://github.com/b4moss/charter.git
+git fetch charter main
+git checkout charter/main -- docs/charter
 ```

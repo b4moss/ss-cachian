@@ -8,7 +8,7 @@ timestamp: 2026-09-27T04:23:00Z
 
 # v0.8.0 Node.js ポート（Go パリティ）
 
-- **状態:** 進行中（テスト仕様）
+- **状態:** 完了（タグ `v0.8.0` / npm `@b4moss/ss-cachian@0.8.0`。アーカイブは docs 同期 PR と合わせてよい）
 - **マイルストーン:** v0.8.0（[roadmap](../../roadmap.md) Phase 2）
 - **作業ブランチ:** `dev-v0.8.0` → `develop` → `main`
 - **成果物:** `@b4moss/ss-cachian@0.8.0`（[node/sscachian](../../../node/sscachian/)）
@@ -38,4 +38,4 @@ Go PoC（v0.7.0）と同等の Define / 多層 / Version / Exact Purge / Memory 
 - [x] Node テストが cache-type / version / layer / purge / memory / firestore で Green
 - [x] `npm run lint` / `npm test`（CI `test-node` 含む）Green
 - [x] `@b4moss/ss-cachian` version = `0.8.0`
-- [ ] タグ `v0.8.0` で npm Trusted Publisher 公開可能（main 昇格時）
+- [x] タグ `v0.8.0` で npm Trusted Publisher 公開

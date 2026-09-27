@@ -1,16 +1,16 @@
+---
+type: Override
+title: このプロジェクト独自のルール（憲章をオーバーライドする範囲）
+description: 憲章より優先するプロジェクト固有ルール。現状は設定なし。
+tags: [charter, override]
+timestamp: 2026-09-27T05:00:00Z
+---
 # このプロジェクト独自のルール（憲章をオーバーライドする範囲）
 
-憲章本体は [docs/charter/](./charter/)（リモート `charter` の `docs` ブランチから直接取り込み）。  
-ここに書いた内容は憲章より優先する。
+現状では設定なし。
+（必要に応じて編集・追記する）
 
-## ドキュメント入口
-
-- プロダクト知識の入口は OKF v0.1 の [index.md](./index.md) とする。
-- charter の `main.md` ハブ相当として [main.md](./main.md) を置き、そこから index へ誘導する。
-
-## 現状その他
-
-上記以外のオーバーライドはなし。
+OKF v0.1 どおり、`docs/index.md` は索引のみ、`docs/README.md` を pillar 正本とする。
 
 -----
 

@@ -3,7 +3,7 @@ type: TestSpec
 title: driver-memory テスト仕様
 description: インメモリ Layer。Go v0.3.0 導入・Node v0.8.0 再適用。正常≈3 / 異常≈3〜5。
 tags: [tests, driver-memory, v0.3.0, v0.8.0, node]
-timestamp: 2026-09-27T04:23:00Z
+timestamp: 2026-09-27T05:30:00Z
 ---
 
 # driver-memory
@@ -13,7 +13,7 @@ timestamp: 2026-09-27T04:23:00Z
 - Go: `go/sscachian/driver/memory`
 - Node: `node/sscachian` の memory ドライバ（例: `driver/memory`）
 
-前提: [drivers](../../drivers.md) / [behavior](../../behavior.md) / [tests 索引（Node 差分）](../README.md)  
+前提: [specs/driver-memory](../../specs/driver-memory/) / [specs/layer](../../specs/layer/) / [tests 索引（Node 差分）](../README.md)  
 Entry 形: `{ value, created_at, expires_at }`。値は任意。TTL は Get 時に `expires_at` を見て遅延削除。  
 Node: 単一プロセス内の同期 Map + 排他（mutex 相当）。公開メソッドは `async` で揃えてよい。
 
@@ -34,7 +34,7 @@ Node: 単一プロセス内の同期 Map + 排他（mutex 相当）。公開メ�
 #### テスト: 異常系
 
 - 空キーを渡すとエラー（または契約どおりの無効引数扱い）になる
-- 破損・型不正な内部値があってもパニック／未処理例外にせずエラーまたは Miss になる
+- 破損・型不正な内部値（`Entry` 以外）があってもパニック／未処理例外にせず **Miss** になり、キーは削除される
 - 並行 Get 中に期限切れ判定してもデータ競合でパニックしない
 
 ---
@@ -54,7 +54,7 @@ Node: 単一プロセス内の同期 Map + 排他（mutex 相当）。公開メ�
 #### テスト: 異常系
 
 - 空キーで Set するとエラーになる
-- `value` が null/undefined でもエントリとして保存できる、または明示エラーになる（実装で一方に決め、仕様と一致させる）
+- `value` が null/undefined/nil でもエントリとして保存できる（許容）
 - 負の TTL や不正な時刻指定はエラーになる
 
 ---

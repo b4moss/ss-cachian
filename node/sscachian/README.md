@@ -47,5 +47,5 @@ npm test
 
 ## Publish
 
-Tags `v*` on `main` publish via **npm Trusted Publisher (OIDC)**.
-See [development.md](../../docs/development.md).
+Tags `v*` on `main` (or Actions → **npm publish** → Run workflow) publish via
+**npm Trusted Publisher (OIDC)**. See [.github/CI.md](../../.github/CI.md).

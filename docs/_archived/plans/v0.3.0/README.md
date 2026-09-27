@@ -42,7 +42,7 @@ timestamp: 2026-09-27T01:35:00Z
 
 ### 2. 実装範囲
 
-配置: [`go/sscachian/`](../../../go/sscachian/)（公開） / [`go/sscachian/driver/memory/`](../../../go/sscachian/driver/memory/)
+配置: [`go/sscachian/`](../../../../go/sscachian/)（公開） / [`go/sscachian/driver/memory/`](../../../../go/sscachian/driver/memory/)
 
 | 要素 | 内容（決定済み仕様） |
 | --- | --- |
@@ -67,10 +67,10 @@ timestamp: 2026-09-27T01:35:00Z
 
 - [roadmap.md](../../../roadmap.md) に v0.2.0 欠番を明記
 - [docs/tests/README.md](../../../tests/README.md) 索引を更新
-- [docs/log.md](../../../log.md)
+- [docs/_archived/log.md](../../log.md)
 - 実装後、必要なら骨格を `docs/specs/` へ（機能が「現行に存在する」段階で）
 
 ## 依存・前提
 
 - v0.1.0 スキャフォールド済み（`dev-v0.3.0` 先端）
-- 振る舞いは [behavior](../../../behavior.md) / [drivers](../../../drivers.md) / [api](../../../api.md)
+- 振る舞いは [specs](../../../specs/)（旧 behavior / drivers / api を吸収）
