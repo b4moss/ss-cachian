@@ -19,7 +19,11 @@ timestamp: 2026-09-27T06:40:00Z
 
 設定ファイルから Cache Type を組み立てる。Loader・カスタム KeyBuilder の実体はコード側で名前登録し、設定は参照のみ。型パラメータ `T` は設定に書かない。コード面の `Define`…`Build` も併用可。
 
-## スキーマ
+## スキーマ（詳細）
+
+手厚い利用ガイド（フィールド表・TTL・options・拒否例）は
+[node/sscachian/README.md](../../../node/sscachian/README.md#設定ファイル駆動v090) を参照。
+雛形は [plans/v0.9.0/sscachian.example.yaml](../../plans/v0.9.0/sscachian.example.yaml)。
 
 - `schema_version`: `"0.9"`（文字列必須）
 - `types[]`: `name` / 任意 `key_builder`（省略=`default`）/ 任意 `loader` / 任意 `ttl` / `layers[]`
