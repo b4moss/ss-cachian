@@ -1,15 +1,25 @@
 name: npm publish
 
-# Temporary path: push tag v* on main → npm publish @b4moss/ss-cachian
-# Requires repository secret NPM_TOKEN (npm Granular Access Token with publish).
+# First publish (bootstrap): workflow_dispatch + repository secret NPM_TOKEN (GAT).
+#   npm Trusted Publisher cannot perform the very first publish for a new package.
+# After package exists: configure Trusted Publisher on npmjs for this workflow,
+#   remove NPM_TOKEN, then switch this job to OIDC-only (id-token).
+# Ongoing: push tag v* on main (same job).
 
 on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "SemVer to publish (e.g. 0.7.0)"
+        required: true
+        type: string
   push:
     tags:
       - "v*"
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   publish:
@@ -22,6 +32,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: ver
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            ver="${{ inputs.version }}"
+          else
+            ver="${GITHUB_REF_NAME#v}"
+          fi
+          if [[ ! "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-].*)?$ ]]; then
+            echo "Unexpected version: $ver"
+            exit 1
+          fi
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -40,18 +65,10 @@ jobs:
       - name: Test
         run: npm test
 
-      - name: Set version from tag
-        run: |
-          set -euo pipefail
-          tag="${GITHUB_REF_NAME}"
-          ver="${tag#v}"
-          if [[ ! "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-].*)?$ ]]; then
-            echo "Unexpected tag: $tag"
-            exit 1
-          fi
-          npm version "$ver" --no-git-tag-version --allow-same-version
+      - name: Set package version
+        run: npm version "${{ steps.ver.outputs.version }}" --no-git-tag-version --allow-same-version
 
       - name: Publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public
+        run: npm publish --access public --provenance
