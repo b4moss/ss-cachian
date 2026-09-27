@@ -90,19 +90,21 @@ docs/                   # 知識バンドル正本
 4. 各言語でバージョンアップがあったものだけリリースする。
 5. 言語によっては SemVer が欠番になる場合がある。これは許容する。
 
-### npm（暫定）
+### npm（暫定 → Trusted Publisher）
 
-正規の `release` ブランチ CD が揃うまでの暫定経路:
+1. **初回 publish のみ** Repository Secret `NPM_TOKEN`（npm Granular Access Token）を使う。  
+   Trusted Publisher は **未公開パッケージの初回 publish ができない**ため。
+2. Actions → **npm publish** → `Run workflow`（`version` 例: `0.7.0`）。  
+   または `main` への `v*` タグ push。
+3. 初回成功後、npmjs 上で **Trusted Publisher** にこのリポジトリ / `npm publish` ワークフローを登録する。
+4. `NPM_TOKEN` を削除（リヴォーク）し、以降は OIDC（`id-token`） publish に切り替える。
 
-1. リポジトリ Secret `NPM_TOKEN` に npm **Granular Access Token**（`@b4moss` 向け publish 権限）を置く。
-2. `main` に `v*` タグを push すると [npm-publish.yml](../.github/workflows/npm-publish.yml) が走る。
-3. タグから SemVer を取り（`v0.8.0` → `0.8.0`）、`node/sscachian` で `npm publish --access public` する。
-4. パッケージ名: **`@b4moss/ss-cachian`**。
+パッケージ名: **`@b4moss/ss-cachian`**。ワークフロー: [npm-publish.yml](../.github/workflows/npm-publish.yml)。
 
-手元確認:
+Secret の入れ方（チャットにトークンを貼らない）:
 
 ```bash
-cd node/sscachian && npm ci && npm test && npm publish --dry-run
+gh secret set NPM_TOKEN --repo b4moss/ss-cachian
 ```
 
 ## バッジ
