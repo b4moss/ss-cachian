@@ -31,6 +31,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       go: ${{ steps.set.outputs.go }}
+      node: ${{ steps.set.outputs.node }}
       docs_only: ${{ steps.set.outputs.docs_only }}
     steps:
       - name: Checkout
@@ -43,6 +44,8 @@ jobs:
           filters: |
             go:
               - 'go/**'
+            node:
+              - 'node/**'
             docs:
               - 'docs/**'
               - '**.md'
@@ -66,7 +69,12 @@ jobs:
           else
             echo "go=false" >> "$GITHUB_OUTPUT"
           fi
-          if [[ "${{ steps.filter.outputs.go }}" != "true" && "${{ steps.filter.outputs.workflow }}" != "true" && "${{ steps.filter.outputs.docs }}" == "true" ]]; then
+          if [[ "${{ steps.filter.outputs.workflow }}" == "true" || "${{ steps.filter.outputs.node }}" == "true" ]]; then
+            echo "node=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "node=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [[ "${{ steps.filter.outputs.go }}" != "true" && "${{ steps.filter.outputs.node }}" != "true" && "${{ steps.filter.outputs.workflow }}" != "true" && "${{ steps.filter.outputs.docs }}" == "true" ]]; then
             echo "docs_only=true" >> "$GITHUB_OUTPUT"
           else
             echo "docs_only=false" >> "$GITHUB_OUTPUT"
@@ -162,12 +170,66 @@ jobs:
           FIRESTORE_EMULATOR_HOST: 127.0.0.1:8080
         run: go test ./...
 
+  lint-node:
+    name: lint node/sscachian
+    needs: changes
+    if: needs.changes.outputs.node == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: node/sscachian
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: node/sscachian/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+  test-node:
+    name: test node/sscachian
+    needs: changes
+    if: needs.changes.outputs.node == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: node/sscachian
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: node/sscachian/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
   ci-result:
     name: CI result
     needs:
       - changes
       - lint-go
       - test-go
+      - lint-node
+      - test-node
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -175,10 +237,12 @@ jobs:
       - name: Aggregate
         run: |
           set -euo pipefail
-          echo "go=${{ needs.changes.outputs.go }} docs_only=${{ needs.changes.outputs.docs_only }}"
+          echo "go=${{ needs.changes.outputs.go }} node=${{ needs.changes.outputs.node }} docs_only=${{ needs.changes.outputs.docs_only }}"
           results=(
             "${{ needs.lint-go.result }}"
             "${{ needs.test-go.result }}"
+            "${{ needs.lint-node.result }}"
+            "${{ needs.test-node.result }}"
           )
           for r in "${results[@]}"; do
             case "$r" in
