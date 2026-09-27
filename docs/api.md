@@ -1,87 +1,68 @@
 ---
 type: API
 title: アプリケーション API
-description: アプリ向け API 面。初期 PoC 必須と後続任意に分けた決定リスト。
+description: アプリ向け API 面。現行（v0.7.0）と後続任意に分けた決定リスト。
 tags: [api, decided]
-timestamp: 2026-09-27T00:00:00Z
+timestamp: 2026-09-27T03:05:00Z
 ---
 
 # アプリケーション API
 
-アプリケーションへ提供する API 面。Go 先行のメソッド名イメージ。他言語は同セマンティクスを踏襲する。  
-名前の最終形は実装時に調整してよい。
+アプリケーションへ提供する API 面。Go 実装（`go/sscachian`）を正とする。他言語は同セマンティクスを踏襲する。
 
-振る舞い前提は [振る舞い](./behavior.md) を参照。
+振る舞い前提は [振る舞い](./behavior.md)。ドメイン仕様は [specs](./specs/)。
 
-## 初期 PoC で提供する
+## 現行（v0.7.0）
 
 ### 定義・構築
 
-- `Define` / `DefineCacheType`
-- `WithLayers`
-- `WithKeyBuilder`
-- `WithPolicy` / `WithLayerTTL`
-- `WithLoader`
-- `Build`
+- `Define[T](name)`（既定 KeyBuilder 付き）
+- `WithLayers` / `WithKeyBuilder` / `WithPolicy` / `WithLayerTTL` / `WithLayerTTLs` / `WithLoader` / `Build`
+- `KeyContext`（AppSlug / TenantID / QueryType）、`DefaultKeyBuilder`
 
 ### 読み書き
 
-- `Get`（最新 version のみ。戻り値は `value`。内部 Entry ラッパーは露出しない）
-- `GetOrLoad`
-- `Set`（成功後に自動 `BumpVersion`）
-- `Delete`（成功後に自動 `BumpVersion`）
+- `Get`（最新 version。戻りは `value`）
+- `GetOrLoad`（Miss 時 Loader。書き戻しは Bump しない）
+- `Set`（**Bump してから**新 version キーへ書く）
+- `Delete`（最新キー削除のあと Bump）
 
-### Version
+### Version・キー
 
-- `CurrentVersion`
-- `BumpVersion`（最良努力。明示 bump 用。Set/Delete からも呼ばれる）
+- `CurrentVersion` / `BumpVersion`
+- `BuildKey` / `BuildLatestKey` / `VersionKey`
 
 ### Purge
 
-- `Purge`（PoC は Exact: 論理キーに紐づく **全 version** のデータキーを削除。`__version__` は残す）
-- Layer 配列による対象指定（未指定時は全 Layer）
+- `Purge(ctx, kc, layerIdx ...int)`（Exact: 全 version データ削除。`__version__` 非接触。未指定は全 Layer）
 
-### キー
+### Layer 契約（Driver）
 
-- `BuildKey`
-- `BuildLatestKey`
+- `Get` / `Set` / `Delete` / `Incr` / `PurgeExact`
+- ヘルパ: `IsVersionDataKey`
 
-### PoC の最小成功条件
+### 最小成功条件（充足済み）
 
-Cache Type を定義し、最新 version で Get/Set でき、自動／明示の `BumpVersion` と Exact Purge（全 version データ削除）ができること。
+Cache Type を定義し、最新 version で Get/Set でき、自動／明示の `BumpVersion` と Exact Purge ができること。
 
 ## 後続で任意追加する
 
-初期必須にはしない。
-
 ### 読み書き・エントリ
 
-- `Has` / `Exists`
-- `GetEntry`
-- `GetLatest`
-- `Remember` / `RememberForever`
-- `Forget`
+- `Has` / `Exists` / `GetEntry` / `GetLatest` / `Remember` / `RememberForever` / `Forget`
 
 ### Purge 拡張
 
 - `PurgeExact`（アプリ API としての別名・オプション整理）
-- `PurgePrefix`
-- `PurgeTag`
-- Purge 用の専用オプション API
+- `PurgePrefix` / `PurgeTag` / Purge 専用オプション API
 
 ### Policy・高度挙動
 
-- Stale-While-Revalidate 関連
-- Stale-If-Error 関連
-- Negative cache 関連
-- Entry メタ拡張フィールドへのアクセス
+- SWR / SIE / negative cache、Entry メタ拡張
 
 ### Valkey 選択時のみ（委譲）
 
-- `WithValkeyOptions`
-- `RateLimit`
-- `Lock` / `TryLock`
-- `ProtectStampede`
+- `WithValkeyOptions` / `RateLimit` / `Lock` / `TryLock` / `ProtectStampede`
 
 ### 設定・運用
 

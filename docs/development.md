@@ -53,17 +53,17 @@ docs/                   # 知識バンドル正本
 - 各テストに **正常系** と **異常系** を用意する。
 - 具体的な書き方・テスト仕様書の形式は [憲章の TDD 方針](./charter/tdd.md) に従う。
 
-### テスト仕様（PoC）
+### テスト仕様
 
 - 配置は `docs/tests/`。**ドメイン別**に分割する。
-- 想定ドメイン: `version` / `layer` / `purge` / `driver-memory` / `driver-firestore`
+- 想定ドメイン: `version` / `cache-type` / `layer` / `purge` / `driver-memory` / `driver-firestore`（[specs](./specs/) と同分割）
 - 各ファイルの目安: 正常系おおよそ 3、異常系おおよそ 3〜5
 - 索引は [docs/tests/](./tests/) を参照。
 
 ### 補足（charter 踏襲）
 
 - 仕様 FIX のあと、テスト仕様を書き、先にテストを書いてから実装する（Red → Green → Refactor）。
-- PoC / 初期では E2E は必須としない。過剰なカバレッジ追及はしない。
+- E2E は必須としない。過剰なカバレッジ追及はしない。
 
 ## CI
 
