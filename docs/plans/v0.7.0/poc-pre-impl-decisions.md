@@ -46,6 +46,7 @@ Go でキービルダー・多層・インメモリ + Firestore の PoC を実�
 
 ## 次アクション
 
-1. `docs/tests/` に各ドメインのテスト仕様本文を書く（TDD）
-2. devcontainer（Go 1.26 / Firestore Emulator / `act`）を用意する
-3. `go/sscachian` スケルトンを置き、Phase 1 実装（Red → Green → Refactor）
+マイルストーンは [roadmap](../../roadmap.md) に従う。
+
+1. **v0.1.0** 土台（スキャフォールド）— テスト仕様本文は書かない
+2. 以降、各版の実装前に当該範囲の `docs/tests/` を書いてから実装（v0.3.0 → v0.5.0 → v0.7.0）
