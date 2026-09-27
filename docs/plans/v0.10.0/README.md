@@ -8,7 +8,7 @@ timestamp: 2026-09-27T08:05:00Z
 
 # v0.10.0 Purge 拡張 ＋ 便利読み書き API
 
-- **状態:** 実装中（`dev-v0.10.0` 向け）
+- **状態:** 実装済み（`dev-v0.10.0` 向け。タグ / npm は main 昇格後）
 - **マイルストーン:** v0.10.0（[roadmap](../../roadmap.md) Phase 2）
 - **作業ブランチ:** `dev-v0.10.0` → `develop` → `main`
 - **テスト仕様:** [tests/purge](../../tests/purge/) / [tests/cache-type](../../tests/cache-type/) / driver PurgePrefix 節
@@ -66,6 +66,6 @@ YAML 変更なし。タグ付き書き込みは下記 Tags。
 ## 受け入れ条件
 
 - [x] テスト仕様（purge 拡張 ＋ cache-type 便利 API）
-- [ ] Go / Node Green・パリティ
-- [ ] Exact Purge / config LoadTypes 回帰なし
-- [ ] `VERSION` / package = `0.10.0`（タグ・npm は main 昇格後）
+- [x] Go / Node Green・パリティ
+- [x] Exact Purge / config LoadTypes 回帰なし
+- [x] `VERSION` / package = `0.10.0`（タグ・npm は main 昇格後）

@@ -1,9 +1,9 @@
 ---
 type: Spec
 title: driver-firestore
-description: Firestore Layer（現行 v0.7.0・Emulator 対応）。
-tags: [specs, driver-firestore]
-timestamp: 2026-09-27T05:30:00Z
+description: Firestore Layer（現行 v0.10.0・Emulator 対応）。
+tags: [specs, driver-firestore, v0.10.0]
+timestamp: 2026-09-27T08:20:00Z
 ---
 
 # driver-firestore
@@ -29,6 +29,7 @@ timestamp: 2026-09-27T05:30:00Z
 - `Incr` はトランザクション。未作成は 0+1→1。競合（Aborted）は最大 8 回クライアント側で再試行。
 - 整数以外 → `ErrNotInteger`。`MaxInt64` → `ErrIncrOverflow`。
 - `PurgeExact` はコレクション全走査し、`IsVersionDataKey` に合う ID だけ削除。
+- `PurgePrefix` はコレクション全走査し、ドキュメント ID が prefix で始まるものをすべて削除。
 - 空キー / 空 prefix → `ErrEmptyKey`。負 TTL → `ErrNegativeTTL`。
 - `ClearCollection` はテスト専用。
 

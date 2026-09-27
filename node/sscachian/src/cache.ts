@@ -7,6 +7,7 @@ import {
   type Loader,
   type TypeGuard,
   ErrCorruptVersion,
+  ErrEmptyKey,
   ErrInvalidLayerIndex,
   ErrInvalidVersion,
   ErrNoKeyBuilder,
@@ -16,6 +17,19 @@ import {
   ErrTypeMismatch,
   defaultKeyBuilder,
 } from "./types.js";
+
+const TAG_INDEX_PREFIX = "__sscachian_tag__:";
+
+export type WriteOptions = {
+  tags?: string[];
+  signal?: AbortSignal;
+};
+
+export type CacheEntry<T> = {
+  value: T;
+  createdAt: Date;
+  expiresAt: Date | null;
+};
 
 function logWarn(msg: string, err: unknown): void {
   const detail = err instanceof Error ? err.message : String(err);
@@ -43,6 +57,34 @@ function castValue<T>(v: unknown, guard?: TypeGuard<T>): T {
   return v as T;
 }
 
+function normalizeWriteArg(arg?: WriteOptions | AbortSignal): WriteOptions {
+  if (arg == null) return {};
+  if (typeof AbortSignal !== "undefined" && arg instanceof AbortSignal) {
+    return { signal: arg };
+  }
+  return arg as WriteOptions;
+}
+
+function mergeTags(defaultTags: string[], callTags: string[] | undefined): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const t of [...defaultTags, ...(callTags ?? [])]) {
+    if (!t || seen.has(t)) continue;
+    seen.add(t);
+    out.push(t);
+  }
+  return out;
+}
+
+function tagIndexKey(tag: string): string {
+  return TAG_INDEX_PREFIX + tag;
+}
+
+function prefixesFromValue(v: unknown): string[] {
+  if (!Array.isArray(v)) return [];
+  return v.filter((x): x is string => typeof x === "string" && x !== "");
+}
+
 export class Builder<T> {
   readonly #name: string;
   #layers: Layer[] = [];
@@ -51,6 +93,7 @@ export class Builder<T> {
   #kb: KeyBuilder | null = defaultKeyBuilder;
   #loader: Loader<T> | null = null;
   #guard: TypeGuard<T> | undefined;
+  #defaultTags: string[] = [];
 
   constructor(name: string) {
     this.#name = name;
@@ -86,6 +129,11 @@ export class Builder<T> {
     return this;
   }
 
+  withDefaultTags(...tags: string[]): this {
+    this.#defaultTags = [...tags];
+    return this;
+  }
+
   /** Optional runtime type check on Get (Go type assertion equivalent). */
   withTypeGuard(guard: TypeGuard<T>): this {
     this.#guard = guard;
@@ -115,6 +163,7 @@ export class Builder<T> {
       this.#kb,
       this.#loader,
       this.#guard,
+      this.#defaultTags,
     );
   }
 }
@@ -130,6 +179,7 @@ export class CacheType<T> {
   readonly #kb: KeyBuilder;
   readonly #loader: Loader<T> | null;
   readonly #guard: TypeGuard<T> | undefined;
+  readonly #defaultTags: string[];
 
   constructor(
     name: string,
@@ -138,6 +188,7 @@ export class CacheType<T> {
     kb: KeyBuilder,
     loader: Loader<T> | null,
     guard?: TypeGuard<T>,
+    defaultTags: string[] = [],
   ) {
     this.#name = name;
     this.#layers = layers;
@@ -145,6 +196,7 @@ export class CacheType<T> {
     this.#kb = kb;
     this.#loader = loader;
     this.#guard = guard;
+    this.#defaultTags = [...defaultTags];
   }
 
   name(): string {
@@ -212,14 +264,37 @@ export class CacheType<T> {
     }
   }
 
-  async #writeAll(key: string, e: Entry, signal?: AbortSignal): Promise<void> {
+  async #writeAll(key: string, e: Entry, ttlForAll: DurationMs | null, signal?: AbortSignal): Promise<void> {
     for (let i = 0; i < this.#layers.length; i++) {
+      const ttl = ttlForAll == null ? this.layerTTL(i) : ttlForAll;
       try {
-        await this.#layers[i]!.set(key, e, this.layerTTL(i), signal);
+        await this.#layers[i]!.set(key, e, ttl, signal);
       } catch (err) {
         logWarn(`sscachian: write-back to layer ${i} failed:`, err);
       }
     }
+  }
+
+  async #recordTags(logicalPrefix: string, tags: string[], signal?: AbortSignal): Promise<void> {
+    if (tags.length === 0 || logicalPrefix === "") return;
+    for (const tag of tags) {
+      const tk = tagIndexKey(tag);
+      try {
+        const { entry, hit } = await this.#l1().get(tk, signal);
+        const set = new Set<string>(hit ? prefixesFromValue(entry.value) : []);
+        set.add(logicalPrefix);
+        const list = [...set].sort();
+        await this.#l1().set(tk, { value: list, createdAt: new Date(0), expiresAt: null }, 0, signal);
+      } catch (err) {
+        logWarn("sscachian: tag index update failed:", err);
+      }
+    }
+  }
+
+  async #readTagPrefixes(tag: string, signal?: AbortSignal): Promise<string[]> {
+    const { entry, hit } = await this.#l1().get(tagIndexKey(tag), signal);
+    if (!hit) return [];
+    return prefixesFromValue(entry.value);
   }
 
   async get(
@@ -237,12 +312,44 @@ export class CacheType<T> {
     return { ok: false };
   }
 
-  async set(kc: KeyContext, value: T, signal?: AbortSignal): Promise<void> {
+  async getEntry(
+    kc: KeyContext,
+    signal?: AbortSignal,
+  ): Promise<{ entry: CacheEntry<T>; ok: true } | { entry?: undefined; ok: false }> {
+    const key = await this.buildLatestKey(kc, signal);
+    for (let i = 0; i < this.#layers.length; i++) {
+      const { entry, hit } = await this.#layers[i]!.get(key, signal);
+      if (!hit) continue;
+      await this.#writeBack(key, entry, i, signal);
+      const tv = castValue<T>(entry.value, this.#guard);
+      return {
+        entry: { value: tv, createdAt: entry.createdAt, expiresAt: entry.expiresAt },
+        ok: true,
+      };
+    }
+    return { ok: false };
+  }
+
+  async has(kc: KeyContext, signal?: AbortSignal): Promise<boolean> {
+    const got = await this.get(kc, signal);
+    return got.ok;
+  }
+
+  exists(kc: KeyContext, signal?: AbortSignal): Promise<boolean> {
+    return this.has(kc, signal);
+  }
+
+  async set(kc: KeyContext, value: T, optsOrSignal?: WriteOptions | AbortSignal): Promise<void> {
+    const opts = normalizeWriteArg(optsOrSignal);
+    const signal = opts.signal;
+    const tags = mergeTags(this.#defaultTags, opts.tags);
+    const prefix = await this.#logicalPrefix(kc, signal);
     await this.#ensureCurrentVersion(kc, signal);
     const newV = await this.bumpVersion(kc, signal);
     const key = await this.buildKey(kc, newV, signal);
     const entry: Entry = { value, createdAt: new Date(0), expiresAt: null };
     await this.#l1().set(key, entry, this.layerTTL(0), signal);
+    await this.#recordTags(prefix, tags, signal);
     for (let i = 1; i < this.#layers.length; i++) {
       try {
         await this.#layers[i]!.set(key, entry, this.layerTTL(i), signal);
@@ -266,8 +373,47 @@ export class CacheType<T> {
     await this.bumpVersion(kc, signal);
   }
 
+  forget(kc: KeyContext, signal?: AbortSignal): Promise<void> {
+    return this.delete(kc, signal);
+  }
+
   async purge(kc: KeyContext, layerIdx: number[] = [], signal?: AbortSignal): Promise<void> {
     const prefix = await this.#logicalPrefix(kc, signal);
+    await this.#purgeExactOnPrefix(prefix, layerIdx, signal);
+  }
+
+  purgeExact(kc: KeyContext, layerIdx: number[] = [], signal?: AbortSignal): Promise<void> {
+    return this.purge(kc, layerIdx, signal);
+  }
+
+  async purgePrefix(prefix: string, layerIdx: number[] = [], signal?: AbortSignal): Promise<void> {
+    if (prefix === "") throw ErrEmptyKey;
+    const targets = this.#resolveLayerIndexes(layerIdx);
+    const includesL1 = targets.includes(0);
+    for (const i of targets) {
+      try {
+        await this.#layers[i]!.purgePrefix(prefix, signal);
+      } catch (err) {
+        if (includesL1) {
+          if (i === 0) throw err;
+          logWarn(`sscachian: purgePrefix layer ${i} failed:`, err);
+          continue;
+        }
+        throw err;
+      }
+    }
+  }
+
+  async purgeTag(tag: string, layerIdx: number[] = [], signal?: AbortSignal): Promise<void> {
+    if (tag === "") throw ErrEmptyKey;
+    const prefixes = await this.#readTagPrefixes(tag, signal);
+    for (const p of prefixes) {
+      await this.#purgeExactOnPrefix(p, layerIdx, signal);
+    }
+    await this.#l1().delete(tagIndexKey(tag), signal);
+  }
+
+  async #purgeExactOnPrefix(prefix: string, layerIdx: number[], signal?: AbortSignal): Promise<void> {
     const targets = this.#resolveLayerIndexes(layerIdx);
     const includesL1 = targets.includes(0);
     for (const i of targets) {
@@ -301,14 +447,49 @@ export class CacheType<T> {
     return out;
   }
 
-  async getOrLoad(kc: KeyContext, signal?: AbortSignal): Promise<T> {
+  async getOrLoad(kc: KeyContext, optsOrSignal?: WriteOptions | AbortSignal): Promise<T> {
+    const opts = normalizeWriteArg(optsOrSignal);
+    const signal = opts.signal;
+    const tags = mergeTags(this.#defaultTags, opts.tags);
     const got = await this.get(kc, signal);
     if (got.ok) return got.value;
     if (this.#loader == null) throw ErrNoLoader;
     const loaded = await this.#loader(kc, signal);
+    const prefix = await this.#logicalPrefix(kc, signal);
     const ver = await this.#ensureCurrentVersion(kc, signal);
     const key = await this.buildKey(kc, ver, signal);
-    await this.#writeAll(key, { value: loaded, createdAt: new Date(0), expiresAt: null }, signal);
+    await this.#writeAll(key, { value: loaded, createdAt: new Date(0), expiresAt: null }, null, signal);
+    await this.#recordTags(prefix, tags, signal);
     return loaded;
+  }
+
+  async remember(
+    kc: KeyContext,
+    ttl: DurationMs,
+    loader: Loader<T> | null,
+    optsOrSignal?: WriteOptions | AbortSignal,
+  ): Promise<T> {
+    if (ttl < 0) throw ErrNegativeTTL;
+    const opts = normalizeWriteArg(optsOrSignal);
+    const signal = opts.signal;
+    const tags = mergeTags(this.#defaultTags, opts.tags);
+    const got = await this.get(kc, signal);
+    if (got.ok) return got.value;
+    if (loader == null) throw ErrNoLoader;
+    const loaded = await loader(kc, signal);
+    const prefix = await this.#logicalPrefix(kc, signal);
+    const ver = await this.#ensureCurrentVersion(kc, signal);
+    const key = await this.buildKey(kc, ver, signal);
+    await this.#writeAll(key, { value: loaded, createdAt: new Date(0), expiresAt: null }, ttl, signal);
+    await this.#recordTags(prefix, tags, signal);
+    return loaded;
+  }
+
+  rememberForever(
+    kc: KeyContext,
+    loader: Loader<T> | null,
+    optsOrSignal?: WriteOptions | AbortSignal,
+  ): Promise<T> {
+    return this.remember(kc, 0, loader, optsOrSignal);
   }
 }

@@ -237,3 +237,39 @@ func TestPurgeExact_VersionOnlyRemains(t *testing.T) {
 		t.Fatal("__version__ should remain")
 	}
 }
+
+func TestPurgePrefix_DeletesAllStartingWith(t *testing.T) {
+	s := newStore(t)
+	ctx := context.Background()
+	prefix := "app:cache:t:q"
+	_ = s.Set(ctx, prefix+":1", sscachian.Entry{Value: "a"}, 0)
+	_ = s.Set(ctx, prefix+":2", sscachian.Entry{Value: "b"}, 0)
+	_ = s.Set(ctx, prefix+":__version__", sscachian.Entry{Value: float64(2)}, 0)
+	_ = s.Set(ctx, prefix+":extra", sscachian.Entry{Value: "e"}, 0)
+	_ = s.Set(ctx, "other:1", sscachian.Entry{Value: "o"}, 0)
+	if err := s.PurgePrefix(ctx, prefix); err != nil {
+		t.Fatal(err)
+	}
+	for _, k := range []string{prefix + ":1", prefix + ":2", prefix + ":__version__", prefix + ":extra"} {
+		if _, ok, _ := s.Get(ctx, k); ok {
+			t.Fatalf("%s should be gone", k)
+		}
+	}
+	if _, ok, _ := s.Get(ctx, "other:1"); !ok {
+		t.Fatal("other prefix should remain")
+	}
+}
+
+func TestPurgePrefix_IdempotentEmpty(t *testing.T) {
+	s := newStore(t)
+	if err := s.PurgePrefix(context.Background(), "app:cache:t:q"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestPurgePrefix_EmptyPrefix(t *testing.T) {
+	s := newStore(t)
+	if err := s.PurgePrefix(context.Background(), ""); err == nil {
+		t.Fatal("expected error")
+	}
+}

@@ -11,7 +11,7 @@
 
 - [English README (default)](./README.md)
 
-現行版: **v0.9.0**（Go `VERSION` と `@b4moss/ss-cachian` を揃えています）。
+現行版: **v0.10.0**（Go `VERSION` と `@b4moss/ss-cachian` を揃えています）。
 
 ## できること
 
@@ -24,7 +24,7 @@
 | **Driver** | **memory** / **Firestore**（`FIRESTORE_EMULATOR_HOST` 対応） |
 | **設定駆動（v0.9.0）** | YAML（正）または同等 JSON → `LoadTypes` / `loadTypes` |
 
-現行スコープ外: SWR / SIE / negative cache、PurgePrefix/Tag、Valkey、PHP、ブラウザ向け。→ [roadmap](./docs/roadmap.md)
+現行スコープ外: SWR / SIE / negative cache、Valkey、PHP、ブラウザ向け。→ [roadmap](./docs/roadmap.md)
 
 ## 言語ポート
 

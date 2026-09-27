@@ -1,5 +1,5 @@
 /**
- * @b4moss/ss-cachian — Node.js / TypeScript port of ss-cachian (Go v0.7.0+ parity).
+ * @b4moss/ss-cachian — Node.js / TypeScript port of ss-cachian (Go v0.10.0 parity).
  */
 
 export const SSCACHIAN_RUNTIME = "node" as const;
@@ -30,7 +30,7 @@ export {
   type TypeGuard,
 } from "./types.js";
 
-export { define, Builder, CacheType } from "./cache.js";
+export { define, Builder, CacheType, type WriteOptions, type CacheEntry } from "./cache.js";
 
 export { MemoryStore, newMemoryStore } from "./driver/memory.js";
 export {

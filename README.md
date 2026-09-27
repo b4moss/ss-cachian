@@ -11,7 +11,7 @@ Not a thin key/value wrapper. Applications define *how* caching works (keys, TTL
 
 - [日本語版 README](./README-ja.md)
 
-Current line: **v0.9.0** (Go `VERSION` and `@b4moss/ss-cachian` stay in lockstep for this release).
+Current line: **v0.10.0** (Go `VERSION` and `@b4moss/ss-cachian` stay in lockstep for this release).
 
 ## What you get
 
@@ -24,7 +24,7 @@ Current line: **v0.9.0** (Go `VERSION` and `@b4moss/ss-cachian` stay in lockstep
 | **Drivers** | **memory**, **Firestore** (honors `FIRESTORE_EMULATOR_HOST`) |
 | **Config-driven (v0.9.0)** | YAML (canonical) or equivalent JSON → `LoadTypes` / `loadTypes` |
 
-Out of scope today: SWR / SIE / negative cache, PurgePrefix/Tag, Valkey, PHP, browser bundles. See [roadmap](./docs/roadmap.md).
+Out of scope today: SWR / SIE / negative cache, Valkey, PHP, browser bundles. See [roadmap](./docs/roadmap.md).
 
 ## Choose a language port
 
@@ -43,7 +43,7 @@ This root README is the **shared host workflow** (concepts, config file, pitfall
 | | Go | Node |
 |--|----|------|
 | Runtime | Go **1.26+** | Node.js **≥ 20** |
-| Package | `github.com/b4moss/ss-cachian` (`VERSION=0.9.0`) | `@b4moss/ss-cachian@0.9.0` |
+| Package | `github.com/b4moss/ss-cachian` (`VERSION=0.10.0`) | `@b4moss/ss-cachian@0.10.0` |
 | Firestore (optional) | Emulator or GCP project | Same (`@google-cloud/firestore`) |
 
 You do **not** need this monorepo cloned to consume published packages. Clone for contributing, Emulator CI, or editing docs.
@@ -56,7 +56,7 @@ You do **not** need this monorepo cloned to consume published packages. Clone fo
 
 ```bash
 # Go
-go get github.com/b4moss/ss-cachian@v0.9.0
+go get github.com/b4moss/ss-cachian@v0.10.0
 
 # Node
 npm install @b4moss/ss-cachian
@@ -273,7 +273,7 @@ make act                 # local CI smoke (Docker)
 
 Devcontainer / Emulator: [`.devcontainer/`](./.devcontainer/) · [`docker/`](./docker/) · [`.github/CI.md`](./.github/CI.md)
 
-Publish: tags `v*` on `main` → npm Trusted Publisher (OIDC). Go modules consume `v0.9.0` from the Git tag.
+Publish: tags `v*` on `main` → npm Trusted Publisher (OIDC). Go modules consume `v0.10.0` from the Git tag.
 
 ---
 

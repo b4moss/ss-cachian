@@ -74,6 +74,13 @@ export class MemoryStore implements Layer {
       if (isVersionDataKey(logicalPrefix, k)) this.#m.delete(k);
     }
   }
+
+  async purgePrefix(prefix: string, _signal?: AbortSignal): Promise<void> {
+    if (prefix === "") throw ErrEmptyKey;
+    for (const k of [...this.#m.keys()]) {
+      if (k.startsWith(prefix)) this.#m.delete(k);
+    }
+  }
 }
 
 export function newMemoryStore(): MemoryStore {

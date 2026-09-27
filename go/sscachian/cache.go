@@ -32,21 +32,23 @@ func DefaultKeyBuilder(_ context.Context, kc KeyContext) (string, error) {
 
 // CacheType is a typed cache strategy bound to layers.
 type CacheType[T any] struct {
-	name   string
-	layers []Layer
-	ttls   []time.Duration
-	kb     KeyBuilder
-	loader Loader[T]
+	name        string
+	layers      []Layer
+	ttls        []time.Duration
+	kb          KeyBuilder
+	loader      Loader[T]
+	defaultTags []string
 }
 
 // Builder constructs a CacheType.
 type Builder[T any] struct {
-	name   string
-	layers []Layer
-	ttls   []time.Duration
-	single *time.Duration // WithLayerTTL / WithPolicy compatibility
-	kb     KeyBuilder
-	loader Loader[T]
+	name        string
+	layers      []Layer
+	ttls        []time.Duration
+	single      *time.Duration // WithLayerTTL / WithPolicy compatibility
+	kb          KeyBuilder
+	loader      Loader[T]
+	defaultTags []string
 }
 
 // Define starts a CacheType builder.
@@ -87,6 +89,12 @@ func (b *Builder[T]) WithLoader(loader Loader[T]) *Builder[T] {
 	return b
 }
 
+// WithDefaultTags sets type-wide tags merged into every tagged write.
+func (b *Builder[T]) WithDefaultTags(tags ...string) *Builder[T] {
+	b.defaultTags = append([]string{}, tags...)
+	return b
+}
+
 func (b *Builder[T]) Build() (*CacheType[T], error) {
 	if len(b.layers) == 0 {
 		return nil, ErrNoLayer
@@ -113,11 +121,12 @@ func (b *Builder[T]) Build() (*CacheType[T], error) {
 		}
 	}
 	return &CacheType[T]{
-		name:   b.name,
-		layers: append([]Layer(nil), b.layers...),
-		ttls:   ttls,
-		kb:     b.kb,
-		loader: b.loader,
+		name:        b.name,
+		layers:      append([]Layer(nil), b.layers...),
+		ttls:        ttls,
+		kb:          b.kb,
+		loader:      b.loader,
+		defaultTags: append([]string{}, b.defaultTags...),
 	}, nil
 }
 
@@ -243,6 +252,72 @@ func (c *CacheType[T]) writeAll(ctx context.Context, key string, e Entry) {
 	}
 }
 
+func (c *CacheType[T]) writeAllTTL(ctx context.Context, key string, e Entry, ttl time.Duration) {
+	for i := range c.layers {
+		if err := c.layers[i].Set(ctx, key, e, ttl); err != nil {
+			log.Printf("sscachian: write-back to layer %d failed: %v", i, err)
+		}
+	}
+}
+
+func prefixesFromTagValue(v any) []string {
+	switch x := v.(type) {
+	case []string:
+		return append([]string{}, x...)
+	case []any:
+		out := make([]string, 0, len(x))
+		for _, e := range x {
+			if s, ok := e.(string); ok && s != "" {
+				out = append(out, s)
+			}
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
+func (c *CacheType[T]) recordTags(ctx context.Context, logicalPrefix string, tags []string) {
+	tags = mergeTags(nil, tags)
+	if len(tags) == 0 || logicalPrefix == "" {
+		return
+	}
+	for _, tag := range tags {
+		tk := tagIndexKey(tag)
+		e, ok, err := c.l1().Get(ctx, tk)
+		if err != nil {
+			log.Printf("sscachian: tag index get failed: %v", err)
+			continue
+		}
+		set := map[string]struct{}{}
+		if ok {
+			for _, p := range prefixesFromTagValue(e.Value) {
+				set[p] = struct{}{}
+			}
+		}
+		set[logicalPrefix] = struct{}{}
+		list := make([]string, 0, len(set))
+		for p := range set {
+			list = append(list, p)
+		}
+		sort.Strings(list)
+		if err := c.l1().Set(ctx, tk, Entry{Value: list}, 0); err != nil {
+			log.Printf("sscachian: tag index set failed: %v", err)
+		}
+	}
+}
+
+func (c *CacheType[T]) readTagPrefixes(ctx context.Context, tag string) ([]string, error) {
+	e, ok, err := c.l1().Get(ctx, tagIndexKey(tag))
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, nil
+	}
+	return prefixesFromTagValue(e.Value), nil
+}
+
 // Get walks L1→Ln for the latest-version key and write-backs to upper layers on hit.
 func (c *CacheType[T]) Get(ctx context.Context, kc KeyContext) (T, bool, error) {
 	var zero T
@@ -268,8 +343,50 @@ func (c *CacheType[T]) Get(ctx context.Context, kc KeyContext) (T, bool, error) 
 	return zero, false, nil
 }
 
+// GetEntry is like Get but also returns created_at / expires_at meta.
+func (c *CacheType[T]) GetEntry(ctx context.Context, kc KeyContext) (CacheEntry[T], bool, error) {
+	var zero CacheEntry[T]
+	key, err := c.BuildLatestKey(ctx, kc)
+	if err != nil {
+		return zero, false, err
+	}
+	for i, layer := range c.layers {
+		e, ok, err := layer.Get(ctx, key)
+		if err != nil {
+			return zero, false, err
+		}
+		if !ok {
+			continue
+		}
+		c.writeBack(ctx, key, e, i)
+		tv, err := castValue[T](e.Value)
+		if err != nil {
+			return zero, false, err
+		}
+		return CacheEntry[T]{Value: tv, CreatedAt: e.CreatedAt, ExpiresAt: e.ExpiresAt}, true, nil
+	}
+	return zero, false, nil
+}
+
+// Has reports whether the latest key is present (Get then ok).
+func (c *CacheType[T]) Has(ctx context.Context, kc KeyContext) (bool, error) {
+	_, ok, err := c.Get(ctx, kc)
+	return ok, err
+}
+
+// Exists is an alias of Has.
+func (c *CacheType[T]) Exists(ctx context.Context, kc KeyContext) (bool, error) {
+	return c.Has(ctx, kc)
+}
+
 // Set bumps version on L1 then writes the new latest key to all layers.
-func (c *CacheType[T]) Set(ctx context.Context, kc KeyContext, value T) error {
+func (c *CacheType[T]) Set(ctx context.Context, kc KeyContext, value T, opts ...WriteOption) error {
+	wo := applyWriteOpts(opts)
+	tags := mergeTags(c.defaultTags, wo.tags)
+	prefix, err := c.logicalPrefix(ctx, kc)
+	if err != nil {
+		return err
+	}
 	if _, err := c.ensureCurrentVersion(ctx, kc); err != nil {
 		return err
 	}
@@ -285,6 +402,7 @@ func (c *CacheType[T]) Set(ctx context.Context, kc KeyContext, value T) error {
 	if err := c.l1().Set(ctx, key, entry, c.layerTTL(0)); err != nil {
 		return err
 	}
+	c.recordTags(ctx, prefix, tags)
 	for i := 1; i < len(c.layers); i++ {
 		if err := c.layers[i].Set(ctx, key, entry, c.layerTTL(i)); err != nil {
 			log.Printf("sscachian: set layer %d failed: %v", i, err)
@@ -315,6 +433,11 @@ func (c *CacheType[T]) Delete(ctx context.Context, kc KeyContext) error {
 	return err
 }
 
+// Forget is an alias of Delete.
+func (c *CacheType[T]) Forget(ctx context.Context, kc KeyContext) error {
+	return c.Delete(ctx, kc)
+}
+
 // Purge removes all version data keys for the logical key on selected layers.
 // Omitting layerIdx purges every layer. Does not touch __version__ or bump.
 func (c *CacheType[T]) Purge(ctx context.Context, kc KeyContext, layerIdx ...int) error {
@@ -322,6 +445,66 @@ func (c *CacheType[T]) Purge(ctx context.Context, kc KeyContext, layerIdx ...int
 	if err != nil {
 		return err
 	}
+	return c.purgeExactOnPrefix(ctx, prefix, layerIdx...)
+}
+
+// PurgeExact is an alias of Purge (Exact semantics).
+func (c *CacheType[T]) PurgeExact(ctx context.Context, kc KeyContext, layerIdx ...int) error {
+	return c.Purge(ctx, kc, layerIdx...)
+}
+
+// PurgePrefix deletes all keys starting with prefix on selected layers.
+func (c *CacheType[T]) PurgePrefix(ctx context.Context, prefix string, layerIdx ...int) error {
+	if prefix == "" {
+		return ErrEmptyKey
+	}
+	targets, err := c.resolveLayerIndexes(layerIdx...)
+	if err != nil {
+		return err
+	}
+	includesL1 := false
+	for _, i := range targets {
+		if i == 0 {
+			includesL1 = true
+			break
+		}
+	}
+	for _, i := range targets {
+		if err := c.layers[i].PurgePrefix(ctx, prefix); err != nil {
+			if includesL1 {
+				if i == 0 {
+					return err
+				}
+				log.Printf("sscachian: purgePrefix layer %d failed: %v", i, err)
+				continue
+			}
+			return err
+		}
+	}
+	return nil
+}
+
+// PurgeTag Exact-purges every logical prefix indexed under tag, then drops the index.
+func (c *CacheType[T]) PurgeTag(ctx context.Context, tag string, layerIdx ...int) error {
+	if tag == "" {
+		return ErrEmptyKey
+	}
+	prefixes, err := c.readTagPrefixes(ctx, tag)
+	if err != nil {
+		return err
+	}
+	for _, p := range prefixes {
+		if err := c.purgeExactOnPrefix(ctx, p, layerIdx...); err != nil {
+			return err
+		}
+	}
+	if err := c.l1().Delete(ctx, tagIndexKey(tag)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *CacheType[T]) purgeExactOnPrefix(ctx context.Context, prefix string, layerIdx ...int) error {
 	targets, err := c.resolveLayerIndexes(layerIdx...)
 	if err != nil {
 		return err
@@ -374,8 +557,10 @@ func (c *CacheType[T]) resolveLayerIndexes(layerIdx ...int) ([]int, error) {
 }
 
 // GetOrLoad performs multilayer Get; on miss loads and write-backs to all layers without bump.
-func (c *CacheType[T]) GetOrLoad(ctx context.Context, kc KeyContext) (T, error) {
+func (c *CacheType[T]) GetOrLoad(ctx context.Context, kc KeyContext, opts ...WriteOption) (T, error) {
 	var zero T
+	wo := applyWriteOpts(opts)
+	tags := mergeTags(c.defaultTags, wo.tags)
 	v, ok, err := c.Get(ctx, kc)
 	if err != nil {
 		return zero, err
@@ -390,6 +575,10 @@ func (c *CacheType[T]) GetOrLoad(ctx context.Context, kc KeyContext) (T, error) 
 	if err != nil {
 		return zero, err
 	}
+	prefix, err := c.logicalPrefix(ctx, kc)
+	if err != nil {
+		return zero, err
+	}
 	ver, err := c.ensureCurrentVersion(ctx, kc)
 	if err != nil {
 		return zero, err
@@ -399,7 +588,52 @@ func (c *CacheType[T]) GetOrLoad(ctx context.Context, kc KeyContext) (T, error) 
 		return zero, err
 	}
 	c.writeAll(ctx, key, Entry{Value: loaded})
+	c.recordTags(ctx, prefix, tags)
 	return loaded, nil
+}
+
+// Remember is Get-or-fill with an explicit TTL (Bump=false). Negative TTL is rejected.
+func (c *CacheType[T]) Remember(ctx context.Context, kc KeyContext, ttl time.Duration, loader Loader[T], opts ...WriteOption) (T, error) {
+	var zero T
+	if ttl < 0 {
+		return zero, ErrNegativeTTL
+	}
+	wo := applyWriteOpts(opts)
+	tags := mergeTags(c.defaultTags, wo.tags)
+	v, ok, err := c.Get(ctx, kc)
+	if err != nil {
+		return zero, err
+	}
+	if ok {
+		return v, nil
+	}
+	if loader == nil {
+		return zero, ErrNoLoader
+	}
+	loaded, err := loader(ctx, kc)
+	if err != nil {
+		return zero, err
+	}
+	prefix, err := c.logicalPrefix(ctx, kc)
+	if err != nil {
+		return zero, err
+	}
+	ver, err := c.ensureCurrentVersion(ctx, kc)
+	if err != nil {
+		return zero, err
+	}
+	key, err := c.BuildKey(ctx, kc, ver)
+	if err != nil {
+		return zero, err
+	}
+	c.writeAllTTL(ctx, key, Entry{Value: loaded}, ttl)
+	c.recordTags(ctx, prefix, tags)
+	return loaded, nil
+}
+
+// RememberForever is Remember with TTL 0 (no expiry).
+func (c *CacheType[T]) RememberForever(ctx context.Context, kc KeyContext, loader Loader[T], opts ...WriteOption) (T, error) {
+	return c.Remember(ctx, kc, 0, loader, opts...)
 }
 
 // Name returns the cache type name (debug).

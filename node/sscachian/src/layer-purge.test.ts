@@ -44,6 +44,7 @@ test("multilayer get l1 hit skips l2", async () => {
       return 1;
     },
     async purgeExact() {},
+    async purgePrefix() {},
   };
   const ct = define<string>("t").withLayers(l1, l2).build();
   const kc = sampleKC();
