@@ -23,5 +23,5 @@ npm run build
 
 ## Publish
 
-Tags `v*` on `main` trigger `.github/workflows/npm-publish.yml` (`npm publish`).
-Version is taken from the tag (`v0.8.0` → `0.8.0`). Requires repo secret `NPM_TOKEN` (npm Granular Access Token).
+Tags `v*` on `main` (or Actions → **npm publish** → Run workflow) publish via
+**npm Trusted Publisher (OIDC)**. See [development.md](../../docs/development.md).
