@@ -1,15 +1,18 @@
 # ss-cachian config example (v0.9.0)
 #
 # 目的: Define / WithLayers / WithKeyBuilder / WithLayerTTL(s) / WithLoader を
-#       設定ファイルから組み立てるための雛形（計画確定・実装前）。
+#       設定ファイルから組み立てる雛形。
 #
-# 方針（計画で固定）:
+# 手厚い書き方: リポジトリ root README および node/sscachian/README.md
+# 仕様: docs/specs/config/
+#
+# 方針:
 # - フォーマットは YAML を正とし、同等の JSON も受け付ける
 # - Layer / TTL / KeyBuilder 参照 / Policy はファイルに書く
 # - Loader とカスタム KeyBuilder の実体はコード側で名前登録し、設定は参照のみ
 # - 値の型パラメータ T は言語側（Go generics / TS ジェネリクス）で付け、設定には書かない
 #
-# schema_version を上げると破壊的変更。詳細は README.md（本ディレクトリ）。
+# schema_version を上げると破壊的変更。
 
 schema_version: "0.9"
 
@@ -64,12 +67,17 @@ types:
         ttl: 10m
 
 # ---------------------------------------------------------------------------
-# 起動時のイメージ（実装後・擬似コード）
+# 起動時のイメージ
 #
 # Go:
+#   import (
+#     "github.com/b4moss/ss-cachian"
+#     _ "github.com/b4moss/ss-cachian/driver/memory"
+#     _ "github.com/b4moss/ss-cachian/driver/firestore"
+#   )
 #   reg := sscachian.NewRegistry()
-#   reg.RegisterLoader("load_client_list", myLoader)
-#   reg.RegisterKeyBuilder("report_v2", myKB)
+#   _ = reg.RegisterLoader("load_client_list", myLoader)
+#   _ = reg.RegisterKeyBuilder("report_v2", myKB)
 #   types, err := sscachian.LoadTypes[MyT](ctx, reg, "sscachian.yaml")
 #   cache := types["client_list"]
 #
@@ -79,6 +87,7 @@ types:
 #   const types = await loadTypes(reg, "./sscachian.yaml")
 #   const cache = types.get("client_list")
 #
+# 書き方の詳細: node/sscachian/README.md （設定ファイル駆動）
 # ---------------------------------------------------------------------------
 # やらないこと（この雛形の範囲外）
 # - Valkey driver / options
