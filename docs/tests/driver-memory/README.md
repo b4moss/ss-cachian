@@ -1,16 +1,21 @@
 ---
 type: TestSpec
 title: driver-memory テスト仕様
-description: インメモリ Layer（v0.3.0）。正常≈3 / 異常≈3〜5。
-tags: [tests, driver-memory, v0.3.0]
-timestamp: 2026-09-27T01:40:00Z
+description: インメモリ Layer。Go v0.3.0 導入・Node v0.8.0 再適用。正常≈3 / 異常≈3〜5。
+tags: [tests, driver-memory, v0.3.0, v0.8.0, node]
+timestamp: 2026-09-27T04:23:00Z
 ---
 
 # driver-memory
 
-対象: `go/sscachian/driver/memory`  
-前提: [drivers](../../drivers.md) / [behavior](../../behavior.md)  
-Entry 形: `{ value, created_at, expires_at }`。値は `any`。TTL は Get 時に `expires_at` を見て遅延削除。
+対象:
+
+- Go: `go/sscachian/driver/memory`
+- Node: `node/sscachian` の memory ドライバ（例: `driver/memory`）
+
+前提: [drivers](../../drivers.md) / [behavior](../../behavior.md) / [tests 索引（Node 差分）](../README.md)  
+Entry 形: `{ value, created_at, expires_at }`。値は任意。TTL は Get 時に `expires_at` を見て遅延削除。  
+Node: 単一プロセス内の同期 Map + 排他（mutex 相当）。公開メソッドは `async` で揃えてよい。
 
 ---
 
@@ -29,7 +34,7 @@ Entry 形: `{ value, created_at, expires_at }`。値は `any`。TTL は Get 時�
 #### テスト: 異常系
 
 - 空キーを渡すとエラー（または契約どおりの無効引数扱い）になる
-- 破損・型不正な内部値があってもパニックせずエラーまたは Miss になる
+- 破損・型不正な内部値があってもパニック／未処理例外にせずエラーまたは Miss になる
 - 並行 Get 中に期限切れ判定してもデータ競合でパニックしない
 
 ---
@@ -38,7 +43,7 @@ Entry 形: `{ value, created_at, expires_at }`。値は `any`。TTL は Get 時�
 
 - キーに Entry を保存する。`created_at` / `expires_at` を付与または引数 TTL から算出する。
 - 同一キーは上書きする。
-- ゴルーチン安全である。
+- 並行安全である。
 
 #### テスト：正常系
 
@@ -49,7 +54,7 @@ Entry 形: `{ value, created_at, expires_at }`。値は `any`。TTL は Get 時�
 #### テスト: 異常系
 
 - 空キーで Set するとエラーになる
-- `value` が nil でもエントリとして保存できる、または明示エラーになる（実装で一方に決め、仕様と一致させる）
+- `value` が null/undefined でもエントリとして保存できる、または明示エラーになる（実装で一方に決め、仕様と一致させる）
 - 負の TTL や不正な時刻指定はエラーになる
 
 ---
@@ -75,29 +80,28 @@ Entry 形: `{ value, created_at, expires_at }`。値は `any`。TTL は Get 時�
 
 ### Incr
 
-- 整数カウンタキーを原子的に +1（または delta）する。current-version 用。
-- キー未作成時は初期値から開始する（version 用の初期は上位が `1` を書く前提だが、Driver 単体では「未作成→指定初期値または 0/1」を契約で固定する。**PoC: 未作成時は 1 を書いてから +1 せず「セットして返す」、または「0 から +1 して 1」**。アプリの current-version 初回は Cache Type 側が `1` を Set する経路と、Bump の Incr 経路を分けてよい）。
-- **Driver 契約（v0.3.0）:** 未作成キーに Incr した場合、結果の値は **1**（0+1）とする。Cache Type の「初回 Get で `__version__=1` を作成」は Incr ではなく Set で行う。
+- 整数カウンタキーを原子的に +1 する。current-version 用。
+- **Driver 契約:** 未作成キーに Incr した場合、結果の値は **1**（0+1）とする。Cache Type の「初回 Get で `__version__=1` を作成」は Incr ではなく Set で行う。
 
 #### テスト：正常系
 
 - 未作成キーへ Incr すると値が 1 になり、再 Incr で 2 になる
 - 既存の整数値 n へ Incr すると n+1 になる
-- 並行に複数 Incr しても最終値が呼び出し回数ぶん増える（最良努力のアプリ Bump とは別。Driver Incr は内部で競合に耐える）
+- 並行に複数 Incr しても最終値が呼び出し回数ぶん増える（Driver Incr は内部で競合に耐える）
 
 #### テスト: 異常系
 
 - 空キーで Incr するとエラーになる
 - 整数以外が格納されているキーへ Incr するとエラーになる
-- オーバーフローしうる極大値付近ではエラーまたはラップを契約どおりに扱う（PoC は error でよい）
+- オーバーフローしうる極大値付近ではエラーまたはラップを契約どおりに扱う（error でよい）
 
 ---
 
-### PurgeExact（v0.7.0）
+### PurgeExact
 
-- `PurgeExact(ctx, logicalPrefix)` は `{logicalPrefix}:{n}`（n が 1 以上の数字）のエントリだけ削除する。
+- `PurgeExact(..., logicalPrefix)` は `{logicalPrefix}:{n}`（n が 1 以上の数字）のエントリだけ削除する。
 - `{logicalPrefix}:__version__` および別プレフィックスのキーは残す。
-- 対象が無くても成功（冪等）。mutex 下で map を走査する。
+- 対象が無くても成功（冪等）。排他下で map を走査する。
 
 #### テスト：正常系
 
