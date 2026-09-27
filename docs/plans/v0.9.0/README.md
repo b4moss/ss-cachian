@@ -8,7 +8,7 @@ timestamp: 2026-09-27T06:28:00Z
 
 # v0.9.0 設定ファイル駆動
 
-- **状態:** 計画確定・テスト仕様あり（実装未着手）
+- **状態:** 実装済み（`dev-v0.9.0` 向け。タグ / npm は main 昇格後）
 - **マイルストーン:** v0.9.0（[roadmap](../../roadmap.md) Phase 2）
 - **作業ブランチ:** `dev-v0.9.0` → `develop` → `main`
 - **設定雛形（スキーマ固定案）:** [sscachian.example.yaml](./sscachian.example.yaml)
@@ -121,12 +121,12 @@ const cache = types.get("client_list");
 ## 受け入れ条件
 
 - [x] `docs/tests/config` 本文あり（Go / Node 共通 + ランタイム差分明記）
-- [ ] 雛形 [sscachian.example.yaml](./sscachian.example.yaml) をフィクスチャとしてロードできる
-- [ ] Go: `LoadTypes` + Registry で Cache Type が動き、既存テスト Green
-- [ ] Node: `loadTypes` + registry で同等、`npm run lint` / `npm test` Green
-- [ ] TTL 優先順位・Emulator 環境変数方針がテストで固定されている
-- [ ] コード面 Builder のみの既存利用が壊れていない
-- [ ] `VERSION` / `@b4moss/ss-cachian` = `0.9.0`
+- [x] 雛形 [sscachian.example.yaml](./sscachian.example.yaml) をフィクスチャとしてロードできる（同等の最小 YAML で検証）
+- [x] Go: `LoadTypes` + Registry で Cache Type が動き、既存テスト Green
+- [x] Node: `loadTypes` + registry で同等、`npm run lint` / `npm test` Green
+- [x] TTL 優先順位・Emulator 環境変数方針がテストで固定されている
+- [x] コード面 Builder のみの既存利用が壊れていない
+- [x] `VERSION` / `@b4moss/ss-cachian` = `0.9.0`
 - [ ] タグ `v0.9.0` で npm 公開（main 昇格後）
 
 ## 実装時の注意

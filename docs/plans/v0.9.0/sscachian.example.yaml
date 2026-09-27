@@ -70,7 +70,7 @@ types:
 #   reg := sscachian.NewRegistry()
 #   reg.RegisterLoader("load_client_list", myLoader)
 #   reg.RegisterKeyBuilder("report_v2", myKB)
-#   types, err := sscachian.LoadTypes[MyT](reg, "sscachian.yaml")
+#   types, err := sscachian.LoadTypes[MyT](ctx, reg, "sscachian.yaml")
 #   cache := types["client_list"]
 #
 # Node:

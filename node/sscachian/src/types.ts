@@ -19,6 +19,7 @@ export const ErrTypeMismatch = new SscachianError("sscachian: cached value type 
 export const ErrInvalidContext = new SscachianError("sscachian: invalid key context");
 export const ErrCorruptVersion = new SscachianError("sscachian: corrupt current-version value");
 export const ErrInvalidLayerIndex = new SscachianError("sscachian: invalid layer index");
+export const ErrInvalidConfig = new SscachianError("sscachian: invalid config");
 
 /** On-Layer storage wrapper. */
 export type Entry = {

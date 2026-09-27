@@ -1,5 +1,5 @@
 /**
- * @b4moss/ss-cachian — Node.js / TypeScript port of ss-cachian (Go v0.7.0 parity).
+ * @b4moss/ss-cachian — Node.js / TypeScript port of ss-cachian (Go v0.7.0+ parity).
  */
 
 export const SSCACHIAN_RUNTIME = "node" as const;
@@ -17,6 +17,7 @@ export {
   ErrInvalidContext,
   ErrCorruptVersion,
   ErrInvalidLayerIndex,
+  ErrInvalidConfig,
   SscachianError,
   isVersionDataKey,
   defaultKeyBuilder,
@@ -37,3 +38,12 @@ export {
   newFirestoreStore,
   type FirestoreOptions,
 } from "./driver/firestore.js";
+
+export {
+  createRegistry,
+  loadTypes,
+  loadTypesYAML,
+  loadTypesJSON,
+  parseDuration,
+  type Registry,
+} from "./config.js";
