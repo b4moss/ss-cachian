@@ -3,7 +3,7 @@ type: Engineering
 title: 開発・CI/CD
 description: 開発環境、パッケージ配置、単体結合テスト、CI/CD、バッジ方針の決定事項。
 tags: [engineering, decided]
-timestamp: 2026-09-27T01:00:00Z
+timestamp: 2026-09-27T03:20:00Z
 ---
 
 # 開発・CI/CD
@@ -29,12 +29,14 @@ git checkout charter/docs -- docs/charter
 ```text
 go/sscachian/           # Go 公開モジュール（アプリが import）
 go/sscachian/driver/    # Driver 実装（memory, firestore, …）
-# 後続: node/ …, php/ … など
+node/sscachian/         # Node.js / TypeScript 公開パッケージ（@b4moss/ss-cachian）
+# 後続: php/ … など
 docs/                   # 知識バンドル正本
 ```
 
-- 先行実装は **Go 1.26**。
-- 公開面は `go/sscachian`。Driver は `go/sscachian/driver/...`。
+- 先行実装は **Go 1.26**（Phase 1 PoC 完了 / v0.7.0）。
+- Go 公開面は `go/sscachian`。Driver は `go/sscachian/driver/...`。
+- Node 公開面は `node/sscachian`（npm: `@b4moss/ss-cachian`）。TS 実装は後続。
 
 ## 開発環境（devcontainer）
 
@@ -84,9 +86,24 @@ docs/                   # 知識バンドル正本
 
 1. **タグは `main` で打つ。**
 2. **そのタグと同じ内容で GitHub Release を作る。**
-3. **そのタグが `release` ブランチに乗るとリリースする。**
+3. **そのタグが `release` ブランチに乗るとリリースする。**（言語横断の正規 CD。整備中）
 4. 各言語でバージョンアップがあったものだけリリースする。
 5. 言語によっては SemVer が欠番になる場合がある。これは許容する。
+
+### npm（暫定）
+
+正規の `release` ブランチ CD が揃うまでの暫定経路:
+
+1. リポジトリ Secret `NPM_TOKEN` に npm **Granular Access Token**（`@b4moss` 向け publish 権限）を置く。
+2. `main` に `v*` タグを push すると [npm-publish.yml](../.github/workflows/npm-publish.yml) が走る。
+3. タグから SemVer を取り（`v0.8.0` → `0.8.0`）、`node/sscachian` で `npm publish --access public` する。
+4. パッケージ名: **`@b4moss/ss-cachian`**。
+
+手元確認:
+
+```bash
+cd node/sscachian && npm ci && npm test && npm publish --dry-run
+```
 
 ## バッジ
 
