@@ -2,6 +2,7 @@
 
 ## 2026-09-27
 
+* **Update**: npm-publish で `NODE_AUTH_TOKEN` を空にし Trusted Publisher (OIDC) を確実に使う（setup-node の注入回避）。
 * **Update**: v0.8.0 Node ポート実装（CacheType / Memory / Firestore / Exact Purge、CI `test-node` Emulator、`@b4moss/ss-cachian@0.8.0`）。
 * **Creation**: v0.8.0 向け計画（`docs/plans/v0.8.0/`）とテスト仕様の Node 再適用（既存ドメインを Go/Node 共通化、ランタイム差分を明記）。
 * **Update**: 本リポの npm publish を Trusted Publisher（OIDC）へ切替。Org `NPM_TOKEN` は他リポ用に維持。
