@@ -27,7 +27,7 @@ ss-cachian は、単一キャッシュストアの薄い抽象ではない。
 - やること: Cache Type による多層キャッシュ、Version 第1級 invalidate、Exact Purge、Driver（memory / Firestore ほか）、設定ファイル駆動（v0.9.0）
 - やらぬこと（現行）: SWR / SIE / negative cache、Purge Prefix/Tag、分散 L1 無効化（後続は [roadmap](./roadmap.md) / [plans](./plans/)）。
 
-設定ファイルの書き方（フィールド表・TTL・options・拒否例）: [../node/sscachian/README.md](../node/sscachian/README.md#設定ファイル駆動v090) ／ 雛形 [plans/v0.9.0/sscachian.example.yaml](./plans/v0.9.0/sscachian.example.yaml) ／ 仕様 [specs/config](./specs/config/)。
+設定ファイルの書き方: [ルート README（英語）](../README.md#config-file-yaml--json) ／ [雛形](./plans/v0.9.0/sscachian.example.yaml) ／ [仕様](./specs/config/) ／ [日本語ルート](../README-ja.md)。
 
 ### 中心概念
 
