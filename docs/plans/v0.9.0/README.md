@@ -8,7 +8,7 @@ timestamp: 2026-09-27T06:28:00Z
 
 # v0.9.0 設定ファイル駆動
 
-- **状態:** 実装済み（`dev-v0.9.0` 向け。タグ / npm は main 昇格後）
+- **状態:** 完了（タグ `v0.9.0` + npm）
 - **マイルストーン:** v0.9.0（[roadmap](../../roadmap.md) Phase 2）
 - **作業ブランチ:** `dev-v0.9.0` → `develop` → `main`
 - **設定雛形（スキーマ固定案）:** [sscachian.example.yaml](./sscachian.example.yaml)
