@@ -8,7 +8,7 @@ timestamp: 2026-09-27T02:37:00Z
 
 # v0.7.0 Purge・PoC 締め
 
-- **状態:** 実装中（Purge・テスト Green 目標）
+- **状態:** 実装完了（`dev-v0.7.0`・テスト Green）
 - **マイルストーン:** v0.7.0（[roadmap](../../roadmap.md)）
 - **作業ブランチ:** `dev-v0.7.0` → PR → `develop` → `main`
 - **方針正本:** [poc-pre-impl-decisions.md](./poc-pre-impl-decisions.md)
