@@ -57,7 +57,7 @@ timestamp: 2026-09-27T01:35:00Z
 
 ### 3. 受け入れ条件
 
-- [ ] 上記テスト仕様が `docs/tests/` にある
+- [x] 上記テスト仕様が `docs/tests/` にある（`version` / `driver-memory` / `cache-type`）
 - [ ] 単体結合テスト（正常・異常）が Green
 - [ ] メモリ L1 のみで Get/Set/Delete/GetOrLoad + 自動/明示 Bump が動く
 - [ ] `VERSION` = `0.3.0`（Git タグは develop マージ方針に従い、このブランチ作業中は必須としない）
