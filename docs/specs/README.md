@@ -14,4 +14,4 @@
 | driver-memory | [driver-memory/](./driver-memory/) | `driver/memory` |
 | driver-firestore | [driver-firestore/](./driver-firestore/) | `driver/firestore` |
 
-未実装の拡張は [plans](../plans/)。Node ポート本体は未実装（スキャフォールドのみ）。
+未実装の拡張は [plans](../plans/)。Node ポート（v0.8.0）は実装済み（`node/sscachian` / `@b4moss/ss-cachian`）。

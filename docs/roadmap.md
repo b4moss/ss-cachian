@@ -12,7 +12,7 @@ timestamp: 2026-09-27T05:56:00Z
 
 - マルチランタイム移植を前提とする（`b4moss/crudian` / `b4moss/cachian` と同様）。
 - 先行実装は Go（**Go 1.26**）。配置は `go/sscachian`（モジュール `github.com/b4moss/ss-cachian`。Driver は `go/sscachian/driver/...`）。
-- Node（`@b4moss/ss-cachian`）はスキャフォールドのみ。Cache Type API は未実装。
+- Node（`@b4moss/ss-cachian@0.8.0`）は Go v0.7.0 パリティ実装済み（CacheType / Memory / Firestore / Exact Purge）。
 - Go では型安全 API を優先する。設定ファイル駆動は後回しでよい。
 - **テスト仕様は各マイルストーン実装前に、その版の範囲だけ書く**。
 
