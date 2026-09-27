@@ -61,4 +61,5 @@ var (
 	ErrInvalidContext    = errors.New("sscachian: invalid key context")
 	ErrCorruptVersion    = errors.New("sscachian: corrupt current-version value")
 	ErrInvalidLayerIndex = errors.New("sscachian: invalid layer index")
+	ErrInvalidConfig     = errors.New("sscachian: invalid config")
 )

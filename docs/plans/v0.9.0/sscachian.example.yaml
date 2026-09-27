@@ -1,0 +1,88 @@
+# ss-cachian config example (v0.9.0)
+#
+# 目的: Define / WithLayers / WithKeyBuilder / WithLayerTTL(s) / WithLoader を
+#       設定ファイルから組み立てるための雛形（計画確定・実装前）。
+#
+# 方針（計画で固定）:
+# - フォーマットは YAML を正とし、同等の JSON も受け付ける
+# - Layer / TTL / KeyBuilder 参照 / Policy はファイルに書く
+# - Loader とカスタム KeyBuilder の実体はコード側で名前登録し、設定は参照のみ
+# - 値の型パラメータ T は言語側（Go generics / TS ジェネリクス）で付け、設定には書かない
+#
+# schema_version を上げると破壊的変更。詳細は README.md（本ディレクトリ）。
+
+schema_version: "0.9"
+
+# 1 ファイルに複数 Cache Type を定義できる
+types:
+  # --- 例1: L1 memory のみ（最短） ---
+  - name: user_profile
+    # key_builder:
+    #   組み込み "default" → {app}:cache:{tenant}:{query}
+    #   またはコード登録名（例: "tenant_scoped"）
+    key_builder: default
+    layers:
+      - driver: memory
+        # ttl 省略 = 0（無期限）。期間は Go time.ParseDuration 互換を想定
+        # （"300ms" / "1s" / "5m" / "1h" / "24h"）。Node も同じ文字列を解釈する。
+        ttl: 5m
+
+  # --- 例2: 多層 + Layer ごと TTL + Loader 参照 ---
+  - name: client_list
+    key_builder: default
+    # loader は設定では「登録名」だけ。実関数はアプリ起動時に Bind。
+    # 未指定なら GetOrLoad は ErrNoLoader（現行どおり）。
+    loader: load_client_list
+    layers:
+      - driver: memory
+        ttl: 1m
+      - driver: firestore
+        ttl: 1h
+        options:
+          # Firestore Options（現行 Driver 既定に合わせる）
+          project_id: ss-cachian-dev
+          collection: sscachian
+          # emulator は環境変数 FIRESTORE_EMULATOR_HOST を正とする（設定には書かない）
+
+  # --- 例3: 全 Layer 同一 TTL（WithLayerTTL / WithPolicy 相当） ---
+  - name: session_blob
+    key_builder: default
+    # type 直下の ttl は「全 layers に同じ TTL」。layers[].ttl がある Layer はそちら優先。
+    ttl: 30m
+    layers:
+      - driver: memory
+      - driver: firestore
+        options:
+          project_id: ss-cachian-dev
+          collection: sscachian_sessions
+
+  # --- 例4: カスタム KeyBuilder 参照のみ ---
+  - name: report_cache
+    key_builder: report_v2   # コード: RegisterKeyBuilder("report_v2", fn)
+    layers:
+      - driver: memory
+        ttl: 10m
+
+# ---------------------------------------------------------------------------
+# 起動時のイメージ（実装後・擬似コード）
+#
+# Go:
+#   reg := sscachian.NewRegistry()
+#   reg.RegisterLoader("load_client_list", myLoader)
+#   reg.RegisterKeyBuilder("report_v2", myKB)
+#   types, err := sscachian.LoadTypes[MyT](ctx, reg, "sscachian.yaml")
+#   cache := types["client_list"]
+#
+# Node:
+#   const reg = createRegistry()
+#   reg.registerLoader("load_client_list", myLoader)
+#   const types = await loadTypes(reg, "./sscachian.yaml")
+#   const cache = types.get("client_list")
+#
+# ---------------------------------------------------------------------------
+# やらないこと（この雛形の範囲外）
+# - Valkey driver / options
+# - SWR・SIE・PurgePrefix などの後続 API
+# - 設定ファイル内への認証情報・秘密鍵の埋め込み
+# - ブラウザ向けバンドル
+# ---------------------------------------------------------------------------
