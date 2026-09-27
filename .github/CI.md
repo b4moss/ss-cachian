@@ -12,8 +12,9 @@ Scaffold aligned with `b4moss/crudian` and [development.md](../docs/development.
 
 ## npm publish
 
-Separate workflow: [npm-publish.yml](./workflows/npm-publish.yml) on tag `v*`.
-Requires `NPM_TOKEN` secret. See [development.md](../docs/development.md) CD (npm 暫定).
+Workflow: [npm-publish.yml](./workflows/npm-publish.yml) on tag `v*` or `workflow_dispatch`.
+Uses **npm Trusted Publisher (OIDC)** — no `NPM_TOKEN` in this workflow.
+See [development.md](../docs/development.md) CD (npm).
 
 ## Required status
 

@@ -90,22 +90,15 @@ docs/                   # 知識バンドル正本
 4. 各言語でバージョンアップがあったものだけリリースする。
 5. 言語によっては SemVer が欠番になる場合がある。これは許容する。
 
-### npm（暫定 → Trusted Publisher）
+### npm（Trusted Publisher）
 
-1. **初回 publish のみ** Repository Secret `NPM_TOKEN`（npm Granular Access Token）を使う。  
-   Trusted Publisher は **未公開パッケージの初回 publish ができない**ため。
-2. Actions → **npm publish** → `Run workflow`（`version` 例: `0.7.0`）。  
-   または `main` への `v*` タグ push。
-3. 初回成功後、npmjs 上で **Trusted Publisher** にこのリポジトリ / `npm publish` ワークフローを登録する。
-4. `NPM_TOKEN` を削除（リヴォーク）し、以降は OIDC（`id-token`） publish に切り替える。
+このリポジトリの `@b4moss/ss-cachian` は **npm Trusted Publisher（OIDC）** で公開する。
 
-パッケージ名: **`@b4moss/ss-cachian`**。ワークフロー: [npm-publish.yml](../.github/workflows/npm-publish.yml)。
+- トリガー: `main` への `v*` タグ、または Actions → **npm publish** → `Run workflow`
+- ワークフロー: [npm-publish.yml](../.github/workflows/npm-publish.yml)（`id-token: write`、**`NODE_AUTH_TOKEN` は使わない**）
+- Org の `NPM_TOKEN` は他リポの **初回 publish 用**に残してよい。本リポの publish ジョブからは参照しない。
 
-Secret の入れ方（チャットにトークンを貼らない）:
-
-```bash
-gh secret set NPM_TOKEN --repo b4moss/ss-cachian
-```
+初回パッケージ作成時のみ Trusted Publisher が使えないため、そのときだけ一時 GAT + Secret で bootstrap する（実施済み: 0.7.0）。
 
 ## バッジ
 

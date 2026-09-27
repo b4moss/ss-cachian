@@ -2,6 +2,7 @@
 
 ## 2026-09-27
 
+* **Update**: 本リポの npm publish を Trusted Publisher（OIDC）へ切替。Org `NPM_TOKEN` は他リポ用に維持。
 * **Update**: npm 初回 publish 用に `npm-publish.yml` へ `workflow_dispatch` を追加（GAT → その後 Trusted Publisher）。
 * **Creation**: Node npm 公開経路（`node/sscachian` = `@b4moss/ss-cachian`、タグ `v*` → `npm-publish.yml`、暫定 `NPM_TOKEN`）。
 * **Update**: PoC 完成に伴い憲章どおり docs を同期。`docs/specs/` に現行ドメイン仕様を新設。完了 `plans/v0.*` を `_archived/plans/` へ移動。main / index / README / roadmap / api / behavior / drivers / open-questions / tests をコード正本に合わせて更新。
