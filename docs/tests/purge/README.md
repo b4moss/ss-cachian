@@ -1,23 +1,27 @@
 ---
 type: TestSpec
 title: purge テスト仕様
-description: Exact Purge（全 version データ削除・`__version__` 非接触）（v0.7.0）。正常≈3 / 異常≈3〜5。
-tags: [tests, purge, v0.7.0]
-timestamp: 2026-09-27T02:37:00Z
+description: Exact Purge（全 version データ削除・`__version__` 非接触）。Go v0.7.0 導入・Node v0.8.0 再適用。正常≈3 / 異常≈3〜5。
+tags: [tests, purge, v0.7.0, v0.8.0, node]
+timestamp: 2026-09-27T04:23:00Z
 ---
 
 # purge
 
-対象: `go/sscachian` CacheType の `Purge`、および Layer `PurgeExact` のアプリ連携  
-前提: [behavior](../../behavior.md) / [api](../../api.md) / [drivers](../../drivers.md)
+対象:
 
-PoC 固定（v0.7.0）:
+- Go: `go/sscachian` CacheType の `Purge`、および Layer `PurgeExact`
+- Node: `node/sscachian` 同 API（`purge` / Layer `purgeExact`）
 
-- アプリ API 名は `Purge`。PoC の意味は Exact（論理キーに紐づく **全 version のデータキー** を削除）
-- Layer メソッド名は `PurgeExact(ctx, logicalPrefix)`
+前提: [behavior](../../behavior.md) / [api](../../api.md) / [drivers](../../drivers.md) / [tests 索引（Node 差分）](../README.md)
+
+固定セマンティクス:
+
+- アプリ API 名は `Purge`。意味は Exact（論理キーに紐づく **全 version のデータキー** を削除）
+- Layer メソッド名は `PurgeExact(ctx|signal, logicalPrefix)`
 - 削除対象は `{logicalPrefix}:{n}`（n≥1 の数字サフィックスのみ）
 - `{logicalPrefix}:__version__` は **残す**。Bump もしない（`CurrentVersion` 不変）
-- デフォルト対象は **全 Layer**。`Purge(ctx, kc, layerIdx ...int)` でインデックス絞り込み（未指定 = 全 Layer）
+- デフォルト対象は **全 Layer**。Layer インデックス絞り込み可（未指定 = 全 Layer）
 - 失敗方針は Delete と同型: **L1 失敗はエラー**、L2+ はログして続行。L1 を対象外にしたときは、対象 Layer の失敗をエラー
 - `Delete`（最新キー削除 + Bump）とは別。Purge は物理データ掃除であり version を進めない
 
@@ -39,20 +43,20 @@ PoC 固定（v0.7.0）:
 
 - データキーが無い（初回も未 Set）でも Purge は成功（冪等）し、`__version__` があれば残る／無ければ作らない
 - 文脈不正でキーが組めないときはエラー（どの Layer も触らない）
-- L1 の `PurgeExact` が失敗したらエラーを返し、L2 以降は呼ばない（または L1 失敗時点で全体エラー。**PoC: L1 失敗で即エラー。既に触った下位は無い前提で L1→Ln 順**）
+- L1 の `PurgeExact` が失敗したらエラーを返す（**L1 失敗で即エラー。L1→Ln 順**）
 
 ---
 
 ### Purge（Layer 絞り込み）
 
-- `layerIdx` で単一または複数 Layer に限定できる。
+- Layer インデックスで単一または複数 Layer に限定できる。
 - 指定されなかった Layer のデータキーは残る。
 - 不正インデックス（負・範囲外）はエラー。
 
 #### テスト：正常系
 
-- `Purge(ctx, kc, 1)`（L2 のみ）で L2 のデータは消え、L1 のデータは残る
-- `Purge(ctx, kc)`（引数なし）で L1・L2 ともデータが消える
+- L2 のみ指定で L2 のデータは消え、L1 のデータは残る
+- 引数なし（全 Layer）で L1・L2 ともデータが消える
 - 絞り込み対象に L1 を含まないときも `__version__` は触らない（L1 に残る）
 
 #### テスト: 異常系
@@ -78,4 +82,4 @@ PoC 固定（v0.7.0）:
 
 - L2 のみ `PurgeExact` 失敗（L1 は成功）のとき、全体は成功とし失敗はログ（Delete の L2 失敗と同型）
 - Purge 中に `__version__` キーが誤って消えない（メモリ／Firestore いずれでも検証）
-- 空の logicalPrefix（KeyBuilder が空文字を返した場合）は Driver 側でエラーまたは no-op とし、他キーを巻き込まない（**PoC: Layer は空 prefix を ErrEmptyKey**）
+- 空の logicalPrefix（KeyBuilder が空文字を返した場合）は Driver 側でエラーまたは no-op とし、他キーを巻き込まない（**Layer は空 prefix を ErrEmptyKey**）

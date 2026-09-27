@@ -2,6 +2,7 @@
 
 ## 2026-09-27
 
+* **Creation**: v0.8.0 向け計画（`docs/plans/v0.8.0/`）とテスト仕様の Node 再適用（既存ドメインを Go/Node 共通化、ランタイム差分を明記）。
 * **Update**: 本リポの npm publish を Trusted Publisher（OIDC）へ切替。Org `NPM_TOKEN` は他リポ用に維持。
 * **Update**: npm 初回 publish 用に `npm-publish.yml` へ `workflow_dispatch` を追加（GAT → その後 Trusted Publisher）。
 * **Creation**: Node npm 公開経路（`node/sscachian` = `@b4moss/ss-cachian`、タグ `v*` → `npm-publish.yml`、暫定 `NPM_TOKEN`）。
