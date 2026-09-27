@@ -8,7 +8,7 @@ timestamp: 2026-09-27T02:10:00Z
 
 # v0.5.0 多層 + Firestore
 
-- **状態:** 仕様詳細（テスト仕様作成済み・実装前）
+- **状態:** 実装中（多層 + Firestore・テスト Green）
 - **マイルストーン:** v0.5.0（[roadmap](../../roadmap.md)）
 - **作業ブランチ:** `dev-v0.5.0` → PR → `develop`
 
@@ -31,8 +31,8 @@ L1→L2→…→Loader の多層 Get / 書き戻しと、Firestore Driver（Emul
 ## 受け入れ条件
 
 - [x] `docs/tests/layer` / `driver-firestore` 本文あり
-- [ ] 多層 Get 書き戻しが動く
-- [ ] Firestore Emulator 結合が Green
-- [ ] 既存 v0.3.0 テストが Green
-- [ ] `VERSION` = `0.5.0`（タグは main マージ時）
-- [ ] `make lint test` 通過
+- [x] 多層 Get 書き戻しが動く
+- [x] Firestore Emulator 結合が Green
+- [x] 既存 v0.3.0 テストが Green
+- [x] `VERSION` = `0.5.0`（タグは main マージ時）
+- [x] `make lint test` 通過
