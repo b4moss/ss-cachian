@@ -183,6 +183,29 @@ func asInt64(v any) (int64, error) {
 	return 0, sscachian.ErrNotInteger
 }
 
+func (s *Store) PurgeExact(ctx context.Context, logicalPrefix string) error {
+	if logicalPrefix == "" {
+		return sscachian.ErrEmptyKey
+	}
+	iter := s.client.Collection(s.collection).Documents(ctx)
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		if err != nil {
+			return err
+		}
+		if !sscachian.IsVersionDataKey(logicalPrefix, doc.Ref.ID) {
+			continue
+		}
+		if _, err := doc.Ref.Delete(ctx); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // ClearCollection deletes all docs (tests only).
 func (s *Store) ClearCollection(ctx context.Context) error {
 	iter := s.client.Collection(s.collection).Documents(ctx)

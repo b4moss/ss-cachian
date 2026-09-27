@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"time"
 )
 
@@ -312,6 +313,64 @@ func (c *CacheType[T]) Delete(ctx context.Context, kc KeyContext) error {
 	}
 	_, err = c.BumpVersion(ctx, kc)
 	return err
+}
+
+// Purge removes all version data keys for the logical key on selected layers.
+// Omitting layerIdx purges every layer. Does not touch __version__ or bump.
+func (c *CacheType[T]) Purge(ctx context.Context, kc KeyContext, layerIdx ...int) error {
+	prefix, err := c.logicalPrefix(ctx, kc)
+	if err != nil {
+		return err
+	}
+	targets, err := c.resolveLayerIndexes(layerIdx...)
+	if err != nil {
+		return err
+	}
+	includesL1 := false
+	for _, i := range targets {
+		if i == 0 {
+			includesL1 = true
+			break
+		}
+	}
+	for _, i := range targets {
+		if err := c.layers[i].PurgeExact(ctx, prefix); err != nil {
+			if includesL1 {
+				if i == 0 {
+					return err
+				}
+				log.Printf("sscachian: purge layer %d failed: %v", i, err)
+				continue
+			}
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *CacheType[T]) resolveLayerIndexes(layerIdx ...int) ([]int, error) {
+	n := len(c.layers)
+	if len(layerIdx) == 0 {
+		out := make([]int, n)
+		for i := range out {
+			out[i] = i
+		}
+		return out, nil
+	}
+	seen := make(map[int]struct{}, len(layerIdx))
+	out := make([]int, 0, len(layerIdx))
+	for _, i := range layerIdx {
+		if i < 0 || i >= n {
+			return nil, ErrInvalidLayerIndex
+		}
+		if _, ok := seen[i]; ok {
+			continue
+		}
+		seen[i] = struct{}{}
+		out = append(out, i)
+	}
+	sort.Ints(out)
+	return out, nil
 }
 
 // GetOrLoad performs multilayer Get; on miss loads and write-backs to all layers without bump.
