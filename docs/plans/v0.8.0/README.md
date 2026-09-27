@@ -34,8 +34,8 @@ Go PoC（v0.7.0）と同等の Define / 多層 / Version / Exact Purge / Memory 
 
 ## 受け入れ条件
 
-- [ ] `docs/tests` 各ドメインが Node（v0.8.0）対象として記載されている
-- [ ] Node テストが cache-type / version / layer / purge / memory / firestore で Green
-- [ ] `npm run lint` / `npm test`（CI `test-node` 含む）Green
-- [ ] `@b4moss/ss-cachian` version = `0.8.0`
-- [ ] タグ `v0.8.0` で npm Trusted Publisher 公開可能
+- [x] `docs/tests` 各ドメインが Node（v0.8.0）対象として記載されている
+- [x] Node テストが cache-type / version / layer / purge / memory / firestore で Green
+- [x] `npm run lint` / `npm test`（CI `test-node` 含む）Green
+- [x] `@b4moss/ss-cachian` version = `0.8.0`
+- [ ] タグ `v0.8.0` で npm Trusted Publisher 公開可能（main 昇格時）
