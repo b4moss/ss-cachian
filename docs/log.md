@@ -2,9 +2,11 @@
 
 ## 2026-09-27
 
+* **Update**: PoC 残件（パッケージ構成・`docs/tests` 分割・devcontainer）を決定し `development.md` へ反映。devcontainer は Go 1.26 + Firestore Emulator + `act`。
+* **Creation**: `docs/tests/README.md` にドメイン別テスト仕様の索引を追加。
 * **Update**: Issue #7 の優先一問一答（10 件）を `behavior.md` / `drivers.md` / `api.md` へ反映。
 * **Creation**: `docs/plans/v0.7.0/` に PoC 方針確定文書を追加。
-* **Update**: `open-questions.md` から PoC で決まった項目を外し、残件（パッケージ構成・テスト仕様・devcontainer 最小構成）を明示。
+* **Update**: `open-questions.md` から PoC 着手前残件を削除（方針確定へ移管）。
 
 ## 2026-09-20
 

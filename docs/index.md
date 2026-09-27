@@ -23,11 +23,12 @@ okf_version: "0.1"
 
 # 未決定
 
-* [未決事項](./open-questions.md) - 未決定・未詳細の設計論点（PoC 残件・後続）
+* [未決事項](./open-questions.md) - 後続フェーズの未決定・未詳細
 
 # 作業用
 
 * [plans](./plans/) - これからやる内容（[v0.7.0 PoC 方針](./plans/v0.7.0/)）
+* [tests](./tests/) - テスト仕様（PoC はドメイン別）
 * [specs](./specs/) - 現行機能の仕様正本（実装後）
 
 # アーカイブ

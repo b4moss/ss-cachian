@@ -1,9 +1,9 @@
 ---
 type: Engineering
 title: 開発・CI/CD
-description: 開発環境、単体結合テスト、CI/CD、バッジ方針の決定事項。
+description: 開発環境、パッケージ配置、単体結合テスト、CI/CD、バッジ方針の決定事項。
 tags: [engineering, decided]
-timestamp: 2026-09-07T13:00:00Z
+timestamp: 2026-09-27T01:00:00Z
 ---
 
 # 開発・CI/CD
@@ -22,10 +22,27 @@ git checkout charter/docs -- docs/charter
 
 当リポジトリ固有の決定のみを以下に記す。
 
-## 開発環境
+## リポジトリ配置（マルチランタイム）
+
+他言語ポートを前提に、言語ごとにトップレベルディレクトリを並べる。
+
+```text
+go/sscachian/           # Go 公開モジュール（アプリが import）
+go/sscachian/driver/    # Driver 実装（memory, firestore, …）
+# 後続: node/ …, php/ … など
+docs/                   # 知識バンドル正本
+```
+
+- 先行実装は **Go 1.26**。
+- 公開面は `go/sscachian`。Driver は `go/sscachian/driver/...`。
+
+## 開発環境（devcontainer）
 
 - 開発は **devcontainer** で行う。
-- 先行実装の Go バージョンは **Go 1.26**。
+- PoC 時点のコンテナ内容:
+  - **Go 1.26**
+  - **Firestore Emulator**（メモリ／Firestore の結合テストをコンテナ内で完結）
+  - **`act`**（PR 前の Actions スモークを手元で回す）
 
 ## テスト
 
@@ -36,11 +53,16 @@ git checkout charter/docs -- docs/charter
 - 各テストに **正常系** と **異常系** を用意する。
 - 具体的な書き方・テスト仕様書の形式は [憲章の TDD 方針](./charter/tdd.md) に従う。
 
+### テスト仕様（PoC）
+
+- 配置は `docs/tests/`。**ドメイン別**に分割する。
+- 想定ドメイン: `version` / `layer` / `purge` / `driver-memory` / `driver-firestore`
+- 各ファイルの目安: 正常系おおよそ 3、異常系おおよそ 3〜5
+- 索引は [docs/tests/](./tests/) を参照。
+
 ### 補足（charter 踏襲）
 
 - 仕様 FIX のあと、テスト仕様を書き、先にテストを書いてから実装する（Red → Green → Refactor）。
-- テスト仕様の配置は原則 `docs/tests/`。
-- 正常系はおおよそ 3、異常系はおおよそ 3〜5 を目安とする。
 - PoC / 初期では E2E は必須としない。過剰なカバレッジ追及はしない。
 
 ## CI
@@ -50,6 +72,7 @@ git checkout charter/docs -- docs/charter
 - 可能な限りジョブを並行実行し、キャッシュを活用して壁時計時間を短くする。
 - ドキュメントのみの PR / マージでは CI を走らせない（対象ジョブはスキップし、ゲートは成功としてよい）。
 - PR 前に実装者が手元で `act` を回し、通ることを確認する。husky 等での強制はしない。
+- `act` は devcontainer に同梱する（上記「開発環境」）。
 
 ### CI の参考モデル（crudian）
 
