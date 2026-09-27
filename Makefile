@@ -1,4 +1,4 @@
-.PHONY: test lint fmt act ci-go
+.PHONY: test lint fmt act ci-go emulator
 
 GO_DIR := go/sscachian
 
@@ -8,8 +8,12 @@ fmt:
 lint:
 	cd $(GO_DIR) && test -z "$$(gofmt -l .)" && go vet ./...
 
-test:
-	cd $(GO_DIR) && go test ./...
+emulator:
+	bash scripts/start-firestore-emulator.sh
+
+test: emulator
+	FIRESTORE_EMULATOR_HOST=$${FIRESTORE_EMULATOR_HOST:-127.0.0.1:8080} \
+		cd $(GO_DIR) && go test ./...
 
 ci-go: lint test
 

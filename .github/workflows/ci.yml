@@ -56,6 +56,7 @@ jobs:
               - 'Makefile'
               - 'docker/**'
               - '.devcontainer/**'
+              - 'scripts/**'
 
       - name: Resolve outputs
         id: set
@@ -143,8 +144,22 @@ jobs:
           go-version: "1.26.x"
           cache-dependency-path: go/sscachian/go.sum
 
+      - name: Setup Java (Firestore emulator)
+        if: steps.skip.outputs.hit != 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Start Firestore Emulator
+        if: steps.skip.outputs.hit != 'true'
+        working-directory: ${{ github.workspace }}
+        run: bash scripts/start-firestore-emulator.sh
+
       - name: go test
         if: steps.skip.outputs.hit != 'true'
+        env:
+          FIRESTORE_EMULATOR_HOST: 127.0.0.1:8080
         run: go test ./...
 
   ci-result:
