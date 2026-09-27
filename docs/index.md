@@ -16,18 +16,18 @@ okf_version: "0.1"
 
 * [コンセプト](./concept.md) - 目的、中心概念、キャッシュの位置づけ
 * [振る舞い](./behavior.md) - キー、多層、Version、Purge、エントリメタ
-* [Driver と Layer 契約](./drivers.md) - Driver 優先順と薄い共通契約
+* [Driver と Layer 契約](./drivers.md) - Driver 優先順、Layer 契約、PoC Driver 詳細
 * [アプリケーション API](./api.md) - 初期 PoC 必須 API と後続任意 API
 * [ロードマップ](./roadmap.md) - 実装フェーズとマルチランタイム方針
 * [開発・CI/CD](./development.md) - devcontainer、テスト、CI/CD、バッジ
 
 # 未決定
 
-* [未決事項](./open-questions.md) - 未決定・未詳細の設計論点
+* [未決事項](./open-questions.md) - 未決定・未詳細の設計論点（PoC 残件・後続）
 
 # 作業用
 
-* [plans](./plans/) - これからやる内容
+* [plans](./plans/) - これからやる内容（[v0.7.0 PoC 方針](./plans/v0.7.0/)）
 * [specs](./specs/) - 現行機能の仕様正本（実装後）
 
 # アーカイブ
