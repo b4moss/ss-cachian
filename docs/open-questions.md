@@ -1,39 +1,38 @@
 ---
 type: OpenQuestions
 title: 未決事項
-description: 未決定または未詳細の設計論点と、後続実装メモ。
+description: Phase 2 以降の未決定・未詳細と後続実装メモ。
 tags: [open]
-timestamp: 2026-09-27T01:00:00Z
+timestamp: 2026-09-27T03:05:00Z
 ---
 
 # 未決事項
 
-決定済みの振る舞いは [振る舞い](./behavior.md) / [Driver と Layer 契約](./drivers.md) / [アプリケーション API](./api.md) / [開発・CI/CD](./development.md) を参照。  
-PoC 実装前の決定は [plans/v0.7.0](./plans/v0.7.0/) に転記済み（Issue #7 相当はクローズ）。
+決定済みの振る舞いは [振る舞い](./behavior.md) / [Driver と Layer 契約](./drivers.md) / [アプリケーション API](./api.md) / [specs](./specs/) を参照。  
+Phase 1 PoC の事前決定は [_archived/plans/v0.7.0](./_archived/plans/v0.7.0/) に履歴として残す。
 
-ここには未決定・未詳細と、後続実装の控えを残す。
+ここには **まだ決めていない／後続 Phase で詰める**論点だけを残す。
 
 ## マルチランタイム
 
 セマンティクスの移植前提は決定済み。
 
-**シリアライズ形式:** PoC（Go のみ）では未決定のままにする。最初の他言語ポート時に決める。  
-（Go 単体の値保持は [Driver と Layer 契約](./drivers.md) で決定済み。）
+**シリアライズ形式:** Go 単体では決定済み（メモリ `any` / Firestore JSON）。**ランタイム間共通形式**は最初の他言語ポート時に決める。
 
 未詳細（ポート時に決める）:
 
-- 具体的なシリアライズ形式
+- 具体的な共通シリアライズ形式
 - ランタイム間で揃える保証の範囲
 
 ## その他（後回し）
 
 ### 旧 version の明示列挙・取得 API
 
-**決定:** 後続任意 API として用意する余地は残す。PoC では作らない。
+**決定:** 後続任意 API。現行では作らない。
 
 ### 分散 L1 無効化通知
 
-**決定:** 後続任意。PoC では作らない。Version 入りキー + TTL（および必要なら Purge）で PoC は足りる前提。
+**決定:** 後続任意。Version 入りキー + TTL（および Purge）で現行は足りる前提。
 
 ---
 
@@ -41,7 +40,7 @@ PoC 実装前の決定は [plans/v0.7.0](./plans/v0.7.0/) に転記済み（Issu
 
 ## Entry メタ拡張: SWR / SIE / negative cache
 
-**決定:** PoC では設計しない。必要になった Phase で Entry メタを拡張して追加実装する。
+**決定:** 現行では設計しない。必要になった Phase で Entry メタを拡張する。
 
 初期メタ（決定済み）は `created_at` / `expires_at` のみ。下記を後続で足す候補とする。
 
@@ -49,13 +48,13 @@ PoC 実装前の決定は [plans/v0.7.0](./plans/v0.7.0/) に転記済み（Issu
 
 | 用語 | 意味 |
 | --- | --- |
-| **SWR**（Stale-While-Revalidate） | TTL 切れ後もいったん古い値を返し、同時にバックグラウンドで再取得してキャッシュを更新する。応答レイテンシを保ちつつ、後続リクエストを新し目のデータへ寄せる。 |
-| **SIE**（Stale-If-Error） | Loader や DB がエラーのとき、期限切れでもキャッシュ済みの古い値を返す。障害時の可用性を優先する。 |
-| **negative cache** | 「存在しない」「取得失敗」などの否定的結果も短時間キャッシュする。同じ Miss / 失敗が連続して起源へ突くのを防ぐ。 |
+| **SWR**（Stale-While-Revalidate） | TTL 切れ後もいったん古い値を返し、同時にバックグラウンドで再取得してキャッシュを更新する。 |
+| **SIE**（Stale-If-Error） | Loader や DB がエラーのとき、期限切れでもキャッシュ済みの古い値を返す。 |
+| **negative cache** | 「存在しない」「取得失敗」などの否定的結果も短時間キャッシュする。 |
 
 ### 後続でやること（チェック用）
 
-- [ ] SWR 用メタ（例: stale 境界時刻）と再検証フロー
+- [ ] SWR 用メタと再検証フロー
 - [ ] SIE 用メタとエラー時フォールバック
-- [ ] negative cache 用メタ（否定結果の保持と短い TTL）
+- [ ] negative cache 用メタ
 - [ ] 上記を [アプリケーション API](./api.md) の後続任意 API と接続

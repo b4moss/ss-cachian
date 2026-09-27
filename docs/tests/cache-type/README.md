@@ -74,19 +74,18 @@ timestamp: 2026-09-27T01:40:00Z
 
 ### Set
 
-- 最新 version キーへ値を書く（Entry ラッパーは内部）。
-- **成功後に自動 BumpVersion** する。
+- **先に L1 で BumpVersion**し、その新 version キーへ値を書く（Entry ラッパーは内部）。
 
 #### テスト：正常系
 
-- Set 後、Bump 前の版番号キーではなく「Set 時点の最新キー」に書かれ、その後 version が進む
-- Set 成功後 CurrentVersion が +1 される
+- Set 後、Bump 後の版番号キーに書かれ、CurrentVersion が +1 されている
+- Get で書いた値が取れる
 - TTL 付き Type では `expires_at` が設定され、期限前 Get で値が取れる
 
 #### テスト: 異常系
 
-- L1 Set 失敗時はエラーで、Bump しない（version が進まない）
-- Bump だけ失敗した場合の扱いは「Set は成功済み・Bump エラーを返す or ログ」（**PoC: Set 成功後の Bump 失敗はエラーを返す**）
+- Bump 失敗時はエラーで、データキーへは書かない
+- Bump 成功後に L1 Set が失敗したらエラーを返す（**既に進んだ version は戻さない**）
 - 文脈不正では Set も Bump もしない
 
 ---
