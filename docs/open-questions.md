@@ -3,23 +3,15 @@ type: OpenQuestions
 title: 未決事項
 description: 未決定または未詳細の設計論点と、後続実装メモ。
 tags: [open]
-timestamp: 2026-09-27T00:00:00Z
+timestamp: 2026-09-27T01:00:00Z
 ---
 
 # 未決事項
 
-決定済みの振る舞いは [振る舞い](./behavior.md) / [Driver と Layer 契約](./drivers.md) / [アプリケーション API](./api.md) を参照。  
-PoC 実装前の優先決定（Issue #7 の一問一答）は [plans/v0.7.0](./plans/v0.7.0/) に転記済み。
+決定済みの振る舞いは [振る舞い](./behavior.md) / [Driver と Layer 契約](./drivers.md) / [アプリケーション API](./api.md) / [開発・CI/CD](./development.md) を参照。  
+PoC 実装前の決定は [plans/v0.7.0](./plans/v0.7.0/) に転記済み（Issue #7 相当はクローズ）。
 
 ここには未決定・未詳細と、後続実装の控えを残す。
-
-## PoC 着手前に残るもの
-
-- Go パッケージ構成（置き場所・公開面）
-- `docs/tests/` への PoC テスト仕様
-- devcontainer の最小構成（利用すること自体は [開発・CI/CD](./development.md) で決定済み）
-
-API メソッド名の最終形は実装時調整でよい（[アプリケーション API](./api.md)）。
 
 ## マルチランタイム
 

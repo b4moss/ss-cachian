@@ -1,9 +1,9 @@
 ---
 type: Plan
 title: Phase 1 PoC（v0.7.0）方針
-description: Go PoC 実装前に固めた方針確定。Issue #7 の優先一問一答を転記。
+description: Go PoC 実装前に固めた方針確定。Issue #7 および残件一問一答を転記。
 tags: [plan, poc]
-timestamp: 2026-09-27T00:00:00Z
+timestamp: 2026-09-27T01:00:00Z
 ---
 
 # Phase 1 PoC（v0.7.0）方針
@@ -11,7 +11,7 @@ timestamp: 2026-09-27T00:00:00Z
 - **状態:** 方針確定
 - **マイルストーン:** v0.7.0（[ロードマップ](../../roadmap.md) Phase 1）
 - **関連 Issue:** #7
-- **正本の振る舞い:** [behavior](../../behavior.md) / [drivers](../../drivers.md) / [api](../../api.md)
+- **正本:** [behavior](../../behavior.md) / [drivers](../../drivers.md) / [api](../../api.md) / [development](../../development.md)
 
 ## 目的
 
@@ -26,7 +26,7 @@ Go でキービルダー・多層・インメモリ + Firestore の PoC を実�
 - Purge Prefix / Tag
 - Firestore ネイティブ TTL ポリシー
 
-## 決定サマリ（優先 10 問）
+## 決定サマリ（優先 10 問 + 残件 3 問）
 
 | # | 論点 | 決定 |
 | --- | --- | --- |
@@ -40,10 +40,12 @@ Go でキービルダー・多層・インメモリ + Firestore の PoC を実�
 | 8 | インメモリ | sync.Map 相当・遅延削除・ゴルーチン安全 |
 | 9 | Firestore | 1 キー 1 doc・読み時 TTL 判定 |
 | 10 | Purge Exact | 全 version データ削除。`__version__` は残す |
+| 11 | パッケージ構成 | `go/sscachian` + `go/sscachian/driver/...`（他言語と並列） |
+| 12 | テスト仕様 | `docs/tests/` をドメイン別（正常≈3・異常≈3〜5） |
+| 13 | devcontainer | Go 1.26 + Firestore Emulator + `act` |
 
 ## 次アクション
 
-1. Go パッケージ構成を決める
-2. `docs/tests/` に PoC テスト仕様を書く（TDD）
-3. devcontainer 最小構成を用意する
-4. Phase 1 実装（Red → Green → Refactor）
+1. `docs/tests/` に各ドメインのテスト仕様本文を書く（TDD）
+2. devcontainer（Go 1.26 / Firestore Emulator / `act`）を用意する
+3. `go/sscachian` スケルトンを置き、Phase 1 実装（Red → Green → Refactor）
