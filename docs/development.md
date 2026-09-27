@@ -90,20 +90,15 @@ docs/                   # 知識バンドル正本
 4. 各言語でバージョンアップがあったものだけリリースする。
 5. 言語によっては SemVer が欠番になる場合がある。これは許容する。
 
-### npm（暫定）
+### npm（Trusted Publisher）
 
-正規の `release` ブランチ CD が揃うまでの暫定経路:
+このリポジトリの `@b4moss/ss-cachian` は **npm Trusted Publisher（OIDC）** で公開する。
 
-1. リポジトリ Secret `NPM_TOKEN` に npm **Granular Access Token**（`@b4moss` 向け publish 権限）を置く。
-2. `main` に `v*` タグを push すると [npm-publish.yml](../.github/workflows/npm-publish.yml) が走る。
-3. タグから SemVer を取り（`v0.8.0` → `0.8.0`）、`node/sscachian` で `npm publish --access public` する。
-4. パッケージ名: **`@b4moss/ss-cachian`**。
+- トリガー: `main` への `v*` タグ、または Actions → **npm publish** → `Run workflow`
+- ワークフロー: [npm-publish.yml](../.github/workflows/npm-publish.yml)（`id-token: write`、**`NODE_AUTH_TOKEN` は使わない**）
+- Org の `NPM_TOKEN` は他リポの **初回 publish 用**に残してよい。本リポの publish ジョブからは参照しない。
 
-手元確認:
-
-```bash
-cd node/sscachian && npm ci && npm test && npm publish --dry-run
-```
+初回パッケージ作成時のみ Trusted Publisher が使えないため、そのときだけ一時 GAT + Secret で bootstrap する（実施済み: 0.7.0）。
 
 ## バッジ
 
