@@ -3,7 +3,7 @@ type: Roadmap
 title: ロードマップ
 description: 実装フェーズ、マイルストーン、マルチランタイム方針。
 tags: [roadmap, decided]
-timestamp: 2026-09-27T04:23:00Z
+timestamp: 2026-09-27T05:56:00Z
 ---
 
 # ロードマップ
@@ -15,7 +15,7 @@ timestamp: 2026-09-27T04:23:00Z
 - Go では型安全 API を優先する。設定ファイル駆動は後回しでよい。
 - **テスト仕様は各マイルストーン実装前に、その版の範囲だけ書く**。
 
-開発環境・CI/CD は [開発・CI/CD](./development.md)。現行仕様は [specs](./specs/)。
+開発環境・技術方針は [README.md](./README.md)（pillar）。CI/CD は [.github/CI.md](../.github/CI.md)。現行仕様は [specs](./specs/)。
 
 ## Phase 1（PoC）— 〜 v0.7.0 — **完了**
 
@@ -33,7 +33,7 @@ timestamp: 2026-09-27T04:23:00Z
 
 | 版 | 内容 | 状態 |
 | --- | --- | --- |
-| **v0.8.0** | Node.js ポート（Go v0.7.0 パリティ・`@b4moss/ss-cachian`） | 実装中（[plans/v0.8.0](./plans/v0.8.0/)） |
+| **v0.8.0** | Node.js ポート（Go v0.7.0 パリティ・`@b4moss/ss-cachian`） | 完了（タグ + npm） |
 | （後続） | 他 Driver（Valkey 等）、PHP ポート、（任意）SWR / SIE、Purge Prefix/Tag、分散 L1 等 | 未割当 |
 
 マイルストーンの切り方は Phase 1 と同様、**版ごとにテスト仕様 → 実装**とする。作業単位は [plans](./plans/)。

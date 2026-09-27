@@ -13,7 +13,7 @@ timestamp: 2026-09-27T04:23:00Z
 - Go: `go/sscachian` 公開 API
 - Node: `node/sscachian` 公開 API（`define` / `Builder` / `CacheType`）
 
-前提: [api](../../api.md) / [behavior](../../behavior.md) / [tests 索引（Node 差分）](../README.md)
+前提: [specs/cache-type](../../specs/cache-type/) / [specs/version](../../specs/version/) / [tests 索引（Node 差分）](../README.md)
 
 意味論は Go / Node 同一。Node はすべて `async`。単一 L1 のケースは Memory で検証し、多層は [layer](../layer/) を参照。
 

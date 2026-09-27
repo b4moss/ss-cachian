@@ -13,7 +13,8 @@ timestamp: 2026-09-27T04:23:00Z
 - Go: `go/sscachian` CacheType の多層振る舞い
 - Node: `node/sscachian` CacheType の多層振る舞い
 
-前提: [behavior](../../behavior.md) / [api](../../api.md) / [tests 索引（Node 差分）](../README.md)  
+前提: [specs/layer](../../specs/layer/) / [specs/cache-type](../../specs/cache-type/) / [tests 索引（Node 差分）](../README.md)  
+
 current-version は **L1 のみ**。データキーは全 Layer で同一。
 
 固定セマンティクス:

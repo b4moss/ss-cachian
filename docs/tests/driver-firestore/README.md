@@ -13,7 +13,7 @@ timestamp: 2026-09-27T04:23:00Z
 - Go: `go/sscachian/driver/firestore`
 - Node: `node/sscachian` の Firestore ドライバ（`@google-cloud/firestore`）
 
-前提: [drivers](../../drivers.md) / [behavior](../../behavior.md) / [tests 索引（Node 差分）](../README.md)  
+前提: [specs/driver-firestore](../../specs/driver-firestore/) / [specs/layer](../../specs/layer/) / [tests 索引（Node 差分）](../README.md)  
 実行: Firestore Emulator（`FIRESTORE_EMULATOR_HOST`）。Go は既存 `test-go`、Node は `test-node` で起動する。
 
 ドキュメント:

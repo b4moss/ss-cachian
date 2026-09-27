@@ -1,7 +1,7 @@
 # docs/tests
 
 テスト仕様書の索引（TDD の入力）。形式は [憲章の TDD 方針](../charter/tdd.md) に従う。  
-エンジニアリング方針の要約は [開発・CI/CD](../development.md) を参照。
+エンジニアリング方針の要約は [README.md](../README.md)（pillar）と [.github/CI.md](../../.github/CI.md) を参照。
 
 ## 分割
 

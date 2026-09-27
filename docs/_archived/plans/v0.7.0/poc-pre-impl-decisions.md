@@ -11,7 +11,7 @@ timestamp: 2026-09-27T01:00:00Z
 - **状態:** アーカイブ（Phase 1 方針確定の履歴。現行正本は [specs](../../../specs/) / ハブ文書）
 - **マイルストーン:** v0.7.0（[ロードマップ](../../../roadmap.md) Phase 1）
 - **関連 Issue:** #7
-- **正本（当時）:** [behavior](../../../behavior.md) / [drivers](../../../drivers.md) / [api](../../../api.md) / [development](../../../development.md)
+- **正本（当時 → 現在）:** 旧 behavior / drivers / api / development は [specs](../../../specs/)・[README.md](../../../README.md)・[.github/CI.md](../../../../.github/CI.md) へ吸収
 
 ## 目的
 

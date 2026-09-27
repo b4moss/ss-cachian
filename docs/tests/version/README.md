@@ -13,7 +13,8 @@ timestamp: 2026-09-27T04:23:00Z
 - Go: Cache Type の Version まわり（L1 = インメモリ前提）
 - Node: 同 API（`currentVersion` / `bumpVersion` 等。公開名は実装で Go と同型に揃える）
 
-前提: [behavior](../../behavior.md) / [tests 索引（Node 差分）](../README.md)  
+前提: [specs/version](../../specs/version/) / [tests 索引（Node 差分）](../README.md)  
+
 キー例: `{app}:cache:{tenant}:{query}:__version__`  
 初回: `__version__` 未作成なら **1** を L1 に作成する。
 

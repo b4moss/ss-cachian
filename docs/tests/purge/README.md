@@ -13,7 +13,7 @@ timestamp: 2026-09-27T04:23:00Z
 - Go: `go/sscachian` CacheType の `Purge`、および Layer `PurgeExact`
 - Node: `node/sscachian` 同 API（`purge` / Layer `purgeExact`）
 
-前提: [behavior](../../behavior.md) / [api](../../api.md) / [drivers](../../drivers.md) / [tests 索引（Node 差分）](../README.md)
+前提: [specs/purge](../../specs/purge/) / [specs/layer](../../specs/layer/) / [tests 索引（Node 差分）](../README.md)
 
 固定セマンティクス:
 

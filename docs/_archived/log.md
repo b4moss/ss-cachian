@@ -2,6 +2,7 @@
 
 ## 2026-09-27
 
+* **Update**: charter v1.2.0 / OKF v0.1 に docs を揃えた。`docs/charter/okf/` を同期。pillar を `main.md` → `docs/README.md` に移し、`index.md` は OKF 索引のみ。ルート narrative（concept / behavior / api / drivers / development / open-questions 等）を `docs/README.md`・`docs/specs/`・`docs/plans/unscheduled/`・`.github/CI.md`・`_archived/` へ吸収。
 * **Update**: npm-publish を OIDC 向けに再修正（`registry-url` 除去、npm 最新化、`_authToken` 行削除）。
 * **Update**: npm-publish で `NODE_AUTH_TOKEN` を空にし Trusted Publisher (OIDC) を確実に使う（setup-node の注入回避）。
 * **Update**: v0.8.0 Node ポート実装（CacheType / Memory / Firestore / Exact Purge、CI `test-node` Emulator、`@b4moss/ss-cachian@0.8.0`）。

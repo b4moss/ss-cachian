@@ -13,7 +13,7 @@ timestamp: 2026-09-27T04:23:00Z
 - Go: `go/sscachian/driver/memory`
 - Node: `node/sscachian` の memory ドライバ（例: `driver/memory`）
 
-前提: [drivers](../../drivers.md) / [behavior](../../behavior.md) / [tests 索引（Node 差分）](../README.md)  
+前提: [specs/driver-memory](../../specs/driver-memory/) / [specs/layer](../../specs/layer/) / [tests 索引（Node 差分）](../README.md)  
 Entry 形: `{ value, created_at, expires_at }`。値は任意。TTL は Get 時に `expires_at` を見て遅延削除。  
 Node: 単一プロセス内の同期 Map + 排他（mutex 相当）。公開メソッドは `async` で揃えてよい。
 
