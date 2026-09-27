@@ -25,7 +25,8 @@ API 面は [アプリケーション API](./api.md) の「初期 PoC」を対象
 | 版 | 内容 | 実装前のテスト仕様 | 実装範囲 |
 | --- | --- | --- | --- |
 | **v0.1.0** | 土台（スキャフォールド） | なし（`docs/tests/` の配置方針・索引のみ） | devcontainer（Go 1.26 / Firestore Emulator / `act`）、`go/sscachian` 骨格、CI 骨格 |
-| **v0.3.0** | コア + インメモリ | `version/`・`driver-memory/` など当該範囲 | Key Builder、Entry ラッパー、current-version / Bump / 初回 Get、インメモリ Driver、`Get` / `Set` / `Delete`（自動 Bump） |
+| ~~v0.2.0~~ | **欠番**（タグも切らない） | — | — |
+| **v0.3.0** | コア + インメモリ | `version/`・`driver-memory/` など当該範囲 | Key Builder、Entry ラッパー、current-version / Bump / 初回 Get、インメモリ Driver、`Get` / `Set` / `Delete` / `GetOrLoad`（自動 Bump）。**単一 L1** |
 | **v0.5.0** | 多層 + Firestore | `layer/`・`driver-firestore/` など当該範囲 | 多層 Get / 書き戻し、Firestore Driver（Emulator 結合） |
 | **v0.7.0** | Purge・PoC 締め | `purge/` など残り | `PurgeExact`（全 version データ削除）、Layer 共通面の揃え、PoC 最小成功条件の充足 |
 
