@@ -54,7 +54,25 @@ test("firestore incr", async (t) => {
     await assert.rejects(() => s.incr("bad"), ErrNotInteger);
 
     const n = 20;
-    await Promise.all(Array.from({ length: n }, () => s.incr("par")));
+    // Emulator may abort under contention; keep trying until each call succeeds (Go parity).
+    await Promise.all(
+      Array.from({ length: n }, async () => {
+        for (;;) {
+          try {
+            await s.incr("par");
+            return;
+          } catch (err) {
+            const code = (err as { code?: number | string }).code;
+            const aborted =
+              code === 10 ||
+              code === "ABORTED" ||
+              (err instanceof Error && /ABORTED|aborted|lock timeout/i.test(err.message));
+            if (!aborted) throw err;
+            await new Promise((r) => setTimeout(r, 1));
+          }
+        }
+      }),
+    );
     const final = await s.incr("par");
     assert.equal(final, n + 1);
   } finally {

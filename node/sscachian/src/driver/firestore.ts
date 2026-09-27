@@ -112,7 +112,8 @@ export class FirestoreStore implements Layer {
     if (key === "") throw ErrEmptyKey;
     const ref = this.#doc(key);
     let last: unknown;
-    for (let attempt = 0; attempt < 8; attempt++) {
+    // Emulator aborts under contention; keep trying with backoff (Go parity).
+    for (let attempt = 0; attempt < 32; attempt++) {
       try {
         const out = await this.#client.runTransaction(async (tx) => {
           const snap = await tx.get(ref);
@@ -145,13 +146,8 @@ export class FirestoreStore implements Layer {
       } catch (err) {
         last = err;
         if (err === ErrNotInteger || err === ErrIncrOverflow) throw err;
-        const code = (err as { code?: number | string }).code;
-        const aborted =
-          code === 10 ||
-          code === "ABORTED" ||
-          (err instanceof Error && /ABORTED|aborted/i.test(err.message));
-        if (!aborted) throw err;
-        await sleep((attempt + 1) * 5);
+        if (!isAbortedTxn(err)) throw err;
+        await sleep(Math.min(50, (attempt + 1) * 5));
       }
     }
     throw last instanceof Error ? last : new Error(String(last));
@@ -203,6 +199,15 @@ function asIncrInt(v: unknown): number {
     return v;
   }
   throw ErrNotInteger;
+}
+
+function isAbortedTxn(err: unknown): boolean {
+  const code = (err as { code?: number | string }).code;
+  if (code === 10 || code === "ABORTED") return true;
+  if (err instanceof Error) {
+    return /ABORTED|aborted|Transaction lock timeout/i.test(err.message);
+  }
+  return false;
 }
 
 function sleep(ms: number): Promise<void> {
