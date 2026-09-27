@@ -14,7 +14,7 @@
 | `node/sscachian/` | `@b4moss/ss-cachian`（npm 公開経路・実装は後続） |
 | `.devcontainer/` + `docker/` | Go 1.26 / Firestore Emulator / `act` |
 | `.github/workflows/ci.yml` | path filter・ancestor skip·Emulator 付き test |
-| `.github/workflows/npm-publish.yml` | タグ `v*` → `npm publish`（Secret `NPM_TOKEN`） |
+| `.github/workflows/npm-publish.yml` | タグ `v*` / dispatch → `npm publish`（Trusted Publisher / OIDC） |
 
 ```bash
 make lint test   # Go（Firestore Emulator 起動を含む）

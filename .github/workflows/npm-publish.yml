@@ -1,16 +1,14 @@
 name: npm publish
 
-# First publish (bootstrap): workflow_dispatch + repository secret NPM_TOKEN (GAT).
-#   npm Trusted Publisher cannot perform the very first publish for a new package.
-# After package exists: configure Trusted Publisher on npmjs for this workflow,
-#   remove NPM_TOKEN, then switch this job to OIDC-only (id-token).
-# Ongoing: push tag v* on main (same job).
+# Publishes @b4moss/ss-cachian via npm Trusted Publisher (OIDC).
+# Do not set NODE_AUTH_TOKEN here — token auth would bypass Trusted Publisher.
+# Org NPM_TOKEN may still exist for other repos' first-publish bootstrap.
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: "SemVer to publish (e.g. 0.7.0)"
+        description: "SemVer to publish (e.g. 0.8.0)"
         required: true
         type: string
   push:
@@ -68,7 +66,5 @@ jobs:
       - name: Set package version
         run: npm version "${{ steps.ver.outputs.version }}" --no-git-tag-version --allow-same-version
 
-      - name: Publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish (Trusted Publisher / OIDC)
         run: npm publish --access public --provenance
