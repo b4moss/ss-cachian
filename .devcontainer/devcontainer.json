@@ -1,0 +1,26 @@
+{
+  "name": "ss-cachian",
+  "dockerComposeFile": ["../docker/compose.yaml"],
+  "service": "dev",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": { "label": "Firestore Emulator" }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "go.toolsManagement.autoUpdate": true
+      }
+    }
+  },
+  "remoteUser": "ubuntu",
+  "remoteEnv": {
+    "FIRESTORE_EMULATOR_HOST": "firestore:8080"
+  }
+}
