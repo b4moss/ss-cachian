@@ -2,6 +2,7 @@
 
 ## 2026-09-27
 
+* **Release**: v0.5.0 を `main` にマージし、タグ `v0.5.0` を付与（GitHub Release は作成しない）。
 * **Update**: v0.5.0 実装（多層 CacheType、Firestore Driver、CI Emulator）。`VERSION=0.5.0`。
 * **Creation**: v0.5.0 向けテスト仕様（`docs/tests/layer` / `driver-firestore`）と `docs/plans/v0.5.0/`。
 * **Release**: v0.3.0 を `main` にマージし、タグ `v0.3.0` を付与（GitHub Release は作成しない）。
