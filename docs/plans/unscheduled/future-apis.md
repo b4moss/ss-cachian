@@ -9,12 +9,13 @@
 
 ## 読み書き・エントリ
 
-- `Has` / `Exists` / `GetEntry` / `GetLatest` / `Remember` / `RememberForever` / `Forget`
+- （v0.10.0 実装済み）`Has` / `Exists` / `GetEntry` / `Remember` / `RememberForever` / `Forget`
+- `GetLatest`（未実装）
 
 ## Purge 拡張
 
-- `PurgeExact`（アプリ API としての別名・オプション整理）
-- `PurgePrefix` / `PurgeTag` / Purge 専用オプション API
+- （v0.10.0 実装済み）`PurgeExact` 別名 / `PurgePrefix` / `PurgeTag`
+- Purge 専用オプション API（未実装）
 
 ## Policy・高度挙動
 

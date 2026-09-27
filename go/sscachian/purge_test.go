@@ -24,6 +24,14 @@ func (f *failPurgeLayer) PurgeExact(ctx context.Context, logicalPrefix string) e
 	return f.Layer.PurgeExact(ctx, logicalPrefix)
 }
 
+func (f *failPurgeLayer) PurgePrefix(ctx context.Context, prefix string) error {
+	f.calls++
+	if f.failing && f.err != nil {
+		return f.err
+	}
+	return f.Layer.PurgePrefix(ctx, prefix)
+}
+
 func TestPurge_AllLayersKeepsVersion(t *testing.T) {
 	t.Parallel()
 	l1, l2 := memory.New(), memory.New()
@@ -301,5 +309,107 @@ func TestIsVersionDataKey(t *testing.T) {
 		if got := sscachian.IsVersionDataKey(tc.prefix, tc.key); got != tc.want {
 			t.Fatalf("%q %q: got %v want %v", tc.prefix, tc.key, got, tc.want)
 		}
+	}
+}
+
+func TestPurgeExact_AliasMatchesPurge(t *testing.T) {
+	t.Parallel()
+	l1 := memory.New()
+	ct, _ := sscachian.Define[string]("t").WithLayers(l1).Build()
+	ctx := context.Background()
+	kc := sampleKC()
+	_ = ct.Set(ctx, kc, "a")
+	_ = ct.Set(ctx, kc, "b")
+	before, _ := ct.CurrentVersion(ctx, kc)
+	if err := ct.PurgeExact(ctx, kc); err != nil {
+		t.Fatal(err)
+	}
+	after, _ := ct.CurrentVersion(ctx, kc)
+	if after != before {
+		t.Fatalf("version changed: %d→%d", before, after)
+	}
+	if _, ok, _ := ct.Get(ctx, kc); ok {
+		t.Fatal("expected miss")
+	}
+	vk, _ := ct.VersionKey(ctx, kc)
+	if _, ok, _ := l1.Get(ctx, vk); !ok {
+		t.Fatal("__version__ should remain")
+	}
+}
+
+func TestPurgePrefix_AppAPI(t *testing.T) {
+	t.Parallel()
+	l1, l2 := memory.New(), memory.New()
+	ct, _ := sscachian.Define[string]("t").WithLayers(l1, l2).Build()
+	ctx := context.Background()
+	kc1 := sscachian.KeyContext{AppSlug: "app", TenantID: "t", QueryType: "q1"}
+	kc2 := sscachian.KeyContext{AppSlug: "app", TenantID: "t", QueryType: "q2"}
+	other := sscachian.KeyContext{AppSlug: "app", TenantID: "other", QueryType: "q1"}
+	_ = ct.Set(ctx, kc1, "a")
+	_ = ct.Set(ctx, kc2, "b")
+	_ = ct.Set(ctx, other, "keep")
+
+	if err := ct.PurgePrefix(ctx, "app:cache:t:"); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok, _ := ct.Get(ctx, kc1); ok {
+		t.Fatal("kc1 gone")
+	}
+	if _, ok, _ := ct.Get(ctx, kc2); ok {
+		t.Fatal("kc2 gone")
+	}
+	got, ok, _ := ct.Get(ctx, other)
+	if !ok || got != "keep" {
+		t.Fatalf("other should remain: ok=%v got=%q", ok, got)
+	}
+	if err := ct.PurgePrefix(ctx, ""); !errors.Is(err, sscachian.ErrEmptyKey) {
+		t.Fatalf("empty: %v", err)
+	}
+}
+
+func TestPurgeTag_WithTagsAndDefaults(t *testing.T) {
+	t.Parallel()
+	l1 := memory.New()
+	ct, _ := sscachian.Define[string]("t").WithLayers(l1).WithDefaultTags("tenant:123").Build()
+	ctx := context.Background()
+	kcA := sscachian.KeyContext{AppSlug: "app", TenantID: "1", QueryType: "a"}
+	kcB := sscachian.KeyContext{AppSlug: "app", TenantID: "1", QueryType: "b"}
+	kcC := sscachian.KeyContext{AppSlug: "app", TenantID: "1", QueryType: "c"}
+
+	_ = ct.Set(ctx, kcA, "a", sscachian.WithTags("product:456"))
+	_ = ct.Set(ctx, kcB, "b", sscachian.WithTags("product:456"))
+	_ = ct.Set(ctx, kcC, "c") // default tag only
+
+	beforeA, _ := ct.CurrentVersion(ctx, kcA)
+	if err := ct.PurgeTag(ctx, "product:456"); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok, _ := ct.Get(ctx, kcA); ok {
+		t.Fatal("A purged")
+	}
+	if _, ok, _ := ct.Get(ctx, kcB); ok {
+		t.Fatal("B purged")
+	}
+	afterA, _ := ct.CurrentVersion(ctx, kcA)
+	if afterA != beforeA {
+		t.Fatalf("version bumped: %d→%d", beforeA, afterA)
+	}
+	if got, ok, _ := ct.Get(ctx, kcC); !ok || got != "c" {
+		t.Fatalf("C should remain until tenant purge: ok=%v got=%q", ok, got)
+	}
+	if err := ct.PurgeTag(ctx, "product:456"); err != nil {
+		t.Fatal(err) // idempotent
+	}
+	if err := ct.PurgeTag(ctx, "tenant:123"); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok, _ := ct.Get(ctx, kcC); ok {
+		t.Fatal("C should be gone after tenant tag")
+	}
+	if err := ct.PurgeTag(ctx, ""); !errors.Is(err, sscachian.ErrEmptyKey) {
+		t.Fatalf("empty tag: %v", err)
+	}
+	if err := ct.PurgeTag(ctx, "missing:tag"); err != nil {
+		t.Fatal(err)
 	}
 }

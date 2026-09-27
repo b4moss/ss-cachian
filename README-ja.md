@@ -11,7 +11,7 @@
 
 - [English README (default)](./README.md)
 
-現行版: **v0.9.0**（Go `VERSION` と `@b4moss/ss-cachian` を揃えています）。
+現行版: **v0.10.0**（Go `VERSION` と `@b4moss/ss-cachian` を揃えています）。
 
 ## できること
 
@@ -24,7 +24,7 @@
 | **Driver** | **memory** / **Firestore**（`FIRESTORE_EMULATOR_HOST` 対応） |
 | **設定駆動（v0.9.0）** | YAML（正）または同等 JSON → `LoadTypes` / `loadTypes` |
 
-現行スコープ外: SWR / SIE / negative cache、PurgePrefix/Tag、Valkey、PHP、ブラウザ向け。→ [roadmap](./docs/roadmap.md)
+現行スコープ外: SWR / SIE / negative cache、Valkey、PHP、ブラウザ向け。→ [roadmap](./docs/roadmap.md)
 
 ## 言語ポート
 
@@ -40,13 +40,13 @@
 | | Go | Node |
 |--|----|------|
 | Runtime | Go **1.26+** | Node.js **≥ 20** |
-| Package | `github.com/b4moss/ss-cachian` | `@b4moss/ss-cachian@0.9.0` |
+| Package | `github.com/b4moss/ss-cachian` | `@b4moss/ss-cachian@0.10.0` |
 
 公開パッケージ利用にリポジトリ clone は不要です。
 
 ## 使い方（要約）
 
-1. ポートを選びインストール（`go get …@v0.9.0` / `npm i @b4moss/ss-cachian`）
+1. ポートを選びインストール（`go get …@v0.10.0` / `npm i @b4moss/ss-cachian`）
 2. コード組み立て（`Define`）か設定ファイル（YAML）かを決める
 3. Loader / カスタム KeyBuilder は Registry に名前登録（設定は参照のみ）
 4. Layer 順 = L1…Ln。TTL は `ParseDuration` 文字列。優先: layer TTL → type TTL → `0`

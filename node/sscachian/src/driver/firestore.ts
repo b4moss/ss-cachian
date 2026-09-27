@@ -162,6 +162,15 @@ export class FirestoreStore implements Layer {
     }
   }
 
+  async purgePrefix(prefix: string, _signal?: AbortSignal): Promise<void> {
+    if (prefix === "") throw ErrEmptyKey;
+    const snap = await this.#client.collection(this.#collection).get();
+    for (const doc of snap.docs) {
+      if (!doc.id.startsWith(prefix)) continue;
+      await doc.ref.delete();
+    }
+  }
+
   /** Tests only. */
   async clearCollection(): Promise<void> {
     const snap = await this.#client.collection(this.#collection).get();
