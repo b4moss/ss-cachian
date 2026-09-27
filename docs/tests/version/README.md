@@ -3,7 +3,7 @@ type: TestSpec
 title: version テスト仕様
 description: current-version / Bump / 初回 Get。Go v0.3.0 導入・Node v0.8.0 再適用。正常≈3 / 異常≈3〜5。
 tags: [tests, version, v0.3.0, v0.8.0, node]
-timestamp: 2026-09-27T04:23:00Z
+timestamp: 2026-09-27T05:30:00Z
 ---
 
 # version
@@ -13,9 +13,10 @@ timestamp: 2026-09-27T04:23:00Z
 - Go: Cache Type の Version まわり（L1 = インメモリ前提）
 - Node: 同 API（`currentVersion` / `bumpVersion` 等。公開名は実装で Go と同型に揃える）
 
-前提: [behavior](../../behavior.md) / [tests 索引（Node 差分）](../README.md)  
+前提: [specs/version](../../specs/version/) / [tests 索引（Node 差分）](../README.md)  
+
 キー例: `{app}:cache:{tenant}:{query}:__version__`  
-初回: `__version__` 未作成なら **1** を L1 に作成する。
+初回: `__version__` 未作成なら **1** を L1 に作成する。導入マイルストーン: v0.3.0。
 
 ---
 

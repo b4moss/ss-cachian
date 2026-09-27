@@ -3,7 +3,7 @@ type: TestSpec
 title: layer テスト仕様
 description: 多層 Get / 書き戻し / Set・Delete 全 Layer。Go v0.5.0 導入・Node v0.8.0 再適用。正常≈3 / 異常≈3〜5。
 tags: [tests, layer, v0.5.0, v0.8.0, node]
-timestamp: 2026-09-27T04:23:00Z
+timestamp: 2026-09-27T05:30:00Z
 ---
 
 # layer
@@ -13,7 +13,8 @@ timestamp: 2026-09-27T04:23:00Z
 - Go: `go/sscachian` CacheType の多層振る舞い
 - Node: `node/sscachian` CacheType の多層振る舞い
 
-前提: [behavior](../../behavior.md) / [api](../../api.md) / [tests 索引（Node 差分）](../README.md)  
+前提: [specs/layer](../../specs/layer/) / [specs/cache-type](../../specs/cache-type/) / [tests 索引（Node 差分）](../README.md)  
+
 current-version は **L1 のみ**。データキーは全 Layer で同一。
 
 固定セマンティクス:
@@ -69,7 +70,7 @@ current-version は **L1 のみ**。データキーは全 Layer で同一。
 
 ### Set（多層）
 
-- bump 後の最新キーへ書く。
+- bump 後の最新キーへ書く（v0.3.0 セマンティクス継承）。
 - 書き込み先は **設定された全 Layer**（各 Layer の TTL を使う）。
 - Bump / current-version は L1 のみ。
 

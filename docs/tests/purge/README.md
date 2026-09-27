@@ -3,7 +3,7 @@ type: TestSpec
 title: purge テスト仕様
 description: Exact Purge（全 version データ削除・`__version__` 非接触）。Go v0.7.0 導入・Node v0.8.0 再適用。正常≈3 / 異常≈3〜5。
 tags: [tests, purge, v0.7.0, v0.8.0, node]
-timestamp: 2026-09-27T04:23:00Z
+timestamp: 2026-09-27T05:30:00Z
 ---
 
 # purge
@@ -13,7 +13,7 @@ timestamp: 2026-09-27T04:23:00Z
 - Go: `go/sscachian` CacheType の `Purge`、および Layer `PurgeExact`
 - Node: `node/sscachian` 同 API（`purge` / Layer `purgeExact`）
 
-前提: [behavior](../../behavior.md) / [api](../../api.md) / [drivers](../../drivers.md) / [tests 索引（Node 差分）](../README.md)
+前提: [specs/purge](../../specs/purge/) / [specs/layer](../../specs/layer/) / [tests 索引（Node 差分）](../README.md)
 
 固定セマンティクス:
 

@@ -1,15 +1,12 @@
 ---
-type: OpenQuestions
-title: 未決事項
-description: Phase 2 以降の未決定・未詳細と後続実装メモ。
-tags: [open]
-timestamp: 2026-09-27T03:05:00Z
+状態: 意図スタブ
+マイルストーン: unscheduled
 ---
 
-# 未決事項
+# 未決事項・後続メモ
 
-決定済みの振る舞いは [振る舞い](./behavior.md) / [Driver と Layer 契約](./drivers.md) / [アプリケーション API](./api.md) / [specs](./specs/) を参照。  
-Phase 1 PoC の事前決定は [_archived/plans/v0.7.0](./_archived/plans/v0.7.0/) に履歴として残す。
+決定済みの振る舞いは [specs](../../specs/) を参照。  
+Phase 1 PoC の事前決定は [_archived/plans/v0.7.0](../../_archived/plans/v0.7.0/) に履歴として残す。
 
 ここには **まだ決めていない／後続 Phase で詰める**論点だけを残す。
 
@@ -42,7 +39,7 @@ Phase 1 PoC の事前決定は [_archived/plans/v0.7.0](./_archived/plans/v0.7.0
 
 **決定:** 現行では設計しない。必要になった Phase で Entry メタを拡張する。
 
-初期メタ（決定済み）は `created_at` / `expires_at` のみ。下記を後続で足す候補とする。
+初期メタ（決定済み）は `created_at` / `expires_at` のみ（[cache-type](../../specs/cache-type/)）。下記を後続で足す候補とする。
 
 ### 用語
 
@@ -57,4 +54,4 @@ Phase 1 PoC の事前決定は [_archived/plans/v0.7.0](./_archived/plans/v0.7.0
 - [ ] SWR 用メタと再検証フロー
 - [ ] SIE 用メタとエラー時フォールバック
 - [ ] negative cache 用メタ
-- [ ] 上記を [アプリケーション API](./api.md) の後続任意 API と接続
+- [ ] 上記を [future-apis.md](./future-apis.md) の後続任意 API と接続
