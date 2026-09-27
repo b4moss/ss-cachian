@@ -1,4 +1,5 @@
 // Package firestore is the Firestore Layer driver for ss-cachian.
 //
-// Implementation lands in v0.5.0 (one doc per key, JSON value, read-time TTL).
+// One cache key maps to one document with JSON value and read-time TTL.
+// Requires FIRESTORE_EMULATOR_HOST (or a real project) for tests.
 package firestore
