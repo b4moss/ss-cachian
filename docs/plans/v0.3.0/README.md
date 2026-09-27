@@ -8,7 +8,7 @@ timestamp: 2026-09-27T01:35:00Z
 
 # v0.3.0 コア + インメモリ
 
-- **状態:** 仕様詳細（実装前）
+- **状態:** 実装中（テスト仕様・実装・単体結合テスト Green）
 - **マイルストーン:** v0.3.0（[roadmap](../../roadmap.md)）
 - **作業ブランチ:** `dev-v0.3.0` → PR → `develop`
 - **v0.2.0:** 欠番（タグも切らない）
@@ -58,10 +58,10 @@ timestamp: 2026-09-27T01:35:00Z
 ### 3. 受け入れ条件
 
 - [x] 上記テスト仕様が `docs/tests/` にある（`version` / `driver-memory` / `cache-type`）
-- [ ] 単体結合テスト（正常・異常）が Green
-- [ ] メモリ L1 のみで Get/Set/Delete/GetOrLoad + 自動/明示 Bump が動く
-- [ ] `VERSION` = `0.3.0`（Git タグは develop マージ方針に従い、このブランチ作業中は必須としない）
-- [ ] `make lint test` 通過
+- [x] 単体結合テスト（正常・異常）が Green
+- [x] メモリ L1 のみで Get/Set/Delete/GetOrLoad + 自動/明示 Bump が動く
+- [x] `VERSION` = `0.3.0`（Git タグは develop マージ方針に従い、このブランチ作業中は必須としない）
+- [x] `make lint test` 通過
 
 ### 4. ドキュメント更新（実装と並行〜完了時）
 
