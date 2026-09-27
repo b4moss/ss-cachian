@@ -8,9 +8,9 @@ timestamp: 2026-09-27T02:37:00Z
 
 # v0.7.0 Purge・PoC 締め
 
-- **状態:** 実装完了（`dev-v0.7.0`・テスト Green）
-- **マイルストーン:** v0.7.0（[roadmap](../../roadmap.md)）
-- **作業ブランチ:** `dev-v0.7.0` → PR → `develop` → `main`
+- **状態:** アーカイブ（完了マイルストーン履歴。現行正本は [specs](../../../specs/)）
+- **マイルストーン:** v0.7.0（[roadmap](../../../roadmap.md)）
+- **作業ブランチ:** `dev-v0.7.0` → `develop` → `main`
 - **方針正本:** [poc-pre-impl-decisions.md](./poc-pre-impl-decisions.md)
 
 ## 目的
@@ -25,7 +25,7 @@ Exact Purge（全 version データ削除・`__version__` 非接触）を実装�
 
 ## 作業順（TDD）
 
-1. テスト仕様: [purge](../../tests/purge/)（+ driver-memory / driver-firestore の PurgeExact 節）
+1. テスト仕様: [purge](../../../tests/purge/)（+ driver-memory / driver-firestore の PurgeExact 節）
 2. Layer `PurgeExact` + memory / Firestore 実装
 3. CacheType `Purge`（Layer 絞り込み・失敗方針は Delete と同型）
 4. `VERSION=0.7.0` / `make lint test`

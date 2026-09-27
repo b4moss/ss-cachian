@@ -4,11 +4,17 @@ Scaffold aligned with `b4moss/crudian` and [development.md](../docs/development.
 
 ## Goals
 
-- Lint + unit/integration on PRs (and push) for touched Go packages.
-- Path filter: only schedule jobs for changed areas.
-- Ancestor skip: same package + workflow identity already green → short-circuit.
-- Docs-only changes: Go jobs skipped; aggregate gate still succeeds.
-- No product E2E in CI (PoC).
+- Lint + unit/integration on PRs (and push) for touched Go / Node packages.
+- Path filter: only schedule jobs for changed areas (`go/**`, `node/**`).
+- Ancestor skip (Go): same package + workflow identity already green → short-circuit.
+- Docs-only changes: language jobs skipped; aggregate gate still succeeds.
+- No product E2E in CI.
+
+## npm publish
+
+Workflow: [npm-publish.yml](./workflows/npm-publish.yml) on tag `v*` or `workflow_dispatch`.
+Uses **npm Trusted Publisher (OIDC)** — no `NPM_TOKEN` in this workflow.
+See [development.md](../docs/development.md) CD (npm).
 
 ## Required status
 

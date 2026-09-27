@@ -3,7 +3,7 @@ type: Concept
 title: 振る舞い
 description: キー設計、多層キャッシュ、Version、Purge、エントリメタの決定事項。
 tags: [behavior, decided]
-timestamp: 2026-09-27T00:00:00Z
+timestamp: 2026-09-27T03:05:00Z
 ---
 
 # 振る舞い
@@ -73,10 +73,11 @@ Version = 論理 invalidate
 TTL     = 物理 cleanup
 ```
 
-- `Set` / `Delete` 成功後は、該当スコープを **自動で** `BumpVersion` する（L1 の current-version を更新）。
+- `Set` は **先に** L1 で `BumpVersion` し、その新 version キーへ書く。`Delete` は最新キー削除の **あと** に `BumpVersion` する。
 - 明示の `BumpVersion` も提供する。
 - `BumpVersion` は **最良努力**（read → +1 → write）。競合時の上書き負けを許容し、最終的に番号が進んでいれば十分とする。
 - Version bump 時に Layer を能動クリアしない。旧キーは TTL で消える（Purge しない限り）。
+- `Set` で L1 への書き込みが失敗しても、既に進んだ version は戻さない。
 - 初期の Get は **最新 version のみ** 返す。旧世代の取得・列挙は初期スコープ外。
 
 ## Purge
@@ -84,10 +85,10 @@ TTL     = 物理 cleanup
 - Exact / Prefix / Tag など、多彩な明示パージを提供する。
 - 日常の invalidate は Version、明示削除・運用は Purge。
 - Purge のデフォルト対象は **全 Layer**。
-- 引数またはオプションで Layer 配列を渡し、単一または複数 Layer に絞れる。
+- `Purge(ctx, kc, layerIdx ...int)` で Layer インデックスを渡し、単一または複数に絞れる（未指定は全 Layer）。
 - Purge は **データキーのみ** 削除し、`__version__` は進めない・消さない。
 
-### PoC の Purge Exact
+### Exact Purge（現行）
 
 - 指定論理キーに紐づく **全 version のデータキー** を、対象 Layer から削除する。
 - `__version__` は残す。
@@ -101,5 +102,5 @@ TTL     = 物理 cleanup
 ```
 
 - アプリ向け `Get` は `value` だけ返す。
-- PoC ではこれ以外のメタを設計しない。SWR / SIE / negative cache 用フィールドは後続 Phase で追加する。
+- 現行ではこれ以外のメタを設計しない。SWR / SIE / negative cache 用フィールドは後続 Phase で追加する。
 - 用語と追加忘れ防止のメモは [未決事項](./open-questions.md) を参照。

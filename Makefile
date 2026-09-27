@@ -1,6 +1,7 @@
-.PHONY: test lint fmt act ci-go emulator
+.PHONY: test lint fmt act ci-go emulator lint-node test-node
 
 GO_DIR := go/sscachian
+NODE_DIR := node/sscachian
 
 fmt:
 	cd $(GO_DIR) && gofmt -w .
@@ -16,6 +17,12 @@ test: emulator
 		cd $(GO_DIR) && go test ./...
 
 ci-go: lint test
+
+lint-node:
+	cd $(NODE_DIR) && npm ci && npm run lint
+
+test-node:
+	cd $(NODE_DIR) && npm ci && npm test
 
 # Wiring smoke for CI (requires Docker + act image pull).
 act:

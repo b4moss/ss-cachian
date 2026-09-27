@@ -8,8 +8,8 @@ timestamp: 2026-09-27T02:10:00Z
 
 # v0.5.0 多層 + Firestore
 
-- **状態:** 完了（`main` / タグ `v0.5.0`）
-- **マイルストーン:** v0.5.0（[roadmap](../../roadmap.md)）
+- **状態:** アーカイブ（完了マイルストーン履歴。現行正本は [specs](../../../specs/)）
+- **マイルストーン:** v0.5.0（[roadmap](../../../roadmap.md)）
 - **作業ブランチ:** `dev-v0.5.0` → `develop` → `main`
 
 ## 目的
@@ -23,7 +23,7 @@ L1→L2→…→Loader の多層 Get / 書き戻しと、Firestore Driver（Emul
 
 ## 作業順（TDD）
 
-1. テスト仕様: [layer](../../tests/layer/) / [driver-firestore](../../tests/driver-firestore/)
+1. テスト仕様: [layer](../../../tests/layer/) / [driver-firestore](../../../tests/driver-firestore/)
 2. CacheType 多層化 + Layer TTL
 3. Firestore Driver + Emulator 結合
 4. CI に Emulator を組み込み
