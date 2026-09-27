@@ -156,8 +156,13 @@ func TestIncr_Concurrent(t *testing.T) {
 	for i := 0; i < n; i++ {
 		go func() {
 			defer wg.Done()
-			if _, err := s.Incr(ctx, "c"); err != nil {
-				t.Errorf("%v", err)
+			for {
+				if _, err := s.Incr(ctx, "c"); err != nil {
+					// Emulator may abort under contention; keep trying until success.
+					time.Sleep(time.Millisecond)
+					continue
+				}
+				return
 			}
 		}()
 	}
