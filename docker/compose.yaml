@@ -1,0 +1,42 @@
+# Dev stack: Go toolchain container + Firestore Emulator.
+name: ss-cachian
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        GO_VERSION: "1.26.7"
+    image: ss-cachian-dev:local
+    working_dir: /workspace
+    volumes:
+      - ..:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      FIRESTORE_EMULATOR_HOST: firestore:8080
+    depends_on:
+      firestore:
+        condition: service_started
+    command: ["sleep", "infinity"]
+    networks:
+      - ss-cachian
+
+  firestore:
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    command:
+      - gcloud
+      - beta
+      - emulators
+      - firestore
+      - start
+      - --host-port=0.0.0.0:8080
+      - --project=ss-cachian-dev
+    ports:
+      - "8080:8080"
+    networks:
+      - ss-cachian
+
+networks:
+  ss-cachian:
+    driver: bridge

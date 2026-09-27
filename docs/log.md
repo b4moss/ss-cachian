@@ -2,6 +2,7 @@
 
 ## 2026-09-27
 
+* **Creation**: v0.1.0 スキャフォールド（`go/sscachian`、devcontainer、CI、Makefile）。
 * **Update**: `roadmap.md` に Phase 1 マイルストーン（v0.1.0 / v0.3.0 / v0.5.0 / v0.7.0）を転記。テスト仕様は各版実装前に範囲限定で書く方針を明記。
 * **Update**: PoC 残件（パッケージ構成・`docs/tests` 分割・devcontainer）を決定し `development.md` へ反映。devcontainer は Go 1.26 + Firestore Emulator + `act`。
 * **Creation**: `docs/tests/README.md` にドメイン別テスト仕様の索引を追加。

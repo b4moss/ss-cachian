@@ -17,3 +17,4 @@ timestamp: 2026-09-07T13:20:00Z
 - 開発・CI/CD: [development.md](./development.md)
 
 実装未着手。詳細は index 配下の決定事項を参照。
+

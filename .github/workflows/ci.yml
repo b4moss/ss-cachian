@@ -1,0 +1,176 @@
+name: CI
+
+# Policy: .github/CI.md
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - "dev-v*"
+      - main
+  push:
+    branches:
+      - develop
+      - "dev-v*"
+      - main
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: write
+  checks: read
+
+jobs:
+  changes:
+    name: detect package changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      go: ${{ steps.set.outputs.go }}
+      docs_only: ${{ steps.set.outputs.docs_only }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Path filter
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            go:
+              - 'go/**'
+            docs:
+              - 'docs/**'
+              - '**.md'
+              - 'LICENSE'
+            workflow:
+              - '.github/workflows/ci.yml'
+              - '.github/scripts/**'
+              - '.github/CI.md'
+              - '.github/act/**'
+              - '.actrc'
+              - 'Makefile'
+              - 'docker/**'
+              - '.devcontainer/**'
+
+      - name: Resolve outputs
+        id: set
+        run: |
+          if [[ "${{ steps.filter.outputs.workflow }}" == "true" || "${{ steps.filter.outputs.go }}" == "true" ]]; then
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [[ "${{ steps.filter.outputs.go }}" != "true" && "${{ steps.filter.outputs.workflow }}" != "true" && "${{ steps.filter.outputs.docs }}" == "true" ]]; then
+            echo "docs_only=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "docs_only=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  lint-go:
+    name: lint go/sscachian
+    needs: changes
+    if: needs.changes.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: go/sscachian
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Skip if ancestor already passed
+        id: skip
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/ci-skip-if-ancestor-passed.sh "lint go/sscachian" go/sscachian .github/workflows/ci.yml .github/scripts/ci-skip-if-ancestor-passed.sh
+
+      - name: Setup Go
+        if: steps.skip.outputs.hit != 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+          cache-dependency-path: go/sscachian/go.sum
+
+      - name: gofmt
+        if: steps.skip.outputs.hit != 'true'
+        run: |
+          out="$(gofmt -l .)"
+          if [[ -n "$out" ]]; then
+            echo "gofmt needed on:"
+            echo "$out"
+            exit 1
+          fi
+
+      - name: go vet
+        if: steps.skip.outputs.hit != 'true'
+        run: go vet ./...
+
+  test-go:
+    name: test go/sscachian
+    needs: changes
+    if: needs.changes.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: go/sscachian
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Skip if ancestor already passed
+        id: skip
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/ci-skip-if-ancestor-passed.sh "test go/sscachian" go/sscachian .github/workflows/ci.yml .github/scripts/ci-skip-if-ancestor-passed.sh
+
+      - name: Setup Go
+        if: steps.skip.outputs.hit != 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+          cache-dependency-path: go/sscachian/go.sum
+
+      - name: go test
+        if: steps.skip.outputs.hit != 'true'
+        run: go test ./...
+
+  ci-result:
+    name: CI result
+    needs:
+      - changes
+      - lint-go
+      - test-go
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Aggregate
+        run: |
+          set -euo pipefail
+          echo "go=${{ needs.changes.outputs.go }} docs_only=${{ needs.changes.outputs.docs_only }}"
+          results=(
+            "${{ needs.lint-go.result }}"
+            "${{ needs.test-go.result }}"
+          )
+          for r in "${results[@]}"; do
+            case "$r" in
+              success|skipped) ;;
+              *)
+                echo "Required job finished as: $r"
+                exit 1
+                ;;
+            esac
+          done
+          echo "All required CI jobs are green (or skipped by path filter)."
