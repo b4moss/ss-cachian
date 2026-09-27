@@ -25,7 +25,7 @@ ss-cachian は、単一キャッシュストアの薄い抽象ではない。
 ## スコープ
 
 - やること: Cache Type による多層キャッシュ、Version 第1級 invalidate、Exact Purge、Driver（memory / Firestore ほか）
-- やらぬこと（現行）: SWR / SIE / negative cache、Purge Prefix/Tag、分散 L1 無効化、設定ファイル駆動（後続は [plans](./plans/)）
+- やらぬこと（現行）: SWR / SIE / negative cache、Purge Prefix/Tag、分散 L1 無効化（後続は [roadmap](./roadmap.md) / [plans](./plans/)）。設定ファイル駆動は **v0.9.0**。
 
 ### 中心概念
 
