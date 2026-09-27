@@ -2,6 +2,8 @@
 
 ## 2026-09-27
 
+* **Update**: PoC 完成に伴い憲章どおり docs を同期。`docs/specs/` に現行ドメイン仕様を新設。完了 `plans/v0.*` を `_archived/plans/` へ移動。main / index / README / roadmap / api / behavior / drivers / open-questions / tests をコード正本に合わせて更新。
+* **Release**: v0.7.0 を `main` にマージし、タグ `v0.7.0` と GitHub Release を作成。
 * **Update**: v0.7.0 実装（Exact Purge / Layer.PurgeExact / VERSION=0.7.0）。
 * **Creation**: v0.7.0 向けテスト仕様（`docs/tests/purge`）と driver PurgeExact 節・実装計画。
 * **Release**: v0.5.0 を `main` にマージし、タグ `v0.5.0` を付与（GitHub Release は作成しない）。

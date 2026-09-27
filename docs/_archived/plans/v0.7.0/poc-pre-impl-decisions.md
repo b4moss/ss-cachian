@@ -8,10 +8,10 @@ timestamp: 2026-09-27T01:00:00Z
 
 # Phase 1 PoC（v0.7.0）方針
 
-- **状態:** 方針確定
-- **マイルストーン:** v0.7.0（[ロードマップ](../../roadmap.md) Phase 1）
+- **状態:** アーカイブ（Phase 1 方針確定の履歴。現行正本は [specs](../../../specs/) / ハブ文書）
+- **マイルストーン:** v0.7.0（[ロードマップ](../../../roadmap.md) Phase 1）
 - **関連 Issue:** #7
-- **正本:** [behavior](../../behavior.md) / [drivers](../../drivers.md) / [api](../../api.md) / [development](../../development.md)
+- **正本（当時）:** [behavior](../../../behavior.md) / [drivers](../../../drivers.md) / [api](../../../api.md) / [development](../../../development.md)
 
 ## 目的
 
@@ -46,7 +46,4 @@ Go でキービルダー・多層・インメモリ + Firestore の PoC を実�
 
 ## 次アクション
 
-マイルストーンは [roadmap](../../roadmap.md) に従う。
-
-1. **v0.1.0** 土台（スキャフォールド）— 本リポジトリで充足中（テスト仕様本文は書かない）
-2. 以降、各版の実装前に当該範囲の `docs/tests/` を書いてから実装（v0.3.0 → v0.5.0 → v0.7.0）
+Phase 1 は完了（v0.7.0）。以降の作業は [roadmap](../../../roadmap.md) の Phase 2 と [plans](../../../plans/) を参照。

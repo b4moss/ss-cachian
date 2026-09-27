@@ -8,8 +8,8 @@ timestamp: 2026-09-27T01:35:00Z
 
 # v0.3.0 コア + インメモリ
 
-- **状態:** 完了（`main` にマージ済み、タグ `v0.3.0`）
-- **マイルストーン:** v0.3.0（[roadmap](../../roadmap.md)）
+- **状態:** アーカイブ（完了。現行正本は [specs](../../../specs/)）
+- **マイルストーン:** v0.3.0（[roadmap](../../../roadmap.md)）
 - **作業ブランチ:** `dev-v0.3.0` → `develop` → `main`
 - **v0.2.0:** 欠番（タグも切らない）
 
@@ -42,7 +42,7 @@ timestamp: 2026-09-27T01:35:00Z
 
 ### 2. 実装範囲
 
-配置: [`go/sscachian/`](../../go/sscachian/)（公開） / [`go/sscachian/driver/memory/`](../../go/sscachian/driver/memory/)
+配置: [`go/sscachian/`](../../../go/sscachian/)（公開） / [`go/sscachian/driver/memory/`](../../../go/sscachian/driver/memory/)
 
 | 要素 | 内容（決定済み仕様） |
 | --- | --- |
@@ -65,12 +65,12 @@ timestamp: 2026-09-27T01:35:00Z
 
 ### 4. ドキュメント更新（実装と並行〜完了時）
 
-- [roadmap.md](../../roadmap.md) に v0.2.0 欠番を明記
-- [docs/tests/README.md](../../tests/README.md) 索引を更新
-- [docs/log.md](../../log.md)
+- [roadmap.md](../../../roadmap.md) に v0.2.0 欠番を明記
+- [docs/tests/README.md](../../../tests/README.md) 索引を更新
+- [docs/log.md](../../../log.md)
 - 実装後、必要なら骨格を `docs/specs/` へ（機能が「現行に存在する」段階で）
 
 ## 依存・前提
 
 - v0.1.0 スキャフォールド済み（`dev-v0.3.0` 先端）
-- 振る舞いは [behavior](../../behavior.md) / [drivers](../../drivers.md) / [api](../../api.md)
+- 振る舞いは [behavior](../../../behavior.md) / [drivers](../../../drivers.md) / [api](../../../api.md)
