@@ -8,7 +8,7 @@ timestamp: 2026-09-27T06:28:00Z
 
 # v0.9.0 設定ファイル駆動
 
-- **状態:** 計画確定（実装未着手）
+- **状態:** 計画確定・テスト仕様あり（実装未着手）
 - **マイルストーン:** v0.9.0（[roadmap](../../roadmap.md) Phase 2）
 - **作業ブランチ:** `dev-v0.9.0` → `develop` → `main`
 - **設定雛形（スキーマ固定案）:** [sscachian.example.yaml](./sscachian.example.yaml)
@@ -64,7 +64,7 @@ timestamp: 2026-09-27T06:28:00Z
 - `layers` 空、未知 `driver`
 - 未登録の `key_builder` / `loader` 名
 - 不正 TTL 文字列、負 TTL
-- firestore `options` の未知キー（厳密）または無視（実装時にテスト仕様で片方に固定。初期案は **未知キー拒否**）
+- firestore / memory `options` の未知キーは **拒否**（[tests/config](../../tests/config/) で固定）
 
 ## API 面（追加）
 
@@ -97,14 +97,11 @@ const cache = types.get("client_list");
 ```
 
 - 非同期（Firestore 生成が async）。Go の `context` 相当は任意の `AbortSignal`（既存方針）
-- `loadTypes` は `Map<string, CacheType>` または `Record`（テスト仕様で一方に固定）
+- `loadTypes` は `Map<string, CacheType>`（[tests/config](../../tests/config/) で固定）
 
 ## 作業順（TDD）
 
-1. **テスト仕様**  
-   - 新規ドメイン `docs/tests/config/`（正常系〜3、異常系〜5 目安）  
-   - `docs/tests/README.md` に行追加（導入版 v0.9.0、Go / Node 適用）  
-   - ケース例: 最短 memory / 多層+TTL優先 / loader 参照 / 未登録名拒否 / schema_version 拒否 / name 重複 / 不正 TTL  
+1. **テスト仕様** — 済: [docs/tests/config](../../tests/config/)  
 2. **スキーマ解析**（純関数寄り）  
    - YAML/JSON → 内部 Config AST → 検証  
    - Go: 標準/`gopkg.in/yaml.v3` 等（依存は最小）  
@@ -123,7 +120,7 @@ const cache = types.get("client_list");
 
 ## 受け入れ条件
 
-- [ ] `docs/tests/config` 本文あり（Go / Node 共通 + ランタイム差分明記）
+- [x] `docs/tests/config` 本文あり（Go / Node 共通 + ランタイム差分明記）
 - [ ] 雛形 [sscachian.example.yaml](./sscachian.example.yaml) をフィクスチャとしてロードできる
 - [ ] Go: `LoadTypes` + Registry で Cache Type が動き、既存テスト Green
 - [ ] Node: `loadTypes` + registry で同等、`npm run lint` / `npm test` Green
@@ -136,5 +133,6 @@ const cache = types.get("client_list");
 
 - 設定ロードは **Build 相当の組み立て**であり、キャッシュ意味論（Version / write-back / Exact Purge）は変えない
 - `WithPolicy` は `WithLayerTTL` の別名のまま。設定の `types[].ttl` がそれに対応
-- Firestore クライアントの Close ライフサイクルはテスト仕様で明示（ロードした Type の破棄 API が要るかは実装時に最小判断。不要ならドキュメントのみ）
+- Firestore クライアントの Close ライフサイクルは実装時に最小判断（破棄 API が無ければドキュメントのみ。本マイルストーンのテスト必須とはしない）
 - PHP / Valkey 向けの設定キーは予約しない（未知 driver は拒否）
+- Registry 同名再登録は **後勝ち**（[tests/config](../../tests/config/)）
