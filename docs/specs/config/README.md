@@ -22,7 +22,8 @@ timestamp: 2026-09-27T06:40:00Z
 ## スキーマ（詳細）
 
 手厚い利用ガイド（フィールド表・TTL・options・拒否例）は
-[node/sscachian/README.md](../../../node/sscachian/README.md#設定ファイル駆動v090) を参照。
+[ルート README（英語）](../../../README.md#config-file-yaml--json) および
+[node/sscachian/README.md](../../../node/sscachian/README.md#config-driven-v090) を参照。
 雛形は [plans/v0.9.0/sscachian.example.yaml](../../plans/v0.9.0/sscachian.example.yaml)。
 
 - `schema_version`: `"0.9"`（文字列必須）
