@@ -3,7 +3,8 @@
 TypeScript / JavaScript port of [ss-cachian](https://github.com/b4moss/ss-cachian).
 
 Semantics match the Go package at `go/sscachian` (**v0.10.0**): versioned keys, multilayer
-write-back, Exact Purge, Memory / Firestore drivers, and **config-driven** `loadTypes`.
+write-back, Exact/Prefix/Tag Purge, convenience APIs, Memory / Firestore drivers, and
+**config-driven** `loadTypes`.
 Specs: [docs/specs](../../docs/specs/). Config schema notes: [docs/specs/config](../../docs/specs/config/).
 
 ## Install

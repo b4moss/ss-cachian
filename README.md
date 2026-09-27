@@ -7,7 +7,7 @@
 
 Server-side **cache strategy** library: declare a **Cache Type**, run it across one or more storage **Layers**.
 
-Not a thin key/value wrapper. Applications define *how* caching works (keys, TTLs, multilayer write-back, versioned invalidation, Exact Purge); the library executes that strategy.
+Not a thin key/value wrapper. Applications define *how* caching works (keys, TTLs, multilayer write-back, versioned invalidation, Exact/Prefix/Tag Purge); the library executes that strategy.
 
 - [日本語版 README](./README-ja.md)
 
@@ -18,9 +18,10 @@ Current line: **v0.10.0** (Go `VERSION` and `@b4moss/ss-cachian` stay in lockste
 | Capability | Notes |
 |------------|--------|
 | **Cache Type API** | `Define` / `define` → layers, key builder, TTL(s), optional loader → `Get` / `Set` / `Delete` / `GetOrLoad` / `Purge` |
-| **Versioned keys** | Current-version on L1; mutations bump; `GetOrLoad` fill does **not** bump |
+| **Convenience APIs (v0.10.0)** | `Has` / `Exists` / `GetEntry` / `Forget` / `Remember` / `RememberForever` |
+| **Versioned keys** | Current-version on L1; mutations bump; `GetOrLoad` / `Remember` fill does **not** bump |
 | **Multilayer** | L1 → L2 → … exploration; write-back on lower hit / loader success |
-| **Exact Purge** | Delete all version data keys for a logical prefix; leave `__version__` alone |
+| **Purge (v0.10.0)** | Exact (`Purge` / `PurgeExact`); Prefix (startswith); Tag (L1 index → Exact) |
 | **Drivers** | **memory**, **Firestore** (honors `FIRESTORE_EMULATOR_HOST`) |
 | **Config-driven (v0.9.0)** | YAML (canonical) or equivalent JSON → `LoadTypes` / `loadTypes` |
 
