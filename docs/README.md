@@ -9,7 +9,8 @@ timestamp: 2026-09-27T05:00:00Z
 # ss-cachian
 
 サーバーサイドのキャッシュ戦略ライブラリ。  
-**Phase 1 PoC 完了（v0.7.0）** — コード正本は `go/sscachian`。
+**Phase 1 PoC 完了（v0.7.0）** — コード正本は `go/sscachian`（モジュール `github.com/b4moss/ss-cachian`、`VERSION=0.7.0`）。  
+Node（`node/sscachian` / `@b4moss/ss-cachian`）は npm 公開経路のスキャフォールドのみ（`placeholder` エクスポート、Cache Type API 未実装、package `0.0.0`）。
 
 OKF の版索引は [index.md](./index.md)（`okf_version` のみ）。本文の pillar 正本は本ファイル。
 
@@ -46,8 +47,8 @@ ss-cachian は、単一キャッシュストアの薄い抽象ではない。
 ## 技術方針
 
 - マルチランタイム移植を前提に、言語ごとにトップレベルディレクトリを並べる。
-- 先行実装は **Go 1.26**（`go/sscachian`、Driver は `go/sscachian/driver/...`）。
-- Node 公開面は `node/sscachian`（npm: `@b4moss/ss-cachian`）。TS 実装は後続。
+- 先行実装は **Go 1.26**（`go/sscachian`、Driver は `go/sscachian/driver/...`）。import: `github.com/b4moss/ss-cachian`。
+- Node 公開面は `node/sscachian`（npm: `@b4moss/ss-cachian`）。現状はプレースホルダのみ。TS 実装は後続。
 - 開発は **devcontainer**（Go 1.26 / Firestore Emulator / `act`）。
 - テストは単体結合（正常系・異常系）。仕様は [tests](./tests/)、方針は [憲章 TDD](./charter/tdd.md)。
 - CI/CD・バッジの詳細は [.github/CI.md](../.github/CI.md)。
