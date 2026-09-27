@@ -3,7 +3,7 @@ type: API
 title: アプリケーション API
 description: アプリ向け API 面。初期 PoC 必須と後続任意に分けた決定リスト。
 tags: [api, decided]
-timestamp: 2026-09-07T12:00:00Z
+timestamp: 2026-09-27T00:00:00Z
 ---
 
 # アプリケーション API
@@ -26,19 +26,19 @@ timestamp: 2026-09-07T12:00:00Z
 
 ### 読み書き
 
-- `Get`（最新 version のみ）
+- `Get`（最新 version のみ。戻り値は `value`。内部 Entry ラッパーは露出しない）
 - `GetOrLoad`
-- `Set`
-- `Delete`
+- `Set`（成功後に自動 `BumpVersion`）
+- `Delete`（成功後に自動 `BumpVersion`）
 
 ### Version
 
 - `CurrentVersion`
-- `BumpVersion`
+- `BumpVersion`（最良努力。明示 bump 用。Set/Delete からも呼ばれる）
 
 ### Purge
 
-- `Purge`（Exact ベースを含む）
+- `Purge`（PoC は Exact: 論理キーに紐づく **全 version** のデータキーを削除。`__version__` は残す）
 - Layer 配列による対象指定（未指定時は全 Layer）
 
 ### キー
@@ -48,7 +48,7 @@ timestamp: 2026-09-07T12:00:00Z
 
 ### PoC の最小成功条件
 
-Cache Type を定義し、最新 version で Get/Set でき、`BumpVersion` と簡易 Purge ができること。
+Cache Type を定義し、最新 version で Get/Set でき、自動／明示の `BumpVersion` と Exact Purge（全 version データ削除）ができること。
 
 ## 後続で任意追加する
 
@@ -64,7 +64,7 @@ Cache Type を定義し、最新 version で Get/Set でき、`BumpVersion` と�
 
 ### Purge 拡張
 
-- `PurgeExact`
+- `PurgeExact`（アプリ API としての別名・オプション整理）
 - `PurgePrefix`
 - `PurgeTag`
 - Purge 用の専用オプション API

@@ -1,5 +1,11 @@
 # Directory Update Log
 
+## 2026-09-27
+
+* **Update**: Issue #7 の優先一問一答（10 件）を `behavior.md` / `drivers.md` / `api.md` へ反映。
+* **Creation**: `docs/plans/v0.7.0/` に PoC 方針確定文書を追加。
+* **Update**: `open-questions.md` から PoC で決まった項目を外し、残件（パッケージ構成・テスト仕様・devcontainer 最小構成）を明示。
+
 ## 2026-09-20
 
 * **Update**: charter の取り込みをサブモジュールからリモート `charter`（`b4moss/charter:docs`）による `docs/charter` 直接取り込みへ変更。
