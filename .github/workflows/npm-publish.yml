@@ -1,7 +1,7 @@
 name: npm publish
 
 # Publishes @b4moss/ss-cachian via npm Trusted Publisher (OIDC).
-# Do not set NODE_AUTH_TOKEN here — token auth would bypass Trusted Publisher.
+# Do not set NODE_AUTH_TOKEN — token auth bypasses Trusted Publisher.
 # Org NPM_TOKEN may still exist for other repos' first-publish bootstrap.
 
 on:
@@ -46,11 +46,12 @@ jobs:
           fi
           echo "version=$ver" >> "$GITHUB_OUTPUT"
 
+      # No registry-url: avoids writing //registry.npmjs.org/:_authToken=… into ~/.npmrc
+      # (empty NODE_AUTH_TOKEN then yields ENEEDAUTH instead of OIDC).
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          registry-url: https://registry.npmjs.org
           cache: npm
           cache-dependency-path: node/sscachian/package-lock.json
 
@@ -79,4 +80,14 @@ jobs:
         run: npm version "${{ steps.ver.outputs.version }}" --no-git-tag-version --allow-same-version
 
       - name: Publish (Trusted Publisher / OIDC)
-        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ""
+        run: |
+          set -euo pipefail
+          # Trusted Publishing needs a recent npm CLI (OIDC).
+          npm install -g npm@latest
+          npm --version
+          if [[ -f "$HOME/.npmrc" ]]; then
+            sed -i '/_authToken/d' "$HOME/.npmrc" || true
+          fi
+          npm publish --access public --provenance
