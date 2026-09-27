@@ -38,24 +38,24 @@ const cache = define("users").withLayers(newMemoryStore(), fs).build();
 
 ---
 
-## 設定ファイル駆動（v0.9.0）
+## Config-driven (v0.9.0)
 
-`define`…`build` と同等の Cache Type を、**YAML（正）または同等 JSON** から組めます。
-Loader / カスタム KeyBuilder の**実体はコードで登録**し、設定には**登録名だけ**を書きます。
-値の型 `T` は設定に書きません（TypeScript 側で付けます）。
+Build the same Cache Types as `define`…`build` from **YAML (canonical) or equivalent JSON**.
+Loader / custom KeyBuilder **implementations stay in code**; the file only stores **registered names**.
+Do not put type parameter `T` in the file (attach it in TypeScript).
 
-完全な雛形: [`docs/plans/v0.9.0/sscachian.example.yaml`](../../docs/plans/v0.9.0/sscachian.example.yaml)
+Shared host guide (English): [root README — Config file](../../README.md#config-file-yaml--json)  
+Full fixture: [`docs/plans/v0.9.0/sscachian.example.yaml`](../../docs/plans/v0.9.0/sscachian.example.yaml)
 
-### 起動コード
+### Bootstrapping
 
 ```ts
 import { createRegistry, loadTypes } from "@b4moss/ss-cachian";
 
 const reg = createRegistry();
 
-// 設定の loader / key_builder 名に対応する実関数を登録
+// Bind functions to the names referenced in YAML
 reg.registerLoader("load_client_list", async (kc) => {
-  // DB 等から取得
   return { items: [] };
 });
 reg.registerKeyBuilder("report_v2", (kc) => {
@@ -71,7 +71,7 @@ const kc = { appSlug: "app", tenantId: "t1", queryType: "client_list_page1" };
 const value = await cache.getOrLoad(kc);
 ```
 
-YAML 文字列や JSON だけ渡す場合:
+YAML / JSON buffers:
 
 ```ts
 import { loadTypesYAML, loadTypesJSON } from "@b4moss/ss-cachian";
@@ -80,61 +80,61 @@ const types = await loadTypesYAML(reg, yamlText);
 const types2 = await loadTypesJSON(reg, jsonText);
 ```
 
-Go も同スキーマです（`NewRegistry` / `LoadTypes`）。Go では `driver/memory` と `driver/firestore` を import してファクトリを登録してください。
+Go uses the same schema (`NewRegistry` / `LoadTypes`). Blank-import `driver/memory` and `driver/firestore` first.
 
-### 最小の YAML
+### Minimal YAML
 
 ```yaml
 schema_version: "0.9"
 types:
   - name: user_profile
-    key_builder: default   # 省略時も default
+    key_builder: default   # optional; defaults to "default"
     layers:
       - driver: memory
         ttl: 5m
 ```
 
-### フィールド一覧
+### Field reference
 
-#### ルート
+#### Root
 
-| キー | 必須 | 説明 |
+| Key | Required | Description |
 | --- | --- | --- |
-| `schema_version` | はい | 文字列 `"0.9"` のみ受理（クォート推奨。数値 `0.9` は拒否） |
-| `types` | はい | Cache Type の配列。空は不可。`name` の重複不可 |
+| `schema_version` | yes | String `"0.9"` only (quote it; numeric `0.9` is rejected) |
+| `types` | yes | Non-empty array; duplicate `name` rejected |
 
 #### `types[]`
 
-| キー | 必須 | 説明 |
+| Key | Required | Description |
 | --- | --- | --- |
-| `name` | はい | ロード結果のキー（`types.get(name)`） |
-| `key_builder` | いいえ | Registry 上の名前。省略時 `"default"` |
-| `loader` | いいえ | Registry 上の名前。未指定なら `getOrLoad` は `ErrNoLoader` |
-| `ttl` | いいえ | **全 Layer 共通 TTL**（`withLayerTTL` / `withPolicy` 相当） |
-| `layers` | はい | 1 本以上。上から L1, L2, … |
+| `name` | yes | Key in the loaded `Map` (`types.get(name)`) |
+| `key_builder` | no | Registry name; omit → `"default"` |
+| `loader` | no | Registry name; omit → `getOrLoad` yields `ErrNoLoader` on miss |
+| `ttl` | no | Same TTL for all layers (`withLayerTTL` / `withPolicy`) |
+| `layers` | yes | One or more; top entry is L1 |
 
 #### `layers[]`
 
-| キー | 必須 | 説明 |
+| Key | Required | Description |
 | --- | --- | --- |
-| `driver` | はい | v0.9.0 は `memory` または `firestore`。未知は拒否 |
-| `ttl` | いいえ | この Layer だけ上書き |
-| `options` | いいえ | Driver 固有。文字列値のみ |
+| `driver` | yes | `memory` or `firestore` in v0.9.0; unknown rejected |
+| `ttl` | no | Per-layer override |
+| `options` | no | Driver-specific; string values only |
 
-### TTL の書き方と優先順位
+### TTL format and precedence
 
-期間は **Go `time.ParseDuration` 互換の文字列**です（数値の秒などは不可）。
+Durations are **Go `time.ParseDuration` strings** (not bare second numbers).
 
-例: `"300ms"` / `"1s"` / `"5m"` / `"1h"` / `"24h"` / `"1h30m"`
+Examples: `"300ms"` / `"1s"` / `"5m"` / `"1h"` / `"24h"` / `"1h30m"`
 
-優先順位（Layer ごと）:
+Per layer:
 
-1. その Layer の `layers[i].ttl` があればそれ
-2. なければ Type の `types[].ttl`
-3. どちらもなければ `0`（無期限）
+1. `layers[i].ttl` if set  
+2. else `types[].ttl` if set  
+3. else `0` (no expiry)
 
 ```yaml
-# 例: L1 は 1分、L2 は type 共通の 30分
+# L1 = 1m, L2 = type-level 30m
 - name: session_blob
   ttl: 30m
   layers:
@@ -143,24 +143,24 @@ types:
     - driver: firestore
 ```
 
-負の TTL（例: `-1s`）やパース不能な文字列（例: `abc`）はロード時に拒否します。
+Negative TTL (e.g. `-1s`) or unparsable strings (e.g. `abc`) fail the load.
 
-### key_builder / loader（名前参照）
+### `key_builder` / `loader` (name references)
 
-| 設定値 | 意味 |
+| Config | Meaning |
 | --- | --- |
-| `key_builder: default` または省略 | 組み込み。`{appSlug}:cache:{tenantId}:{queryType}` |
-| `key_builder: report_v2` | 事前に `registerKeyBuilder("report_v2", fn)` が必要 |
-| `loader: load_client_list` | 事前に `registerLoader("load_client_list", fn)` が必要 |
-| `loader` なし | Miss 時の `getOrLoad` は `ErrNoLoader`（`get` / `set` は可） |
+| `key_builder: default` or omitted | Built-in `{appSlug}:cache:{tenantId}:{queryType}` |
+| `key_builder: report_v2` | Requires `registerKeyBuilder("report_v2", fn)` |
+| `loader: load_client_list` | Requires `registerLoader("load_client_list", fn)` |
+| no `loader` | Miss on `getOrLoad` → `ErrNoLoader` (`get` / `set` still work) |
 
-同名の再登録は**後勝ち**です。ロード済みの Cache Type は、その後 Registry を変えても影響を受けません（構築時にスナップショット）。
+Same-name re-register is **last-wins**. Already-built Cache Types keep their snapshot if you mutate the Registry later.
 
-### Driver と options
+### Drivers and options
 
 #### `memory`
 
-- `options` は付けない（空または省略）。未知キーは拒否。
+No `options` (omit or empty). Unknown keys rejected.
 
 ```yaml
 layers:
@@ -170,9 +170,9 @@ layers:
 
 #### `firestore`
 
-許可キーは次のみ（いずれも省略可。省略時は Driver 既定）:
+Allowed keys only (both optional; Driver defaults apply when omitted):
 
-| options キー | 既定 |
+| options key | Default |
 | --- | --- |
 | `project_id` | `ss-cachian-dev` |
 | `collection` | `sscachian` |
@@ -188,12 +188,10 @@ layers:
       collection: sscachian_app
 ```
 
-**Emulator は設定に書かない。** `FIRESTORE_EMULATOR_HOST`（例: `127.0.0.1:8080`）を環境変数で渡します。
-`emulator_host` などの未知 options はロード拒否です。
+**Do not put the Emulator in the file.** Set `FIRESTORE_EMULATOR_HOST` (e.g. `127.0.0.1:8080`).
+Unknown options such as `emulator_host` are rejected. Do not embed credentials in YAML.
 
-認証情報・秘密鍵を YAML に埋め込まないでください。
-
-### 多層の例（L1 memory + L2 Firestore + Loader）
+### Multilayer example (L1 memory + L2 Firestore + loader)
 
 ```yaml
 schema_version: "0.9"
@@ -211,11 +209,9 @@ types:
           collection: sscachian
 ```
 
-意味論はコード組み立てと同じです（上位 hit で下位スキップ、書き戻し、Exact Purge など）。詳細は [docs/specs](../../docs/specs/)。
+Semantics match code-built types (upper hit skips lower layers, write-back, Exact Purge, …). See [docs/specs](../../docs/specs/).
 
-### JSON でも可
-
-拡張子 `.json`、または `loadTypesJSON` で同じツリーを渡せます。
+### JSON is fine too
 
 ```json
 {
@@ -230,20 +226,20 @@ types:
 }
 ```
 
-### よくある拒否理由
+### Common rejection reasons
 
-- `schema_version` 欠落・`"0.8"`・数値 `0.9`
-- `types` 空 / `name` 空・重複 / `layers` 空
-- 未知 `driver`（例: `valkey` — 後続マイルストーン）
-- 未登録の `key_builder` / `loader` 名
-- TTL が文字列でない、または不正・負
-- `options` の未知キー、または非文字列値
+- Missing / `"0.8"` / numeric `schema_version`
+- Empty `types`, empty/duplicate `name`, empty `layers`
+- Unknown `driver` (e.g. `valkey` — later milestone)
+- Unregistered `key_builder` / `loader`
+- Non-string or invalid/negative `ttl`
+- Unknown `options` keys or non-string option values
 
-### やらないこと（v0.9.0）
+### Out of scope (v0.9.0)
 
-- Valkey / PHP / ブラウザ向けバンドル
-- SWR・SIE・PurgePrefix/Tag（後続版）
-- 設定ファイルへの秘密情報の埋め込み
+- Valkey / PHP / browser bundles
+- SWR · SIE · PurgePrefix/Tag (later)
+- Secrets embedded in the config file
 
 ---
 
