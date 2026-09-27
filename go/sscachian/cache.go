@@ -33,7 +33,7 @@ func DefaultKeyBuilder(_ context.Context, kc KeyContext) (string, error) {
 type CacheType[T any] struct {
 	name   string
 	layers []Layer
-	ttl    time.Duration
+	ttls   []time.Duration
 	kb     KeyBuilder
 	loader Loader[T]
 }
@@ -42,7 +42,8 @@ type CacheType[T any] struct {
 type Builder[T any] struct {
 	name   string
 	layers []Layer
-	ttl    time.Duration
+	ttls   []time.Duration
+	single *time.Duration // WithLayerTTL / WithPolicy compatibility
 	kb     KeyBuilder
 	loader Loader[T]
 }
@@ -62,13 +63,22 @@ func (b *Builder[T]) WithKeyBuilder(kb KeyBuilder) *Builder[T] {
 	return b
 }
 
+// WithLayerTTL applies the same TTL to every layer (backward compatible).
 func (b *Builder[T]) WithLayerTTL(ttl time.Duration) *Builder[T] {
-	b.ttl = ttl
+	t := ttl
+	b.single = &t
 	return b
 }
 
 func (b *Builder[T]) WithPolicy(ttl time.Duration) *Builder[T] {
 	return b.WithLayerTTL(ttl)
+}
+
+// WithLayerTTLs sets per-layer TTLs. Missing entries default to 0; extras ignored.
+func (b *Builder[T]) WithLayerTTLs(ttls ...time.Duration) *Builder[T] {
+	b.ttls = append([]time.Duration(nil), ttls...)
+	b.single = nil
+	return b
 }
 
 func (b *Builder[T]) WithLoader(loader Loader[T]) *Builder[T] {
@@ -83,16 +93,41 @@ func (b *Builder[T]) Build() (*CacheType[T], error) {
 	if b.kb == nil {
 		return nil, ErrNoKeyBuilder
 	}
+	ttls := make([]time.Duration, len(b.layers))
+	if b.single != nil {
+		if *b.single < 0 {
+			return nil, ErrNegativeTTL
+		}
+		for i := range ttls {
+			ttls[i] = *b.single
+		}
+	} else {
+		for i := range ttls {
+			if i < len(b.ttls) {
+				if b.ttls[i] < 0 {
+					return nil, ErrNegativeTTL
+				}
+				ttls[i] = b.ttls[i]
+			}
+		}
+	}
 	return &CacheType[T]{
 		name:   b.name,
 		layers: append([]Layer(nil), b.layers...),
-		ttl:    b.ttl,
+		ttls:   ttls,
 		kb:     b.kb,
 		loader: b.loader,
 	}, nil
 }
 
 func (c *CacheType[T]) l1() Layer { return c.layers[0] }
+
+func (c *CacheType[T]) layerTTL(i int) time.Duration {
+	if i < 0 || i >= len(c.ttls) {
+		return 0
+	}
+	return c.ttls[i]
+}
 
 func (c *CacheType[T]) logicalPrefix(ctx context.Context, kc KeyContext) (string, error) {
 	return c.kb(ctx, kc)
@@ -127,6 +162,11 @@ func asInt64(v any) (int64, error) {
 		return int64(n), nil
 	case int32:
 		return int64(n), nil
+	case float64:
+		if n == float64(int64(n)) {
+			return int64(n), nil
+		}
+		return 0, ErrCorruptVersion
 	default:
 		return 0, ErrCorruptVersion
 	}
@@ -156,14 +196,12 @@ func (c *CacheType[T]) CurrentVersion(ctx context.Context, kc KeyContext) (int64
 	return c.ensureCurrentVersion(ctx, kc)
 }
 
-// BumpVersion best-effort increments current-version (read → +1 → write via Incr).
+// BumpVersion best-effort increments current-version on L1.
 func (c *CacheType[T]) BumpVersion(ctx context.Context, kc KeyContext) (int64, error) {
 	vk, err := c.VersionKey(ctx, kc)
 	if err != nil {
 		return 0, err
 	}
-	// Ensure a starting point exists so first bump yields 2 from 1, or 1→2 via incr from missing→1 then...
-	// Spec: missing → create 1 then become 2. Using ensure then Incr: 1 → 2.
 	if _, err := c.ensureCurrentVersion(ctx, kc); err != nil {
 		return 0, err
 	}
@@ -181,14 +219,6 @@ func (c *CacheType[T]) BuildLatestKey(ctx context.Context, kc KeyContext) (strin
 
 func castValue[T any](v any) (T, error) {
 	var zero T
-	if v == nil {
-		// Allow nil only when T is a pointer/interface — try assertion.
-		tv, ok := any(v).(T)
-		if !ok {
-			return zero, ErrTypeMismatch
-		}
-		return tv, nil
-	}
 	tv, ok := v.(T)
 	if !ok {
 		return zero, ErrTypeMismatch
@@ -196,28 +226,48 @@ func castValue[T any](v any) (T, error) {
 	return tv, nil
 }
 
-// Get returns the latest-version value from L1. ok=false means miss.
+func (c *CacheType[T]) writeBack(ctx context.Context, key string, e Entry, upToExclusive int) {
+	for j := 0; j < upToExclusive; j++ {
+		if err := c.layers[j].Set(ctx, key, e, c.layerTTL(j)); err != nil {
+			log.Printf("sscachian: write-back to layer %d failed: %v", j, err)
+		}
+	}
+}
+
+func (c *CacheType[T]) writeAll(ctx context.Context, key string, e Entry) {
+	for i := range c.layers {
+		if err := c.layers[i].Set(ctx, key, e, c.layerTTL(i)); err != nil {
+			log.Printf("sscachian: write-back to layer %d failed: %v", i, err)
+		}
+	}
+}
+
+// Get walks L1→Ln for the latest-version key and write-backs to upper layers on hit.
 func (c *CacheType[T]) Get(ctx context.Context, kc KeyContext) (T, bool, error) {
 	var zero T
 	key, err := c.BuildLatestKey(ctx, kc)
 	if err != nil {
 		return zero, false, err
 	}
-	e, ok, err := c.l1().Get(ctx, key)
-	if err != nil {
-		return zero, false, err
+	for i, layer := range c.layers {
+		e, ok, err := layer.Get(ctx, key)
+		if err != nil {
+			return zero, false, err
+		}
+		if !ok {
+			continue
+		}
+		c.writeBack(ctx, key, e, i)
+		tv, err := castValue[T](e.Value)
+		if err != nil {
+			return zero, false, err
+		}
+		return tv, true, nil
 	}
-	if !ok {
-		return zero, false, nil
-	}
-	tv, err := castValue[T](e.Value)
-	if err != nil {
-		return zero, false, err
-	}
-	return tv, true, nil
+	return zero, false, nil
 }
 
-// Set writes under the post-bump latest version (bump then write) and returns the new version.
+// Set bumps version on L1 then writes the new latest key to all layers.
 func (c *CacheType[T]) Set(ctx context.Context, kc KeyContext, value T) error {
 	if _, err := c.ensureCurrentVersion(ctx, kc); err != nil {
 		return err
@@ -230,10 +280,19 @@ func (c *CacheType[T]) Set(ctx context.Context, kc KeyContext, value T) error {
 	if err != nil {
 		return err
 	}
-	return c.l1().Set(ctx, key, Entry{Value: value}, c.ttl)
+	entry := Entry{Value: value}
+	if err := c.l1().Set(ctx, key, entry, c.layerTTL(0)); err != nil {
+		return err
+	}
+	for i := 1; i < len(c.layers); i++ {
+		if err := c.layers[i].Set(ctx, key, entry, c.layerTTL(i)); err != nil {
+			log.Printf("sscachian: set layer %d failed: %v", i, err)
+		}
+	}
+	return nil
 }
 
-// Delete removes the current latest data key, then bumps version. Idempotent.
+// Delete removes the latest key from all layers, then bumps L1 version.
 func (c *CacheType[T]) Delete(ctx context.Context, kc KeyContext) error {
 	v, err := c.ensureCurrentVersion(ctx, kc)
 	if err != nil {
@@ -246,11 +305,16 @@ func (c *CacheType[T]) Delete(ctx context.Context, kc KeyContext) error {
 	if err := c.l1().Delete(ctx, key); err != nil {
 		return err
 	}
+	for i := 1; i < len(c.layers); i++ {
+		if err := c.layers[i].Delete(ctx, key); err != nil {
+			log.Printf("sscachian: delete layer %d failed: %v", i, err)
+		}
+	}
 	_, err = c.BumpVersion(ctx, kc)
 	return err
 }
 
-// GetOrLoad returns cached value or loads, writes back to L1 without bumping.
+// GetOrLoad performs multilayer Get; on miss loads and write-backs to all layers without bump.
 func (c *CacheType[T]) GetOrLoad(ctx context.Context, kc KeyContext) (T, error) {
 	var zero T
 	v, ok, err := c.Get(ctx, kc)
@@ -275,12 +339,19 @@ func (c *CacheType[T]) GetOrLoad(ctx context.Context, kc KeyContext) (T, error) 
 	if err != nil {
 		return zero, err
 	}
-	if err := c.l1().Set(ctx, key, Entry{Value: loaded}, c.ttl); err != nil {
-		log.Printf("sscachian: write-back failed: %v", err)
-		return loaded, nil
-	}
+	c.writeAll(ctx, key, Entry{Value: loaded})
 	return loaded, nil
 }
 
 // Name returns the cache type name (debug).
 func (c *CacheType[T]) Name() string { return c.name }
+
+// Layers returns a copy of configured layers (tests).
+func (c *CacheType[T]) Layers() []Layer {
+	out := make([]Layer, len(c.layers))
+	copy(out, c.layers)
+	return out
+}
+
+// LayerTTL returns the TTL for layer index i (tests).
+func (c *CacheType[T]) LayerTTL(i int) time.Duration { return c.layerTTL(i) }
