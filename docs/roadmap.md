@@ -3,7 +3,7 @@ type: Roadmap
 title: ロードマップ
 description: 実装フェーズ、マイルストーン、マルチランタイム方針。
 tags: [roadmap, decided]
-timestamp: 2026-09-27T03:05:00Z
+timestamp: 2026-09-27T04:23:00Z
 ---
 
 # ロードマップ
@@ -31,8 +31,9 @@ timestamp: 2026-09-27T03:05:00Z
 
 ## Phase 2（拡張）— 〜 v1.0.0
 
-- 他 Driver（Valkey 等）
-- 他言語ポート（Node.js、PHP）
-- （任意・後続）SWR / SIE、Purge Prefix/Tag、分散 L1 無効化 等
+| 版 | 内容 | 状態 |
+| --- | --- | --- |
+| **v0.8.0** | Node.js ポート（Go v0.7.0 パリティ・`@b4moss/ss-cachian`） | 実装中（[plans/v0.8.0](./plans/v0.8.0/)） |
+| （後続） | 他 Driver（Valkey 等）、PHP ポート、（任意）SWR / SIE、Purge Prefix/Tag、分散 L1 等 | 未割当 |
 
 マイルストーンの切り方は Phase 1 と同様、**版ごとにテスト仕様 → 実装**とする。作業単位は [plans](./plans/)。

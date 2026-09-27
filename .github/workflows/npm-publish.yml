@@ -54,6 +54,16 @@ jobs:
           cache: npm
           cache-dependency-path: node/sscachian/package-lock.json
 
+      - name: Setup Java (Firestore emulator)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Start Firestore Emulator
+        working-directory: ${{ github.workspace }}
+        run: bash scripts/start-firestore-emulator.sh
+
       - name: Install
         run: npm ci
 
@@ -61,6 +71,8 @@ jobs:
         run: npm run lint
 
       - name: Test
+        env:
+          FIRESTORE_EMULATOR_HOST: 127.0.0.1:8080
         run: npm test
 
       - name: Set package version

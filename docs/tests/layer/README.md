@@ -1,24 +1,28 @@
 ---
 type: TestSpec
 title: layer テスト仕様
-description: 多層 Get / 書き戻し / Set・Delete 全 Layer（v0.5.0）。正常≈3 / 異常≈3〜5。
-tags: [tests, layer, v0.5.0]
-timestamp: 2026-09-27T02:10:00Z
+description: 多層 Get / 書き戻し / Set・Delete 全 Layer。Go v0.5.0 導入・Node v0.8.0 再適用。正常≈3 / 異常≈3〜5。
+tags: [tests, layer, v0.5.0, v0.8.0, node]
+timestamp: 2026-09-27T04:23:00Z
 ---
 
 # layer
 
-対象: `go/sscachian` CacheType の多層振る舞い  
-前提: [behavior](../../behavior.md) / [api](../../api.md)  
+対象:
+
+- Go: `go/sscachian` CacheType の多層振る舞い
+- Node: `node/sscachian` CacheType の多層振る舞い
+
+前提: [behavior](../../behavior.md) / [api](../../api.md) / [tests 索引（Node 差分）](../README.md)  
 current-version は **L1 のみ**。データキーは全 Layer で同一。
 
-PoC 固定（v0.5.0）:
+固定セマンティクス:
 
 - 上位 hit 時は下位を見ない
 - 下位 hit または Loader 成功時、それより **上の Layer へ無条件書き戻し**
 - 書き戻し失敗はログして無視（値は返す）
 - Layer ごと TTL（`WithLayerTTLs` 等）。未指定は 0（無期限）
-- アプリ `Set` / `Delete` は **全 Layer** に同一キーを適用。Bump は L1 のみ（v0.3.0 セマンティクス維持）
+- アプリ `Set` / `Delete` は **全 Layer** に同一キーを適用。Bump は L1 のみ
 - `GetOrLoad` の充填書き戻しは **Bump しない**
 
 ---
@@ -65,7 +69,7 @@ PoC 固定（v0.5.0）:
 
 ### Set（多層）
 
-- v0.3.0 どおり bump 後の最新キーへ書く。
+- bump 後の最新キーへ書く。
 - 書き込み先は **設定された全 Layer**（各 Layer の TTL を使う）。
 - Bump / current-version は L1 のみ。
 
@@ -77,7 +81,7 @@ PoC 固定（v0.5.0）:
 
 #### テスト: 異常系
 
-- L1 への Set が失敗したらエラーとし、Bump 済み版の扱いは実装で一貫させる（**PoC: Bump 後 L1 Set 失敗はエラー。既に進んだ version は戻さない**）
+- L1 への Set が失敗したらエラーとし、**Bump 後 L1 Set 失敗はエラー。既に進んだ version は戻さない**
 - L2 Set だけ失敗した場合はログして無視し、全体は成功（L1 に書けていればよい）
 - 文脈不正ではどの Layer にも書かず Bump もしない
 
@@ -105,15 +109,15 @@ PoC 固定（v0.5.0）:
 
 ### WithLayerTTLs / Build
 
-- Layer 数と TTL スライスを対応付ける（短すぎる TTL スライスは残り 0、長すぎる分は無視、で固定）。
+- Layer 数と TTL 配列を対応付ける（短すぎる TTL は残り 0、長すぎる分は無視、で固定）。
 
 #### テスト：正常系
 
 - Layer 2 本 + TTL 2 値で Build できる
 - TTL 未指定（単一 WithLayerTTL 後方互換）でも Build でき、全 Layer に同じ TTL が付く
-- TTL スライスが Layer より短いとき、足りない分は 0
+- TTL 配列が Layer より短いとき、足りない分は 0
 
 #### テスト: 異常系
 
 - Layer 0 本の Build はエラー（既存）
-- 負の TTL を含む指定は Build 時または Set 時にエラー（**PoC: Build 時に拒否**）
+- 負の TTL を含む指定は Build 時に拒否
