@@ -1,15 +1,15 @@
-# ss-cachian config draft (v0.9.0 候補)
+# ss-cachian config example (v0.9.0)
 #
 # 目的: Define / WithLayers / WithKeyBuilder / WithLayerTTL(s) / WithLoader を
-#       設定ファイルから組み立てるための雛形。実装前のレビュー用。
+#       設定ファイルから組み立てるための雛形（計画確定・実装前）。
 #
-# 方針（案）:
+# 方針（計画で固定）:
 # - フォーマットは YAML を正とし、同等の JSON も受け付ける
 # - Layer / TTL / KeyBuilder 参照 / Policy はファイルに書く
 # - Loader とカスタム KeyBuilder の実体はコード側で名前登録し、設定は参照のみ
 # - 値の型パラメータ T は言語側（Go generics / TS ジェネリクス）で付け、設定には書かない
 #
-# schema_version を上げると破壊的変更。v0.9.0 実装時に固定する。
+# schema_version を上げると破壊的変更。詳細は README.md（本ディレクトリ）。
 
 schema_version: "0.9"
 
@@ -47,8 +47,7 @@ types:
   # --- 例3: 全 Layer 同一 TTL（WithLayerTTL / WithPolicy 相当） ---
   - name: session_blob
     key_builder: default
-    # type 直下の ttl は「全 layers に同じ TTL」。layers[].ttl より弱い（layers 側があればそちら優先）という案。
-    # 実装時に「どちらか一方のみ許可」に絞ってもよい。
+    # type 直下の ttl は「全 layers に同じ TTL」。layers[].ttl がある Layer はそちら優先。
     ttl: 30m
     layers:
       - driver: memory
