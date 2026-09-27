@@ -11,16 +11,17 @@
 
 意味論は **Go / Node 共通**。実装パスだけが異なる。v0.8.0 は既存ドメインを Node 向けに再適用する（ケース追加はランタイム差分のみ）。
 
-| ドメイン | パス | 導入版 | Go テスト | Node（v0.8.0） |
+| ドメイン | パス | 導入版 | Go テスト | Node |
 | --- | --- | --- | --- | --- |
-| driver-memory | [driver-memory/](./driver-memory/) | v0.3.0 | `driver/memory/*_test.go` | 適用 |
-| version | [version/](./version/) | v0.3.0 | `cache_test.go`（Version 節） | 適用 |
-| cache-type | [cache-type/](./cache-type/) | v0.3.0 | `cache_test.go`（単一 L1） | 適用 |
-| layer | [layer/](./layer/) | v0.5.0 | `layer_test.go` | 適用 |
-| driver-firestore | [driver-firestore/](./driver-firestore/) | v0.5.0 | `driver/firestore/*_test.go` | 適用 |
-| purge | [purge/](./purge/) | v0.7.0 | `purge_test.go` + driver PurgeExact | 適用 |
+| driver-memory | [driver-memory/](./driver-memory/) | v0.3.0 | `driver/memory/*_test.go` | v0.8.0 適用 |
+| version | [version/](./version/) | v0.3.0 | `cache_test.go`（Version 節） | v0.8.0 適用 |
+| cache-type | [cache-type/](./cache-type/) | v0.3.0 | `cache_test.go`（単一 L1） | v0.8.0 適用 |
+| layer | [layer/](./layer/) | v0.5.0 | `layer_test.go` | v0.8.0 適用 |
+| driver-firestore | [driver-firestore/](./driver-firestore/) | v0.5.0 | `driver/firestore/*_test.go` | v0.8.0 適用 |
+| purge | [purge/](./purge/) | v0.7.0 | `purge_test.go` + driver PurgeExact | v0.8.0 適用 |
+| config | [config/](./config/) | v0.9.0 | `config*_test.go`（予定） | v0.9.0 適用 |
 
-## ランタイム差分（Node / v0.8.0）
+## ランタイム差分（Node）
 
 - 対象パッケージ: `node/sscachian`（npm: `@b4moss/ss-cachian`）
 - I/O はすべて `async`（`Promise`）。Go の `context.Context` 相当は任意の `AbortSignal`
@@ -28,6 +29,7 @@
 - Miss 表現: 「値なし」が分かる契約に固定（例: `{ ok: false }` または `undefined`。実装で一方に固定し Go の ok=false と同型）
 - テストランナー: `node --test`（ビルド後 `dist/**/*.test.js`）
 - Firestore: `@google-cloud/firestore` + `FIRESTORE_EMULATOR_HOST`（CI `test-node` で Emulator 起動）
+- config（v0.9.0）: `loadTypes` は `async`、戻りは `Map`。YAML/JSON パースと Firestore Layer 生成を含む
 
 ## 現行で固定しているセマンティクス（要約）
 
