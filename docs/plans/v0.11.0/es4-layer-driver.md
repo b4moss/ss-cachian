@@ -4,6 +4,8 @@
 |------|-----|
 | 状態 | 方針合意ドラフト（こうきさん承認済み方針を反映。細部の未決は §9） |
 | マイルストーン | [v0.11.0](https://github.com/b4moss/ss-cachian/milestone/2)（次 minor・現行リリース v0.10.0 の次。同版に [SWR 意図スタブ](./README.md) あり） |
+| Tracking Issue | [#68](https://github.com/b4moss/ss-cachian/issues/68) |
+| Plans PR | [#67](https://github.com/b4moss/ss-cachian/pull/67)（base: `develop`） |
 | 対象リポジトリ | [b4moss/ss-cachian](https://github.com/b4moss/ss-cachian)（Driver）／依存先 [b4moss/es4](https://github.com/b4moss/es4) |
 | 開発方針の正本 | [b4moss/charter](https://github.com/b4moss/charter)（本リポ `docs/charter/` 同梱） |
 | override | `docs/override-charter.md` は **現状設定なし** → 憲章どおり |
