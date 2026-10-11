@@ -20,6 +20,7 @@
 | driver-firestore | [driver-firestore/](./driver-firestore/) | v0.5.0 | `driver/firestore/*_test.go` | v0.8.0 適用（v0.10.0: PurgePrefix） |
 | purge | [purge/](./purge/) | v0.7.0 | `purge_test.go` + driver PurgeExact/Prefix | v0.8.0 適用（v0.10.0: Prefix/Tag） |
 | config | [config/](./config/) | v0.9.0 | `config*_test.go` | v0.9.0 適用 |
+| driver-es4 | [driver-es4/](./driver-es4/) | v0.11.0 | `driver/es4/*_test.go`（仮） | v0.11.0 適用（HTTP アダプタ含む） |
 
 ## ランタイム差分（Node）
 
@@ -40,3 +41,4 @@
 - Firestore: 1キー1doc、読み時 TTL、ドキュメント ID = キー文字列（エンコードなし）。既定 collection `sscachian`
 - `Purge` = Exact。`layerIdx ...int`（重複除去）。`__version__` 非接触。失敗方針は Delete と同型
 - v0.10.0: `PurgePrefix`（先頭一致・`__version__` 含む）/ `PurgeTag`（L1 タグ索引 → Exact）/ 便利 API（`Has`/`Exists`/`GetEntry`/`Forget`/`Remember`/`RememberForever`）。`Remember` 充填は Bump しない
+- v0.11.0: es4 Driver（埋め込み open・Entry JSON B・PurgeExact は Scan なし・PurgePrefix は Scan+Delete・HTTP アダプタ並列）。詳細は [driver-es4/](./driver-es4/)
