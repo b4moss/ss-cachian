@@ -23,7 +23,7 @@ timestamp: 2026-09-27T06:32:00Z
 - `key_builder` / `loader` は **登録名の参照**。実体は Registry にコード登録
 - `key_builder` 省略時は組み込み `"default"`（現行 DefaultKeyBuilder）
 - `loader` 省略時は Loader なし（GetOrLoad は ErrNoLoader。現行どおり）
-- Driver は v0.9.0 で `memory` / `firestore` のみ。未知 driver は拒否
+- Driver は v0.9.0 で `memory` / `firestore` のみ。**v0.11.0 で `es4` を追加**（名文字列は実装時確定・候補 `es4`）。未知 driver（例: 未実装の `valkey`）は拒否
 - TTL 文字列は Go `time.ParseDuration` 互換。Node も同一解釈
 - TTL 優先: `layers[i].ttl` → `types[].ttl` → `0`
 - Firestore Emulator は設定に書かない。`FIRESTORE_EMULATOR_HOST` を正とする
@@ -67,12 +67,14 @@ timestamp: 2026-09-27T06:32:00Z
 - 最短（memory 1 層 + `key_builder: default` + layer TTL）をロードし、Set / Get できる
 - 同等内容の JSON をロードした結果が YAML とキー集合・動作で一致する
 - 1 ファイルに複数 Type があるとき、各 `name` で取り出せ、互いに独立する
+-（v0.11.0）`driver: es4`（確定名）+ 最小 options（例: memory_only）でロードし、Set / Get できる
 
 #### テスト: 異常系
 
 - `schema_version` 欠落・空・`"0.8"` など未対応値はエラー（どの Type も作らない）
 - `types` が空、または `name` が空 / 重複のときエラー
-- `layers` が空、または未知 `driver`（例: `valkey`）のときエラー
+- `layers` が空、または未知 `driver`（例: `valkey`）のときエラー。**`es4` は v0.11.0 では未知ではない**
+-（v0.11.0）es4 options 不正（必須欠落・到達不能）はロードまたは Open 相当でエラー
 - 設定で参照した `key_builder` / `loader` 名が Registry に無いときエラー
 - 不正 TTL 文字列（例: `abc`）または負 TTL（例: `-1s`）はエラー
 

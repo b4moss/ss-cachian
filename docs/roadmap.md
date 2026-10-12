@@ -37,7 +37,7 @@ timestamp: 2026-09-27T09:27:00Z
 | **v0.8.0** | Node.js ポート（Go v0.7.0 パリティ・`@b4moss/ss-cachian`） | 完了（タグ + npm） |
 | **v0.9.0** | 設定ファイル駆動（Cache Type の YAML/JSON ロード） | 完了（タグ + npm・[plans/v0.9.0](./plans/v0.9.0/)） |
 | **v0.10.0** | Purge 拡張（Prefix/Tag）＋ 便利読み書き API（Has/GetEntry/Remember 等） | 完了（タグ + npm・[plans/v0.10.0](./plans/v0.10.0/)） |
-| **v0.11.0** | SWR / SIE / negative cache ＋ 運用系（旧 version 列挙、分散 L1 無効化） | 未着手（[plans/v0.11.0](./plans/v0.11.0/)） |
+| **v0.11.0** | SWR / SIE / negative cache ＋ 運用系（旧 version 列挙、分散 L1 無効化）＋ es4 Layer Driver | 未着手（[plans/v0.11.0](./plans/v0.11.0/) · [es4-layer-driver](./plans/v0.11.0/es4-layer-driver.md)） |
 | **v0.12.0** | Valkey Driver（固有機能委譲含む） | 未着手（[plans/v0.12.0](./plans/v0.12.0/)） |
 | **v0.13.0** | PHP ポート | 未着手（[plans/v0.13.0](./plans/v0.13.0/)） |
 | **v1.0.0** | Phase 2 締め（安定化・破壊的変更の凍結） | 未着手（[plans/v1.0.0](./plans/v1.0.0/)） |

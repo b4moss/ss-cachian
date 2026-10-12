@@ -3,6 +3,7 @@ import path from "node:path";
 import { parse as parseYaml } from "yaml";
 
 import { CacheType, define } from "./cache.js";
+import { newEs4HTTPStore, newEs4Store } from "./driver/es4.js";
 import { newFirestoreStore } from "./driver/firestore.js";
 import { newMemoryStore } from "./driver/memory.js";
 import {
@@ -154,6 +155,41 @@ async function buildLayer(rl: RawLayer): Promise<Layer> {
       }
     }
     return newFirestoreStore({ projectId, collection });
+  }
+  if (driver === "es4") {
+    if (opts.base_url) {
+      for (const k of Object.keys(opts)) {
+        if (k !== "base_url") {
+          throw new Error(`${ErrInvalidConfig.message}: unknown es4 http option ${JSON.stringify(k)}`);
+        }
+      }
+      return newEs4HTTPStore({ baseUrl: opts.base_url });
+    }
+    const allowed = new Set([
+      "memory_only",
+      "state_backend",
+      "state_path",
+      "state_redis_url",
+      "state_redis_key_prefix",
+      "state_firestore_project_id",
+      "state_firestore_database_id",
+      "state_firestore_collection",
+    ]);
+    for (const k of Object.keys(opts)) {
+      if (!allowed.has(k)) {
+        throw new Error(`${ErrInvalidConfig.message}: unknown es4 option ${JSON.stringify(k)}`);
+      }
+    }
+    return newEs4Store({
+      memoryOnly: opts.memory_only === "true" || opts.memory_only === "1",
+      stateBackend: opts.state_backend,
+      statePath: opts.state_path,
+      stateRedisUrl: opts.state_redis_url,
+      stateRedisKeyPrefix: opts.state_redis_key_prefix,
+      stateFirestoreProjectId: opts.state_firestore_project_id,
+      stateFirestoreDatabaseId: opts.state_firestore_database_id,
+      stateFirestoreCollection: opts.state_firestore_collection,
+    });
   }
   throw new Error(`${ErrInvalidConfig.message}: unknown driver ${JSON.stringify(driver)}`);
 }

@@ -38,6 +38,14 @@ export {
   newFirestoreStore,
   type FirestoreOptions,
 } from "./driver/firestore.js";
+export {
+  Es4Store,
+  newEs4Store,
+  newEs4HTTPStore,
+  type Es4DriverOptions,
+  type Es4HTTPOptions,
+  type Es4Backend,
+} from "./driver/es4.js";
 
 export {
   createRegistry,

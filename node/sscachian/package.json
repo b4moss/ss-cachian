@@ -1,7 +1,7 @@
 {
   "name": "@b4moss/ss-cachian",
-  "version": "0.10.0",
-  "description": "Server-side cache strategy library (TypeScript/JavaScript). PurgePrefix/Tag + convenience APIs (v0.10.0) with Go parity.",
+  "version": "0.11.0",
+  "description": "Server-side cache strategy library (TypeScript/JavaScript). es4 Layer Driver (embedded + HTTP) for v0.11.0 with Go parity.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -53,6 +53,7 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "@b4moss/es4": "file:vendor/b4moss-es4-0.10.0.tgz",
     "@google-cloud/firestore": "^9.2.0",
     "yaml": "^2.8.3"
   }
