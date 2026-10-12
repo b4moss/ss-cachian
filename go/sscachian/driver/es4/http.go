@@ -240,6 +240,31 @@ func (t *httpTx) Delete(ctx context.Context, key string) error {
 	return mapHTTPStatus(res)
 }
 
+func (t *httpTx) Scan(ctx context.Context, prefix string) ([]string, error) {
+	// Provisional until Es4 Server exposes Tx Scan; non-Tx /v1/scan is used.
+	u := t.b.base + "/v1/scan?prefix=" + url.QueryEscape(prefix)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+	if err != nil {
+		return nil, err
+	}
+	res, err := t.b.client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	if err := mapHTTPStatus(res); err != nil {
+		return nil, err
+	}
+	var keys []string
+	if err := json.NewDecoder(res.Body).Decode(&keys); err != nil {
+		return nil, fmt.Errorf("sscachian/es4: decode tx scan: %w", err)
+	}
+	if keys == nil {
+		keys = []string{}
+	}
+	return keys, nil
+}
+
 func (t *httpTx) Exists(ctx context.Context, key string) (bool, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodHead, t.txKeyURL(key), nil)
 	if err != nil {

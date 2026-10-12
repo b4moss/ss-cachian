@@ -3,7 +3,6 @@ package es4
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	es4lib "github.com/b4moss/es4/packages/go/pkg/es4"
 )
@@ -16,11 +15,6 @@ type Backend interface {
 	BeginTx(ctx context.Context) (es4lib.Tx, error)
 	Scan(ctx context.Context, prefix string) ([]string, error)
 	Close() error
-}
-
-// scanner is satisfied when the underlying es4 DB exposes Scan (v0.10+).
-type scanner interface {
-	Scan(ctx context.Context, prefix string) ([]string, error)
 }
 
 type embeddedBackend struct {
@@ -44,10 +38,7 @@ func (b *embeddedBackend) BeginTx(ctx context.Context) (es4lib.Tx, error) {
 }
 
 func (b *embeddedBackend) Scan(ctx context.Context, prefix string) ([]string, error) {
-	if s, ok := any(b.db).(scanner); ok {
-		return s.Scan(ctx, prefix)
-	}
-	return nil, fmt.Errorf("sscachian/es4: Scan not available on es4.DB (need es4 v0.10+ with Scan)")
+	return b.db.Scan(ctx, prefix)
 }
 
 func (b *embeddedBackend) Close() error {

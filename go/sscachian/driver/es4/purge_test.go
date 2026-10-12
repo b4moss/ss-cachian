@@ -137,6 +137,48 @@ func TestPurgePrefix_ScanFailurePropagates(t *testing.T) {
 	}
 }
 
+func TestPurgePrefix_EmbeddedEs4Scan(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	s, err := es4driver.New(ctx, es4driver.Options{MemoryOnly: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = s.Close() })
+	prefix := "app:cache:t:q"
+	for _, k := range []string{prefix + ":1", prefix + ":2", prefix + ":__version__", prefix + ":extra", "other:1"} {
+		if err := s.Set(ctx, k, sscachian.Entry{Value: 1}, 0); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := s.PurgePrefix(ctx, prefix); err != nil {
+		t.Fatal(err)
+	}
+	for _, k := range []string{prefix + ":1", prefix + ":2", prefix + ":__version__", prefix + ":extra"} {
+		if _, ok, _ := s.Get(ctx, k); ok {
+			t.Fatalf("%s should be gone via real es4.Scan", k)
+		}
+	}
+	if _, ok, _ := s.Get(ctx, "other:1"); !ok {
+		t.Fatal("other:1 should remain")
+	}
+}
+
+func TestSet_InvalidColonKeyFromEs4(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	s, err := es4driver.New(ctx, es4driver.Options{MemoryOnly: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = s.Close() })
+	for _, bad := range []string{":a", "a:", "a::b"} {
+		if err := s.Set(ctx, bad, sscachian.Entry{Value: 1}, 0); err == nil {
+			t.Fatalf("expected invalid key error for %q", bad)
+		}
+	}
+}
+
 type failScanBackend struct {
 	*memBackend
 	err error

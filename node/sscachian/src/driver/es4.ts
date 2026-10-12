@@ -110,12 +110,8 @@ class EmbeddedBackend implements Es4Backend {
   beginTx(signal?: AbortSignal): Promise<Tx> {
     return this.db.beginTx(signal);
   }
-  async scan(prefix: string, signal?: AbortSignal): Promise<string[]> {
-    const db = this.db as DB & { scan?: (p: string, s?: AbortSignal) => Promise<string[]> };
-    if (typeof db.scan !== "function") {
-      throw new Error("sscachian/es4: Scan not available on es4.DB (need es4 v0.10+ with Scan)");
-    }
-    return db.scan(prefix, signal);
+  scan(prefix: string, signal?: AbortSignal): Promise<string[]> {
+    return this.db.scan(prefix, signal);
   }
   async close(): Promise<void> {
     await this.db.close();
@@ -412,6 +408,15 @@ class HttpTx implements Tx {
     if (res.status === 404) return false;
     await mapHttp(res);
     return true;
+  }
+
+  async scan(prefix: string, signal?: AbortSignal): Promise<string[]> {
+    // Provisional until Es4 Server exposes Tx Scan; use non-Tx /v1/scan.
+    const url = `${this.base}/v1/scan?prefix=${encodeURIComponent(prefix)}`;
+    const res = await this.fetchImpl(url, { method: "GET", signal });
+    await mapHttp(res);
+    const keys = (await res.json()) as string[];
+    return keys ?? [];
   }
 
   async clear(signal?: AbortSignal): Promise<void> {

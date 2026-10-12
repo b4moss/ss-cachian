@@ -9,6 +9,9 @@ import (
 	es4lib "github.com/b4moss/es4/packages/go/pkg/es4"
 )
 
+// ensure memTx satisfies es4 Tx (incl. Scan).
+var _ es4lib.Tx = (*memTx)(nil)
+
 // memBackend is an in-process backend with Scan for unit tests.
 type memBackend struct {
 	mu     sync.Mutex
@@ -175,6 +178,32 @@ func (t *memTx) Clear(_ context.Context) error {
 		t.overlay[k] = nil
 	}
 	return nil
+}
+
+func (t *memTx) Scan(_ context.Context, prefix string) ([]string, error) {
+	t.b.mu.Lock()
+	defer t.b.mu.Unlock()
+	if t.done {
+		return nil, es4lib.ErrTxDone
+	}
+	present := make(map[string]struct{})
+	for k := range t.snap {
+		present[k] = struct{}{}
+	}
+	for k, v := range t.overlay {
+		if v == nil {
+			delete(present, k)
+		} else {
+			present[k] = struct{}{}
+		}
+	}
+	var out []string
+	for k := range present {
+		if strings.HasPrefix(k, prefix) {
+			out = append(out, k)
+		}
+	}
+	return out, nil
 }
 
 func (t *memTx) Commit() error {

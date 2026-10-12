@@ -77,6 +77,19 @@ class MemBackend implements Es4Backend {
           throw e;
         }
       },
+      async scan(prefix: string) {
+        if (done) throw new Error("done");
+        const keys = new Set<string>();
+        for (const [k, v] of overlay) {
+          if (v != null && k.startsWith(prefix)) keys.add(k);
+        }
+        for (const k of snap.keys()) {
+          if (overlay.has(k) && overlay.get(k) == null) continue;
+          if (overlay.has(k)) continue;
+          if (k.startsWith(prefix)) keys.add(k);
+        }
+        return [...keys];
+      },
       async clear() {
         for (const k of snap.keys()) overlay.set(k, null);
       },
@@ -108,6 +121,25 @@ test("es4 embedded open set get", async () => {
     const r = await s.get("a:b");
     assert.equal(r.hit, true);
     assert.equal(r.entry.value, "v");
+  } finally {
+    await s.close();
+  }
+});
+
+test("es4 embedded PurgePrefix uses real Scan", async () => {
+  const s = await newEs4Store({ memoryOnly: true });
+  try {
+    const prefix = "app:cache:t:q";
+    for (const k of [`${prefix}:1`, `${prefix}:2`, `${prefix}:__version__`, `${prefix}:extra`, "other:1"]) {
+      await s.set(k, { value: 1, createdAt: new Date(0), expiresAt: null }, 0);
+    }
+    await s.purgePrefix(prefix);
+    assert.equal((await s.get(`${prefix}:1`)).hit, false);
+    assert.equal((await s.get(`${prefix}:extra`)).hit, false);
+    assert.equal((await s.get("other:1")).hit, true);
+    await assert.rejects(
+      () => s.set(":bad", { value: 1, createdAt: new Date(0), expiresAt: null }, 0),
+    );
   } finally {
     await s.close();
   }

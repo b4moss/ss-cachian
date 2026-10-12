@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	cloud.google.com/go/firestore v1.26.0
-	github.com/b4moss/es4/packages/go v0.0.0-20261012023910-6ce07f700bfd
+	github.com/b4moss/es4/packages/go v0.0.0-20261012025552-e601c066c4c5 // es4#39 e601c06 until merge; drop pin after es4 release
 	google.golang.org/api v0.299.0
 	google.golang.org/grpc v1.84.0
 	gopkg.in/yaml.v3 v3.0.1
