@@ -147,6 +147,26 @@ types:
 types:
   - name: a
     layers: [{driver: valkey}]`);
+  {
+    const types = await loadTypesYAML(
+      reg,
+      `
+schema_version: "0.9"
+types:
+  - name: e
+    layers:
+      - driver: es4
+        options:
+          memory_only: "true"
+`,
+    );
+    const ct = types.get("e")!;
+    const kc = { appSlug: "my-app", tenantId: "0123456", queryType: "client_list_page1" };
+    await ct.set(kc, "via-es4");
+    const r = await ct.get(kc);
+    assert.equal(r.hit, true);
+    assert.equal(r.value, "via-es4");
+  }
   await mustErr(`schema_version: "0.9"
 types:
   - name: a

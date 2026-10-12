@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/b4moss/ss-cachian"
+	_ "github.com/b4moss/ss-cachian/driver/es4"
 	_ "github.com/b4moss/ss-cachian/driver/firestore"
 	_ "github.com/b4moss/ss-cachian/driver/memory"
 )
@@ -214,6 +215,25 @@ types:
 types:
   - name: a
     layers: [{driver: valkey}]`)
+	typesEs4, err := sscachian.LoadTypesYAML[string](ctx, reg, []byte(`
+schema_version: "0.9"
+types:
+  - name: e
+    layers:
+      - driver: es4
+        options:
+          memory_only: "true"
+`))
+	if err != nil {
+		t.Fatalf("es4 driver: %v", err)
+	}
+	if err := typesEs4["e"].Set(ctx, sampleKC(), "via-es4"); err != nil {
+		t.Fatal(err)
+	}
+	got, ok, err := typesEs4["e"].Get(ctx, sampleKC())
+	if err != nil || !ok || got != "via-es4" {
+		t.Fatalf("es4 get: got=%q ok=%v err=%v", got, ok, err)
+	}
 	mustErr("unknown kb", `schema_version: "0.9"
 types:
   - name: a
