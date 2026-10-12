@@ -2,8 +2,8 @@
 
 | 項目 | 値 |
 |------|-----|
-| 状態 | **決定事項反映済み**（一問一答 2026-10-11）。実装未着手（es4 完了後） |
-| マイルストーン | [v0.11.0](https://github.com/b4moss/ss-cachian/milestone/2)（次 minor・現行リリース v0.10.0 の次。同版に [SWR 意図スタブ](./README.md) あり） |
+| 状態 | **完了**（実装 #70・タグ `v0.11.0` + npm。Issue [#68](https://github.com/b4moss/ss-cachian/issues/68) クローズ。意味論は [specs/driver-es4](../../specs/driver-es4/)） |
+| マイルストーン | [v0.11.0](https://github.com/b4moss/ss-cachian/milestone/2)（es4 Driver 完了。SWR 等は後続） |
 | Tracking Issue | [#68](https://github.com/b4moss/ss-cachian/issues/68) |
 | Plans PR | [#67](https://github.com/b4moss/ss-cachian/pull/67)（base: `develop`・merged） |
 | 対象リポジトリ | [b4moss/ss-cachian](https://github.com/b4moss/ss-cachian)（Driver）／依存先 [b4moss/es4](https://github.com/b4moss/es4) |
@@ -28,7 +28,7 @@
 
 **前提（上流）:** es4 v0.10.0 でデリミタ `:` ＋ `Scan` が先。TTL は Driver Entry ラップ。PurgePrefix は es4 `Scan` + Delete。
 
-**本ファイルの位置づけ:** ss-cachian リポジトリ内 `docs/plans/` の正本（v0.11.0）。実装コードは別途。charter どおり実装 Agent は本ファイルを編集しない。
+**本ファイルの位置づけ:** 完了注記。現行の振る舞い正本は [`docs/specs/driver-es4/`](../../specs/driver-es4/) · [`docs/tests/driver-es4/`](../../tests/driver-es4/)。
 
 ----
 
@@ -78,8 +78,8 @@ ss-cachian の **Layer 契約**を満たす **es4 Driver** を追加し、埋め
 | 事実 | 根拠 |
 |------|------|
 | 公開 State: `Set` / `Get` / `Delete` / `Exists` / `Clear`。Tx 別面 | `docs/specs/state/state.md`・`docs/specs/tx/` |
-| **Scan / LIST は持たない**（転記時点） | state specs・es4-server |
-| キーは階層 **`/`**（転記時点）。**`:` 化は es4 v0.10.0 計画** | `ValidateKey`・[key-delimiter 計画](https://github.com/b4moss/es4/blob/main/docs/plans/v0.10.0/key-delimiter.md) |
+| **Scan(prefix)** あり（es4 v0.10.0） | state specs・es4-server |
+| キーは階層 **`:`**（es4 v0.10.0 済み） | `ValidateKey`・[key-delimiter 完了注記](https://github.com/b4moss/es4/blob/main/docs/plans/v0.10.0/key-delimiter.md) |
 | 値は JSON（`json.RawMessage`）。欠落 Get/Delete → `ErrNotFound` | state specs |
 | Firestore Doc ID = path-percent-encode | state specs |
 | 埋め込みライブラリ + 任意 HTTP Es4 Server | ルート README |

@@ -10,13 +10,13 @@ timestamp: 2026-10-11T00:00:00Z
 
 対象:
 
-- Go: `go/sscachian/driver/es4`（仮パス。実装時に確定）
-- Node: `node/sscachian` の es4 ドライバ（仮）
+- Go: `go/sscachian/driver/es4`
+- Node: `node/sscachian/src/driver/es4.ts`
 - HTTP Es4 Server アダプタ（同版・埋め込みと並列。決定 C）
 
 前提:
 
-- [plans/v0.11.0/es4-layer-driver.md](../../plans/v0.11.0/es4-layer-driver.md)（決定 2026-10-11）
+- [specs/driver-es4](../../specs/driver-es4/)（正本）· [plans/v0.11.0/es4-layer-driver.md](../../plans/v0.11.0/es4-layer-driver.md)（完了注記）
 - [specs/layer](../../specs/layer/) / [tests 索引](../README.md)
 - 上流 es4 v0.10.0: キー区切り `:` ＋ `Scan(prefix) []string`（ページングなし・Tx 内可）
 
@@ -35,7 +35,7 @@ timestamp: 2026-10-11T00:00:00Z
 Entry は es4 値（JSON）として上記 B 形で保存する。es4 本体に TTL API は足さない。  
 `created_at` は Entry JSON に **含めない**（決定 B）。必要なら実装メモのみ。
 
-config `layers[].driver` 名は実装時に既存慣例へ合わせる（候補: `es4`）。本スイートは Driver 直接生成でも Config 経由でもよい。
+config `layers[].driver` 名は **`es4`**。本スイートは Driver 直接生成でも Config 経由でもよい。
 
 ---
 

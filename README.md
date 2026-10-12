@@ -11,7 +11,7 @@ Not a thin key/value wrapper. Applications define *how* caching works (keys, TTL
 
 - [日本語版 README](./README-ja.md)
 
-Current line: **v0.10.0** (Go `VERSION` and `@b4moss/ss-cachian` stay in lockstep for this release).
+Current line: **v0.11.0** (Go `VERSION` and `@b4moss/ss-cachian` stay in lockstep for this release).
 
 ## What you get
 
@@ -22,7 +22,7 @@ Current line: **v0.10.0** (Go `VERSION` and `@b4moss/ss-cachian` stay in lockste
 | **Versioned keys** | Current-version on L1; mutations bump; `GetOrLoad` / `Remember` fill does **not** bump |
 | **Multilayer** | L1 → L2 → … exploration; write-back on lower hit / loader success |
 | **Purge (v0.10.0)** | Exact (`Purge` / `PurgeExact`); Prefix (startswith); Tag (L1 index → Exact) |
-| **Drivers** | **memory**, **Firestore** (honors `FIRESTORE_EMULATOR_HOST`) |
+| **Drivers** | **memory**, **Firestore**, **es4** (embedded open + HTTP `base_url`; honors `FIRESTORE_EMULATOR_HOST` when wired through es4) |
 | **Config-driven (v0.9.0)** | YAML (canonical) or equivalent JSON → `LoadTypes` / `loadTypes` |
 
 Out of scope today: SWR / SIE / negative cache, Valkey, PHP, browser bundles. See [roadmap](./docs/roadmap.md).
@@ -44,7 +44,7 @@ This root README is the **shared host workflow** (concepts, config file, pitfall
 | | Go | Node |
 |--|----|------|
 | Runtime | Go **1.26+** | Node.js **≥ 20** |
-| Package | `github.com/b4moss/ss-cachian` (`VERSION=0.10.0`) | `@b4moss/ss-cachian@0.10.0` |
+| Package | `github.com/b4moss/ss-cachian` (`VERSION=0.11.0`) | `@b4moss/ss-cachian@0.11.0` |
 | Firestore (optional) | Emulator or GCP project | Same (`@google-cloud/firestore`) |
 
 You do **not** need this monorepo cloned to consume published packages. Clone for contributing, Emulator CI, or editing docs.
@@ -57,7 +57,7 @@ You do **not** need this monorepo cloned to consume published packages. Clone fo
 
 ```bash
 # Go
-go get github.com/b4moss/ss-cachian@v0.10.0
+go get github.com/b4moss/ss-cachian@v0.11.0
 
 # Node
 npm install @b4moss/ss-cachian
@@ -190,6 +190,16 @@ Negative or unparsable TTL → load error.
 
 Emulator: environment only (`FIRESTORE_EMULATOR_HOST`).
 
+**es4** (v0.11.0) — embedded `es4.Open` or HTTP Es4 Server adapter.
+
+| Option | Notes |
+|--------|--------|
+| `memory_only` | `"true"` / `"1"` for in-process memory (CI default when unset) |
+| `base_url` | If set, use HTTP adapter only (other es4 options rejected) |
+| `state_backend` / `state_path` / redis / firestore keys | Passed through to embedded es4 Options (snake_case strings) |
+
+Depends on `@b4moss/es4` / `github.com/b4moss/es4/packages/go` **v0.10.0** (`:` keys + `Scan`).
+
 ### Multilayer + loader example
 
 ```yaml
@@ -274,7 +284,7 @@ make act                 # local CI smoke (Docker)
 
 Devcontainer / Emulator: [`.devcontainer/`](./.devcontainer/) · [`docker/`](./docker/) · [`.github/CI.md`](./.github/CI.md)
 
-Publish: tags `v*` on `main` → npm Trusted Publisher (OIDC). Go modules consume `v0.10.0` from the Git tag.
+Publish: tags `v*` on `main` → npm Trusted Publisher (OIDC). Go modules consume `v0.11.0` from the Git tag.
 
 ---
 
