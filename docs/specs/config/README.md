@@ -28,10 +28,11 @@ timestamp: 2026-09-27T06:40:00Z
 
 - `schema_version`: `"0.9"`（文字列必須）
 - `types[]`: `name` / 任意 `key_builder`（省略=`default`）/ 任意 `loader` / 任意 `ttl` / `layers[]`
-- `layers[]`: `driver`（`memory` | `firestore`）/ 任意 `ttl` / 任意 `options`
+- `layers[]`: `driver`（`memory` | `firestore` | `es4`）/ 任意 `ttl` / 任意 `options`
 - TTL 文字列: Go `time.ParseDuration` 互換。優先: `layers[i].ttl` → `types[].ttl` → `0`
 - firestore `options`: `project_id` / `collection` のみ。未知キーは拒否。Emulator は `FIRESTORE_EMULATOR_HOST`
 - memory `options`: 空のみ（未知キー拒否）
+- es4 `options`: `base_url`（HTTP 専用・他キー拒否）または埋め込み用 `memory_only` / `state_backend` / `state_path` / redis・firestore 系キー（未知キー拒否）
 
 ## Registry
 
@@ -48,4 +49,4 @@ timestamp: 2026-09-27T06:40:00Z
 
 ## Driver 登録（Go）
 
-`driver/memory` と `driver/firestore` の `init` が `RegisterDriverFactory` する。`LoadTypes` 利用時はこれらのパッケージを import（テストは blank import）すること。
+`driver/memory`・`driver/firestore`・`driver/es4` の `init` が `RegisterDriverFactory` する。`LoadTypes` 利用時はこれらのパッケージを import（テストは blank import）すること。
