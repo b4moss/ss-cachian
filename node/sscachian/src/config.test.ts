@@ -164,8 +164,8 @@ types:
     const kc = { appSlug: "my-app", tenantId: "0123456", queryType: "client_list_page1" };
     await ct.set(kc, "via-es4");
     const r = await ct.get(kc);
-    assert.equal(r.hit, true);
-    assert.equal(r.value, "via-es4");
+    assert.equal(r.ok, true);
+    if (r.ok) assert.equal(r.value, "via-es4");
   }
   await mustErr(`schema_version: "0.9"
 types:
