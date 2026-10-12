@@ -1,3 +1,4 @@
-Temporary `@b4moss/es4` build from [es4#39](https://github.com/b4moss/es4/pull/39) (`e601c06`, Scan + `:` keys).
+Temporary `@b4moss/es4@0.10.0` pack from GitHub tag `v0.10.0` / commit `31ca62d`
+(`packages/go` Go module is published; npm Trusted Publisher for `@b4moss/es4@0.10.0` failed).
 
-Remove this vendor tarball and switch back to a published `@b4moss/es4` version after es4 merges/releases.
+Replace with registry `@b4moss/es4@0.10.0` once npm publish succeeds.

@@ -50,8 +50,8 @@ github.com/aws/aws-sdk-go-v2/service/sts v1.51.1 h1:0HOqZXRvMytH6bFHVIc0oJX07sZj
 github.com/aws/aws-sdk-go-v2/service/sts v1.51.1/go.mod h1:26zA0GhDrLo+yiLI2yXWxqB1PdsShfLikoI7GOEgugM=
 github.com/aws/smithy-go v1.28.1 h1:R/nXH00c8qcfCzQVELtRw+eLQWtzv+VAIEFJ1/xxXlQ=
 github.com/aws/smithy-go v1.28.1/go.mod h1:YE2RhdIuDbA5E5bTdciG9KrW3+TiEONeUWCqxX9i1Fc=
-github.com/b4moss/es4/packages/go v0.0.0-20261012025552-e601c066c4c5 h1:/dyWF7WdvTkUgU3CUUDcU9kkP+QZ0ppoQd5PsnnA2ek=
-github.com/b4moss/es4/packages/go v0.0.0-20261012025552-e601c066c4c5/go.mod h1:r7mYtIpFxiU7VrRyIUYBEeWzqw7r/pQWfNPRdsTz51U=
+github.com/b4moss/es4/packages/go v0.10.0 h1:1uYzvy/oXZzomSaxYgvZYHXx889JjF2i3wz0HvMv1HQ=
+github.com/b4moss/es4/packages/go v0.10.0/go.mod h1:r7mYtIpFxiU7VrRyIUYBEeWzqw7r/pQWfNPRdsTz51U=
 github.com/bsm/ginkgo/v2 v2.12.0 h1:Ny8MWAHyOepLGlLKYmXG4IEkioBysk6GpaRTLC8zwWs=
 github.com/bsm/ginkgo/v2 v2.12.0/go.mod h1:SwYbGRRDovPVboqFv0tPTcG1sN61LM1Z4ARdbAV9g4c=
 github.com/bsm/gomega v1.27.10 h1:yeMWxP2pV2fG3FgAODIY8EiRE3dy0aeFYt4l7wh6yKA=
