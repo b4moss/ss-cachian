@@ -17,16 +17,18 @@ import (
 	"github.com/b4moss/ss-cachian"
 )
 
-const incrMaxAttempts = 8
+// incrMaxAttempts matches Firestore Driver for Aborted; Memory backends serialize
+// Tx via ErrNestedTx, so concurrent Incr needs a higher budget.
+const incrMaxAttempts = 64
 
 // Options configures New (embedded es4.Open). Driver owns Open/Close.
 type Options struct {
 	MemoryOnly bool
 
-	StateBackend            string
-	StatePath               string
-	StateRedisURL           string
-	StateRedisKeyPrefix     string
+	StateBackend             string
+	StatePath                string
+	StateRedisURL            string
+	StateRedisKeyPrefix      string
 	StateFirestoreProjectID  string
 	StateFirestoreDatabaseID string
 	StateFirestoreCollection string
@@ -42,11 +44,11 @@ type Store struct {
 // New opens an embedded es4 DB and returns a Layer. Caller must Close.
 func New(ctx context.Context, opts Options) (*Store, error) {
 	es4Opts := options.Options{
-		MemoryOnly:              opts.MemoryOnly,
-		StateBackend:            opts.StateBackend,
-		StatePath:               opts.StatePath,
-		StateRedisURL:           opts.StateRedisURL,
-		StateRedisKeyPrefix:     opts.StateRedisKeyPrefix,
+		MemoryOnly:               opts.MemoryOnly,
+		StateBackend:             opts.StateBackend,
+		StatePath:                opts.StatePath,
+		StateRedisURL:            opts.StateRedisURL,
+		StateRedisKeyPrefix:      opts.StateRedisKeyPrefix,
 		StateFirestoreProjectID:  opts.StateFirestoreProjectID,
 		StateFirestoreDatabaseID: opts.StateFirestoreDatabaseID,
 		StateFirestoreCollection: opts.StateFirestoreCollection,

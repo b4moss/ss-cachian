@@ -60,7 +60,7 @@ func TestClose_IdempotentAndBlocksOps(t *testing.T) {
 func TestOpen_InvalidFirestoreOptions(t *testing.T) {
 	t.Parallel()
 	_, err := es4driver.New(context.Background(), es4driver.Options{
-		StateBackend:           "firestore",
+		StateBackend:            "firestore",
 		StateFirestoreProjectID: "", // required
 	})
 	if err == nil {
