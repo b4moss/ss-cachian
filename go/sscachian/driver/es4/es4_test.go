@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/b4moss/ss-cachian"
-	es4driver "github.com/b4moss/ss-cachian/driver/es4"
+	"github.com/b4moss/ss-cachian/go/sscachian"
+	es4driver "github.com/b4moss/ss-cachian/go/sscachian/driver/es4"
 )
 
 func newTestStore(t *testing.T) *es4driver.Store {

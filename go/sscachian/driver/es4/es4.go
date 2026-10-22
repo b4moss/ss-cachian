@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/b4moss/ss-cachian"
+	"github.com/b4moss/ss-cachian/go/sscachian"
 )
 
 // incrMaxAttempts matches Firestore Driver for Aborted; Memory backends serialize
