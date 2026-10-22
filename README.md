@@ -11,7 +11,7 @@ Not a thin key/value wrapper. Applications define *how* caching works (keys, TTL
 
 - [日本語版 README](./README-ja.md)
 
-Current line: **v0.11.0** (Go `VERSION` and `@b4moss/ss-cachian` stay in lockstep for this release).
+Current line: **v0.11.1** (Go `VERSION` and `@b4moss/ss-cachian` stay in lockstep for this release).
 
 ## What you get
 
@@ -31,7 +31,7 @@ Out of scope today: SWR / SIE / negative cache, Valkey, PHP, browser bundles. Se
 
 | Port | Package | Language hub |
 |------|---------|--------------|
-| **Go** | `github.com/b4moss/ss-cachian` | [`go/sscachian/README.md`](./go/sscachian/README.md) |
+| **Go** | `github.com/b4moss/ss-cachian/go/sscachian` | [`go/sscachian/README.md`](./go/sscachian/README.md) |
 | **TypeScript** | `@b4moss/ss-cachian` | [`node/sscachian/README.md`](./node/sscachian/README.md) |
 | **PHP** | — | Planned later — [roadmap](./docs/roadmap.md) |
 
@@ -44,7 +44,7 @@ This root README is the **shared host workflow** (concepts, config file, pitfall
 | | Go | Node |
 |--|----|------|
 | Runtime | Go **1.26+** | Node.js **≥ 20** |
-| Package | `github.com/b4moss/ss-cachian` (`VERSION=0.11.0`) | `@b4moss/ss-cachian@0.11.0` |
+| Package | `github.com/b4moss/ss-cachian/go/sscachian` (`VERSION=0.11.1`) | `@b4moss/ss-cachian@0.11.1` |
 | Firestore (optional) | Emulator or GCP project | Same (`@google-cloud/firestore`) |
 
 You do **not** need this monorepo cloned to consume published packages. Clone for contributing, Emulator CI, or editing docs.
@@ -56,11 +56,11 @@ You do **not** need this monorepo cloned to consume published packages. Clone fo
 ### Step 1 — Pick a port and install
 
 ```bash
-# Go
-go get github.com/b4moss/ss-cachian@v0.11.0
+# Go (subdirectory module — tag go/sscachian/v0.11.1)
+go get github.com/b4moss/ss-cachian/go/sscachian@v0.11.1
 
 # Node
-npm install @b4moss/ss-cachian
+npm install @b4moss/ss-cachian@0.11.1
 ```
 
 Hubs: [Go](./go/sscachian/README.md) · [Node](./node/sscachian/README.md)
@@ -226,9 +226,9 @@ types:
 import (
   "context"
 
-  "github.com/b4moss/ss-cachian"
-  _ "github.com/b4moss/ss-cachian/driver/firestore"
-  _ "github.com/b4moss/ss-cachian/driver/memory"
+  "github.com/b4moss/ss-cachian/go/sscachian"
+  _ "github.com/b4moss/ss-cachian/go/sscachian/driver/firestore"
+  _ "github.com/b4moss/ss-cachian/go/sscachian/driver/memory"
 )
 
 reg := sscachian.NewRegistry()
@@ -284,7 +284,8 @@ make act                 # local CI smoke (Docker)
 
 Devcontainer / Emulator: [`.devcontainer/`](./.devcontainer/) · [`docker/`](./docker/) · [`.github/CI.md`](./.github/CI.md)
 
-Publish: tags `v*` on `main` → npm Trusted Publisher (OIDC). Go modules consume `v0.11.0` from the Git tag.
+Publish: tag `v0.11.1` on `main` → npm Trusted Publisher (OIDC).  
+Go: tag **`go/sscachian/v0.11.1`** on the same commit (subdirectory module; root `v*` alone is not enough). See [CHANGELOG](./CHANGELOG.md).
 
 ---
 

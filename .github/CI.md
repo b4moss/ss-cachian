@@ -21,6 +21,9 @@ Aligned with `b4moss/crudian` and [docs/README.md](../docs/README.md)（技術�
 - `develop` / `dev-*` への PR では CI を必須とする。
 - 可能な限りジョブを並行実行し、キャッシュを活用する。
 - PR 前に実装者が手元で `act` を回す（husky 等での強制はしない）。`act` は devcontainer に同梱。
+- **Publish consumer guards (v0.11.1+):**
+  - `verify npm pack install` — reject `file:`/`link:`/`workspace:` deps; `npm pack` → install into empty dir ([scripts/verify-npm-pack.sh](./scripts/verify-npm-pack.sh)).
+  - `verify go consumer import` — module path must be `…/go/sscachian`; replace-based consumer import/build ([scripts/verify-go-consumer.sh](./scripts/verify-go-consumer.sh)). Full public `go get` needs tag `go/sscachian/vX.Y.Z` after release.
 
 ### 参考モデル（crudian）
 
@@ -35,6 +38,8 @@ Aligned with `b4moss/crudian` and [docs/README.md](../docs/README.md)（技術�
 3. **そのタグが `release` ブランチに乗るとリリースする。**（言語横断の正規 CD。整備中）
 4. 各言語でバージョンアップがあったものだけリリースする。
 5. 言語によっては SemVer が欠番になる場合がある。これは許容する。
+6. **Go（サブディレクトリモジュール）:** 同じコミットに **`go/sscachian/vX.Y.Z`** も打つ。ルート `v*` だけでは proxy zip に `.go` が含まれない。
+7. **npm:** ルートタグ `vX.Y.Z`（または workflow_dispatch）→ Trusted Publisher。
 
 ### npm（Trusted Publisher）
 

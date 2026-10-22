@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/b4moss/ss-cachian"
+	"github.com/b4moss/ss-cachian/go/sscachian"
 )
 
 func init() {

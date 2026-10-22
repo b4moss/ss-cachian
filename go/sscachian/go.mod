@@ -1,4 +1,4 @@
-module github.com/b4moss/ss-cachian
+module github.com/b4moss/ss-cachian/go/sscachian
 
 go 1.26.0
 

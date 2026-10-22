@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/b4moss/ss-cachian"
-	"github.com/b4moss/ss-cachian/driver/memory"
+	"github.com/b4moss/ss-cachian/go/sscachian"
+	"github.com/b4moss/ss-cachian/go/sscachian/driver/memory"
 )
 
 func sampleKC() sscachian.KeyContext {
