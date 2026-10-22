@@ -11,7 +11,7 @@
 
 - [English README (default)](./README.md)
 
-現行版: **v0.11.0**（Go `VERSION` と `@b4moss/ss-cachian` を揃えています）。
+現行版: **v0.11.1**（Go `VERSION` と `@b4moss/ss-cachian` を揃えています）。
 
 ## できること
 
@@ -31,7 +31,7 @@
 
 | Port | Package | Language hub |
 |------|---------|--------------|
-| **Go** | `github.com/b4moss/ss-cachian` | [`go/sscachian/README.md`](./go/sscachian/README.md) |
+| **Go** | `github.com/b4moss/ss-cachian/go/sscachian` | [`go/sscachian/README.md`](./go/sscachian/README.md) |
 | **TypeScript** | `@b4moss/ss-cachian` | [`node/sscachian/README.md`](./node/sscachian/README.md) |
 
 ルート README（英語）が共有ホスト手順の正本です。インストール・import・API 詳細は各 language hub を見てください。
@@ -41,13 +41,13 @@
 | | Go | Node |
 |--|----|------|
 | Runtime | Go **1.26+** | Node.js **≥ 20** |
-| Package | `github.com/b4moss/ss-cachian` | `@b4moss/ss-cachian@0.11.0` |
+| Package | `github.com/b4moss/ss-cachian/go/sscachian` | `@b4moss/ss-cachian@0.11.1` |
 
 公開パッケージ利用にリポジトリ clone は不要です。
 
 ## 使い方（要約）
 
-1. ポートを選びインストール（`go get …@v0.11.0` / `npm i @b4moss/ss-cachian`）
+1. ポートを選びインストール（`go get github.com/b4moss/ss-cachian/go/sscachian@v0.11.1` / `npm i @b4moss/ss-cachian@0.11.1`）。Go はサブディレクトリタグ `go/sscachian/v0.11.1` が必要
 2. コード組み立て（`Define`）か設定ファイル（YAML）かを決める
 3. Loader / カスタム KeyBuilder は Registry に名前登録（設定は参照のみ）
 4. Layer 順 = L1…Ln。TTL は `ParseDuration` 文字列。優先: layer TTL → type TTL → `0`

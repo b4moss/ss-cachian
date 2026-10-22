@@ -1,17 +1,27 @@
 # ss-cachian (Go)
 
-Go module: `github.com/b4moss/ss-cachian` · **VERSION `0.11.0`**
+Go module: `github.com/b4moss/ss-cachian/go/sscachian` · **VERSION `0.11.1`**
 
 Shared product overview, config schema, and pitfalls: [root README](../../README.md).  
 Specs: [docs/specs](../../docs/specs/).
 
 ## Install
 
+This module lives under `go/sscachian/` (monorepo). Publish with the **subdirectory tag**
+`go/sscachian/vX.Y.Z` (not a root `v*` tag alone — that zip omits nested modules).
+
 ```bash
-go get github.com/b4moss/ss-cachian@v0.11.0
+go get github.com/b4moss/ss-cachian/go/sscachian@v0.11.1
 ```
 
 Requires **Go 1.26+**.
+
+```go
+import (
+  "github.com/b4moss/ss-cachian/go/sscachian"
+  "github.com/b4moss/ss-cachian/go/sscachian/driver/memory"
+)
+```
 
 ## Quick start (code-built)
 
@@ -21,8 +31,8 @@ package main
 import (
   "context"
 
-  "github.com/b4moss/ss-cachian"
-  "github.com/b4moss/ss-cachian/driver/memory"
+  "github.com/b4moss/ss-cachian/go/sscachian"
+  "github.com/b4moss/ss-cachian/go/sscachian/driver/memory"
 )
 
 func main() {
@@ -42,7 +52,7 @@ func main() {
 }
 ```
 
-Firestore layer: `github.com/b4moss/ss-cachian/driver/firestore` (`New(ctx, Options{...})`). Honors `FIRESTORE_EMULATOR_HOST`.
+Firestore layer: `github.com/b4moss/ss-cachian/go/sscachian/driver/firestore` (`New(ctx, Options{...})`). Honors `FIRESTORE_EMULATOR_HOST`.
 
 ## Config-driven (`LoadTypes`)
 
@@ -52,9 +62,9 @@ Blank-import drivers so factories register, then load YAML/JSON:
 import (
   "context"
 
-  "github.com/b4moss/ss-cachian"
-  _ "github.com/b4moss/ss-cachian/driver/firestore"
-  _ "github.com/b4moss/ss-cachian/driver/memory"
+  "github.com/b4moss/ss-cachian/go/sscachian"
+  _ "github.com/b4moss/ss-cachian/go/sscachian/driver/firestore"
+  _ "github.com/b4moss/ss-cachian/go/sscachian/driver/memory"
 )
 
 reg := sscachian.NewRegistry()
@@ -71,17 +81,21 @@ Schema and field tables: [root README — Config file](../../README.md#config-fi
 ## Layout
 
 ```text
-go/sscachian/                 # module root
+go/sscachian/                 # module root (path …/go/sscachian)
 go/sscachian/driver/memory/
 go/sscachian/driver/firestore/
+go/sscachian/driver/es4/
 ```
+
+Release tags: `go/sscachian/v0.11.1` (Go) and `v0.11.1` (npm CD) on the same commit.
 
 ## Develop
 
 From repo root:
 
 ```bash
-make lint test   # starts Firestore Emulator when needed
+make lint test              # starts Firestore Emulator when needed
+make verify-go-consumer     # module path + replace-based consumer build
 ```
 
 Package tests live next to the code (`*_test.go`).

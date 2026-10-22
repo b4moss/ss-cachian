@@ -9,8 +9,8 @@ timestamp: 2026-10-12T05:20:00Z
 # ss-cachian
 
 サーバーサイドのキャッシュ戦略ライブラリ。  
-**Phase 1 PoC 完了（v0.7.0）** — コード正本は `go/sscachian`（モジュール `github.com/b4moss/ss-cachian`）。  
-**Phase 2** — Node（`@b4moss/ss-cachian@0.11.0`）パリティ済み。**v0.9.0** 設定駆動、**v0.10.0** Purge 拡張、**v0.11.0** es4 Layer Driver。
+**Phase 1 PoC 完了（v0.7.0）** — コード正本は `go/sscachian`（モジュール `github.com/b4moss/ss-cachian/go/sscachian`）。  
+**Phase 2** — Node（`@b4moss/ss-cachian@0.11.1`）パリティ済み。**v0.9.0** 設定駆動、**v0.10.0** Purge 拡張、**v0.11.0** es4 Layer Driver、**v0.11.1** 公開コンシューマ hotfix。
 
 OKF の版索引は [index.md](./index.md)（`okf_version` のみ）。本文の pillar 正本は本ファイル。
 
@@ -49,8 +49,8 @@ ss-cachian は、単一キャッシュストアの薄い抽象ではない。
 ## 技術方針
 
 - マルチランタイム移植を前提に、言語ごとにトップレベルディレクトリを並べる。
-- 先行実装は **Go 1.26**（`go/sscachian`、Driver は `go/sscachian/driver/...`）。import: `github.com/b4moss/ss-cachian`。
-- Node 公開面は `node/sscachian`（npm: `@b4moss/ss-cachian@0.10.0`）。Go パリティ（v0.8.0 以降）。
+- 先行実装は **Go 1.26**（`go/sscachian`、Driver は `go/sscachian/driver/...`）。import: `github.com/b4moss/ss-cachian/go/sscachian`（タグ `go/sscachian/vX.Y.Z`）。
+- Node 公開面は `node/sscachian`（npm: `@b4moss/ss-cachian@0.11.1`）。Go パリティ（v0.8.0 以降）。
 - 開発は **devcontainer**（Go 1.26 / Firestore Emulator / `act`）。
 - テストは単体結合（正常系・異常系）。仕様は [tests](./tests/)、方針は [憲章 TDD](./charter/tdd.md)。
 - CI/CD・バッジの詳細は [.github/CI.md](../.github/CI.md)。
@@ -58,7 +58,7 @@ ss-cachian は、単一キャッシュストアの薄い抽象ではない。
 ```text
 go/sscachian/           # Go 公開モジュール
 go/sscachian/driver/    # Driver 実装（memory, firestore, es4, …）
-node/sscachian/         # @b4moss/ss-cachian（v0.11.0）
+node/sscachian/         # @b4moss/ss-cachian（v0.11.1）
 docs/                   # 知識バンドル正本（OKF v0.1）
 ```
 

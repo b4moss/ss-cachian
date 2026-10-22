@@ -8,7 +8,7 @@ timestamp: 2026-10-12T05:20:00Z
 
 # v0.11.0 — es4 Layer Driver（完了）／ SWR 等は後続
 
-- **状態:** es4 Layer Driver **完了**（タグ `v0.11.0` + npm `@b4moss/ss-cachian@0.11.0`。Issue [#68](https://github.com/b4moss/ss-cachian/issues/68) クローズ）。SWR / SIE / negative / 運用系は **未着手のまま後続版へ振替**
+- **状態:** es4 Layer Driver **完了**（タグ `v0.11.0` + npm `@b4moss/ss-cachian@0.11.0`。Issue [#68](https://github.com/b4moss/ss-cachian/issues/68) クローズ）。SWR / SIE / negative / 運用系は **未着手のまま後続版へ振替**。公開 install 不具合は [v0.11.1](../v0.11.1/) で修正。
 - **マイルストーン:** v0.11.0（[roadmap](../../roadmap.md)）
 - **意味論正本:** [specs/driver-es4](../../specs/driver-es4/) · [specs/layer](../../specs/layer/) · [specs/config](../../specs/config/)
 - **テスト仕様:** [tests/driver-es4](../../tests/driver-es4/)
