@@ -2,7 +2,7 @@
 
 現行プロダクト（**v0.11.1**）に存在する振る舞いの仕様正本。  
 コード正本: `go/sscachian`（`VERSION=0.11.1`、モジュール `github.com/b4moss/ss-cachian/go/sscachian`）および `node/sscachian`（`@b4moss/ss-cachian@0.11.1`）。  
-ドメイン分割は [tests](../tests/) と同じ。検証手順は tests、憲章ライフサイクルは [doc-rule](../charter/doc-rule.md)。  
+ドメイン分割は [tests](../tests/) と同じ。検証手順は tests、憲章ライフサイクルは [doc-rule](https://github.com/b4moss/charter/blob/v1/docs/charter/doc-rule.md)。  
 プロダクトの目的・スコープは [README.md](../README.md)（pillar）。
 
 | ドメイン | パス | コード |

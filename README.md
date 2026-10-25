@@ -300,20 +300,10 @@ Go: tag **`go/sscachian/v0.11.1`** on the same commit (subdirectory module; root
 | [`docs/plans/`](./docs/plans/) | Upcoming work |
 | [`docs/plans/v0.9.0/sscachian.example.yaml`](./docs/plans/v0.9.0/sscachian.example.yaml) | Config fixture |
 | [`docs/tests/`](./docs/tests/) | TDD acceptance specs |
-| [`docs/charter/`](./docs/charter/) | Charter + OKF |
+| [AGENTS.md（開発憲章）](./AGENTS.md) / [b4moss/charter v1](https://github.com/b4moss/charter/tree/v1/docs/charter) | Charter + OKF |
 | [`.github/CI.md`](./.github/CI.md) | CI/CD / publish |
 | [`go/sscachian/README.md`](./go/sscachian/README.md) | Go language hub |
 | [`node/sscachian/README.md`](./node/sscachian/README.md) | Node language hub |
-
-### Charter import
-
-Charter body is not edited in-tree; pull from `b4moss/charter`:
-
-```bash
-git remote add charter https://github.com/b4moss/charter.git   # once
-git fetch charter main
-git checkout charter/main -- docs/charter
-```
 
 ## License
 
