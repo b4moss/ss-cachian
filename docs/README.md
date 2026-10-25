@@ -52,7 +52,7 @@ ss-cachian は、単一キャッシュストアの薄い抽象ではない。
 - 先行実装は **Go 1.26**（`go/sscachian`、Driver は `go/sscachian/driver/...`）。import: `github.com/b4moss/ss-cachian/go/sscachian`（タグ `go/sscachian/vX.Y.Z`）。
 - Node 公開面は `node/sscachian`（npm: `@b4moss/ss-cachian@0.11.1`）。Go パリティ（v0.8.0 以降）。
 - 開発は **devcontainer**（Go 1.26 / Firestore Emulator / `act`）。
-- テストは単体結合（正常系・異常系）。仕様は [tests](./tests/)、方針は [憲章 TDD](./charter/tdd.md)。
+- テストは単体結合（正常系・異常系）。仕様は [tests](./tests/)、方針は [憲章 TDD](https://github.com/b4moss/charter/blob/v1/docs/charter/tdd.md)。
 - CI/CD・バッジの詳細は [.github/CI.md](../.github/CI.md)。
 
 ```text
@@ -62,16 +62,10 @@ node/sscachian/         # @b4moss/ss-cachian（v0.11.1）
 docs/                   # 知識バンドル正本（OKF v0.1）
 ```
 
-### 憲章の取り込み
+### 憲章
 
-憲章本体は編集せず、`b4moss/charter` の **`main` の `docs/charter/`**（OKF v0.1）を取り込む。  
+憲章はリポ外の [b4moss/charter v1](https://github.com/b4moss/charter/tree/v1/docs/charter) を参照する（[AGENTS.md の「開発憲章（charter）」節](../AGENTS.md)）。  
 プロジェクト固有の上書きは [override-charter.md](./override-charter.md)。
-
-```bash
-git remote add charter https://github.com/b4moss/charter.git  # 未追加時のみ
-git fetch charter main
-git checkout charter/main -- docs/charter
-```
 
 ## 索引
 
@@ -79,7 +73,6 @@ git checkout charter/main -- docs/charter
 - [specs](./specs/) — 現行仕様（ドメイン別）
 - [plans](./plans/) — これからやる内容
 - [tests](./tests/) — テスト仕様（specs と同じドメイン切り）
-- [憲章](./charter/) — 開発ルール
-- [OKF v0.1](./charter/okf/) — 本バンドルの版定義
+- [憲章](https://github.com/b4moss/charter/tree/v1/docs/charter) — 開発ルール（AGENTS.md の charter 節）
 - [override-charter](./override-charter.md) — 憲章オーバーライド
 - [_archived](./_archived/) — 歴史資料

@@ -1,7 +1,7 @@
 # CI / CD policy (ss-cachian)
 
 Aligned with `b4moss/crudian` and [docs/README.md](../docs/README.md)（技術方針）。  
-憲章は [docs/charter/](../docs/charter/)。上書きは [override-charter.md](../docs/override-charter.md)。
+憲章は [AGENTS.md の「開発憲章（charter）」節](../AGENTS.md)（[b4moss/charter v1](https://github.com/b4moss/charter/tree/v1/docs/charter)）。上書きは [override-charter.md](../docs/override-charter.md)。
 
 ## テスト方針（要約）
 
@@ -9,7 +9,7 @@ Aligned with `b4moss/crudian` and [docs/README.md](../docs/README.md)（技術�
 - テスト仕様は `docs/tests/`（[索引](../docs/tests/)）。ドメイン分割は `docs/specs/` と同じ。
 - 各ファイルの目安: 正常系おおよそ 3、異常系おおよそ 3〜5。
 - 仕様 FIX のあと、テスト仕様 → テスト → 実装（Red → Green → Refactor）。E2E は必須としない。
-- 詳細形式は [憲章の TDD 方針](../docs/charter/tdd.md)。
+- 詳細形式は [憲章の TDD 方針](https://github.com/b4moss/charter/blob/v1/docs/charter/tdd.md)。
 
 ## Goals（CI）
 
