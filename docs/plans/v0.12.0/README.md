@@ -8,12 +8,12 @@ timestamp: 2026-10-28T00:00:00Z
 
 # v0.12.0 セッション TTL / Firestore TTL
 
-- **状態:** 仕様詳細（本 PR・未実装・**PO 決定済み** 2026-10-28）
+- **状態:** 仕様詳細・**Go 実装先行**（Node は es4 npm 公開後・PO 2026-10-28 16:11）
 - **マイルストーン:** v0.12.0（[roadmap](../../roadmap.md)）
 - **詳細計画:** [plan.md](./plan.md)
 - **テスト仕様:** [tests/driver-es4](../../tests/driver-es4/) · [tests/driver-firestore](../../tests/driver-firestore/)
-- **上流:** es4 `v0.11.0` タグ後に実装開始（[es4#52](https://github.com/b4moss/es4/pull/52)）
-- **作業ブランチ（実装時）:** `dev-v0.12.0` → `develop` → `main`
+- **上流:** es4 Go `v0.11.0`（[es4#52](https://github.com/b4moss/es4/pull/52)）
+- **作業ブランチ:** `cursor/v012-go-ttl-*` → `develop` → `main`
 
 ## 一言
 

@@ -144,7 +144,7 @@ func TestGetSet_EmptyKeyAndNegativeTTL(t *testing.T) {
 func TestGet_CorruptEntryIsMiss(t *testing.T) {
 	t.Parallel()
 	b := newMemBackend()
-	_ = b.Set(context.Background(), "bad", json.RawMessage(`"not-an-object"`))
+	_ = b.Set(context.Background(), "bad", json.RawMessage(`{`), nil)
 	s := es4driver.NewWithBackend(b)
 	t.Cleanup(func() { _ = s.Close() })
 	_, ok, err := s.Get(context.Background(), "bad")
@@ -246,30 +246,95 @@ func mustJSONNumber(v any) string {
 	return string(b)
 }
 
-func TestEntryJSON_OmitsExpiresAtWhenNoTTL(t *testing.T) {
+func TestSet_StoresPayloadOnlyWithoutExpiresOption(t *testing.T) {
 	t.Parallel()
 	b := newMemBackend()
+	var lastExp *time.Time
+	b.lastSetExpiresAt = &lastExp
 	s := es4driver.NewWithBackend(b)
 	t.Cleanup(func() { _ = s.Close() })
 	ctx := context.Background()
 	if err := s.Set(ctx, "e", sscachian.Entry{Value: "x"}, 0); err != nil {
 		t.Fatal(err)
 	}
+	if lastExp != nil {
+		t.Fatalf("expected nil expiresAt option, got %v", *lastExp)
+	}
 	raw, err := b.Get(ctx, "e")
 	if err != nil {
 		t.Fatal(err)
 	}
+	if string(raw) != `"x"` {
+		t.Fatalf("want payload JSON string, got %s", raw)
+	}
 	var m map[string]any
-	if err := json.Unmarshal(raw, &m); err != nil {
+	if err := json.Unmarshal(raw, &m); err == nil {
+		if _, ok := m["expires_at"]; ok {
+			t.Fatalf("payload must not wrap expires_at: %s", raw)
+		}
+	}
+}
+
+func TestSet_TTLPassesWithExpiresAt(t *testing.T) {
+	t.Parallel()
+	b := newMemBackend()
+	var lastExp *time.Time
+	b.lastSetExpiresAt = &lastExp
+	s := es4driver.NewWithBackend(b)
+	t.Cleanup(func() { _ = s.Close() })
+	ctx := context.Background()
+	if err := s.Set(ctx, "e", sscachian.Entry{Value: 1}, time.Hour); err != nil {
 		t.Fatal(err)
 	}
-	if _, ok := m["expires_at"]; ok {
-		t.Fatalf("expires_at should be omitted: %s", raw)
+	if lastExp == nil || !lastExp.After(time.Now().UTC()) {
+		t.Fatalf("expected future expiresAt, got %v", lastExp)
 	}
-	if _, ok := m["created_at"]; ok {
-		t.Fatalf("created_at must not be present: %s", raw)
+}
+
+func TestGet_LegacyEntryJSONFallback(t *testing.T) {
+	t.Parallel()
+	b := newMemBackend()
+	ctx := context.Background()
+	past := time.Now().UTC().Add(-time.Minute).Format(time.RFC3339)
+	future := time.Now().UTC().Add(time.Hour).Format(time.RFC3339)
+	_ = b.Set(ctx, "old-ok", json.RawMessage(`{"value":"hi","expires_at":"`+future+`"}`), nil)
+	_ = b.Set(ctx, "old-exp", json.RawMessage(`{"value":"bye","expires_at":"`+past+`"}`), nil)
+	_ = b.Set(ctx, "old-forever", json.RawMessage(`{"value":42}`), nil)
+	s := es4driver.NewWithBackend(b)
+	t.Cleanup(func() { _ = s.Close() })
+
+	e, ok, err := s.Get(ctx, "old-ok")
+	if err != nil || !ok || e.Value != "hi" {
+		t.Fatalf("old-ok: ok=%v val=%v err=%v", ok, e.Value, err)
 	}
-	if m["value"] != "x" {
-		t.Fatalf("value=%v", m["value"])
+	if _, ok, err := s.Get(ctx, "old-exp"); err != nil || ok {
+		t.Fatalf("old-exp expected miss: ok=%v err=%v", ok, err)
+	}
+	e, ok, err = s.Get(ctx, "old-forever")
+	if err != nil || !ok {
+		t.Fatalf("old-forever: ok=%v err=%v", ok, err)
+	}
+	if n, ok := e.Value.(float64); !ok || n != 42 {
+		t.Fatalf("old-forever value=%v", e.Value)
+	}
+}
+
+func TestIncr_ClearsExpiry(t *testing.T) {
+	t.Parallel()
+	b := newMemBackend()
+	ctx := context.Background()
+	future := time.Now().UTC().Add(time.Hour)
+	_ = b.Set(ctx, "c", json.RawMessage(`1`), &future)
+	s := es4driver.NewWithBackend(b)
+	t.Cleanup(func() { _ = s.Close() })
+	n, err := s.Incr(ctx, "c")
+	if err != nil || n != 2 {
+		t.Fatalf("n=%d err=%v", n, err)
+	}
+	b.mu.Lock()
+	e := b.m["c"]
+	b.mu.Unlock()
+	if e.expiresAt != nil {
+		t.Fatalf("expected expiry cleared, got %v", *e.expiresAt)
 	}
 }

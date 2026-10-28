@@ -105,11 +105,15 @@ func (s *Store) Set(ctx context.Context, key string, entry sscachian.Entry, ttl 
 	if err != nil {
 		return fmt.Errorf("sscachian/firestore: marshal value: %w", err)
 	}
-	_, err = s.doc(key).Set(ctx, docFields{
-		Value:     raw,
-		CreatedAt: entry.CreatedAt,
-		ExpiresAt: entry.ExpiresAt,
-	})
+	// Full document replace: omit expires_at when unset so prior TTL fields are removed.
+	data := map[string]any{
+		"value":      raw,
+		"created_at": entry.CreatedAt,
+	}
+	if !entry.ExpiresAt.IsZero() {
+		data["expires_at"] = entry.ExpiresAt
+	}
+	_, err = s.doc(key).Set(ctx, data)
 	return err
 }
 
@@ -165,9 +169,10 @@ func (s *Store) Incr(ctx context.Context, key string) (int64, error) {
 			if err != nil {
 				return err
 			}
-			return tx.Set(ref, docFields{
-				Value:     raw,
-				CreatedAt: time.Now().UTC(),
+			// Replace doc without expires_at → clear any prior expiry (PO 5-A).
+			return tx.Set(ref, map[string]any{
+				"value":      raw,
+				"created_at": time.Now().UTC(),
 			})
 		})
 		if err == nil {
