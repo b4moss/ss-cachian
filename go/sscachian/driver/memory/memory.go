@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/b4moss/ss-cachian"
+	"github.com/b4moss/ss-cachian/go/sscachian"
 )
 
 // Store is a process-local, goroutine-safe Layer.

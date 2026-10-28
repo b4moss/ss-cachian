@@ -8,7 +8,7 @@ import (
 	"time"
 
 	es4lib "github.com/b4moss/es4/packages/go/pkg/es4"
-	es4driver "github.com/b4moss/ss-cachian/driver/es4"
+	es4driver "github.com/b4moss/ss-cachian/go/sscachian/driver/es4"
 )
 
 var _ es4driver.Backend = (*memBackend)(nil)

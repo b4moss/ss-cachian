@@ -234,6 +234,55 @@ jobs:
           FIRESTORE_EMULATOR_HOST: 127.0.0.1:8080
         run: npm test
 
+  verify-npm-pack:
+    name: verify npm pack install
+    needs: changes
+    if: needs.changes.outputs.node == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: node/sscachian
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: node/sscachian/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Pack and install into empty dir
+        working-directory: ${{ github.workspace }}
+        run: bash .github/scripts/verify-npm-pack.sh
+
+  verify-go-consumer:
+    name: verify go consumer import
+    needs: changes
+    if: needs.changes.outputs.go == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x"
+          cache-dependency-path: go/sscachian/go.sum
+
+      - name: Consumer module path + import/build
+        run: bash .github/scripts/verify-go-consumer.sh
+
   ci-result:
     name: CI result
     needs:
@@ -242,6 +291,8 @@ jobs:
       - test-go
       - lint-node
       - test-node
+      - verify-npm-pack
+      - verify-go-consumer
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -255,6 +306,8 @@ jobs:
             "${{ needs.test-go.result }}"
             "${{ needs.lint-node.result }}"
             "${{ needs.test-node.result }}"
+            "${{ needs.verify-npm-pack.result }}"
+            "${{ needs.verify-go-consumer.result }}"
           )
           for r in "${results[@]}"; do
             case "$r" in

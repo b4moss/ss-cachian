@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/b4moss/ss-cachian"
-	_ "github.com/b4moss/ss-cachian/driver/es4"
-	_ "github.com/b4moss/ss-cachian/driver/firestore"
-	_ "github.com/b4moss/ss-cachian/driver/memory"
+	"github.com/b4moss/ss-cachian/go/sscachian"
+	_ "github.com/b4moss/ss-cachian/go/sscachian/driver/es4"
+	_ "github.com/b4moss/ss-cachian/go/sscachian/driver/firestore"
+	_ "github.com/b4moss/ss-cachian/go/sscachian/driver/memory"
 )
 
 func TestRegistry_RegisterAndDefault(t *testing.T) {

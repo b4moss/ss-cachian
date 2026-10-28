@@ -8,7 +8,7 @@ timestamp: 2026-09-27T08:20:00Z
 
 # cache-type
 
-対象: `go/sscachian`（モジュール `github.com/b4moss/ss-cachian`）の `Define` / `Builder` / `CacheType[T]`（Node: `define` / `Builder` / `CacheType`）  
+対象: `go/sscachian`（モジュール `github.com/b4moss/ss-cachian/go/sscachian`）の `Define` / `Builder` / `CacheType[T]`（Node: `define` / `Builder` / `CacheType`）  
 関連: [version](../version/) / [layer](../layer/) / [purge](../purge/) / [tests/cache-type](../../tests/cache-type/)
 
 ## 定義・構築

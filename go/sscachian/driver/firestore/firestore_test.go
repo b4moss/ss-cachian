@@ -8,8 +8,8 @@ import (
 	"time"
 
 	gfirestore "cloud.google.com/go/firestore"
-	"github.com/b4moss/ss-cachian"
-	fsdriver "github.com/b4moss/ss-cachian/driver/firestore"
+	"github.com/b4moss/ss-cachian/go/sscachian"
+	fsdriver "github.com/b4moss/ss-cachian/go/sscachian/driver/firestore"
 )
 
 func requireEmulator(t *testing.T) {

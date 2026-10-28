@@ -71,9 +71,9 @@ types:
 #
 # Go:
 #   import (
-#     "github.com/b4moss/ss-cachian"
-#     _ "github.com/b4moss/ss-cachian/driver/memory"
-#     _ "github.com/b4moss/ss-cachian/driver/firestore"
+#     "github.com/b4moss/ss-cachian/go/sscachian"
+#     _ "github.com/b4moss/ss-cachian/go/sscachian/driver/memory"
+#     _ "github.com/b4moss/ss-cachian/go/sscachian/driver/firestore"
 #   )
 #   reg := sscachian.NewRegistry()
 #   _ = reg.RegisterLoader("load_client_list", myLoader)

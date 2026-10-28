@@ -1,4 +1,4 @@
-.PHONY: test lint fmt act ci-go emulator lint-node test-node
+.PHONY: test lint fmt act ci-go emulator lint-node test-node verify-npm-pack verify-go-consumer
 
 GO_DIR := go/sscachian
 NODE_DIR := node/sscachian
@@ -23,6 +23,13 @@ lint-node:
 
 test-node:
 	cd $(NODE_DIR) && npm ci && npm test
+
+verify-npm-pack:
+	cd $(NODE_DIR) && npm ci && npm run build
+	bash .github/scripts/verify-npm-pack.sh
+
+verify-go-consumer:
+	bash .github/scripts/verify-go-consumer.sh
 
 # Wiring smoke for CI (requires Docker + act image pull).
 act:
