@@ -1,9 +1,9 @@
 ---
 type: TestSpec
 title: driver-es4 テスト仕様
-description: es4 Layer Driver（埋め込み open・Entry TTL ラップ・HTTP アダプタ並列）。v0.11.0。正常≈3 / 異常≈3〜5。
-tags: [tests, driver-es4, v0.11.0, node]
-timestamp: 2026-10-11T00:00:00Z
+description: es4 Layer Driver。v0.11.0 導入。v0.12.0 で Set+WithExpiresAt／{ expiresAt } ＋ 旧 Entry JSON フォールバック。
+tags: [tests, driver-es4, v0.11.0, v0.12.0, node]
+timestamp: 2026-10-28T15:25:00+09:00
 ---
 
 # driver-es4
@@ -12,27 +12,31 @@ timestamp: 2026-10-11T00:00:00Z
 
 - Go: `go/sscachian/driver/es4`
 - Node: `node/sscachian/src/driver/es4.ts`
-- HTTP Es4 Server アダプタ（同版・埋め込みと並列。決定 C）
+- HTTP Es4 Server アダプタ（埋め込みと並列）
 
 前提:
 
 - [specs/driver-es4](../../specs/driver-es4/)（正本）· [plans/v0.11.0/es4-layer-driver.md](../../plans/v0.11.0/es4-layer-driver.md)（完了注記）
+- [plans/v0.12.0/plan.md](../../plans/v0.12.0/plan.md)（期限付き書き込み・Firestore TTL・PO 決定 2026-10-28）
 - [specs/layer](../../specs/layer/) / [tests 索引](../README.md)
-- 上流 es4 v0.10.0: キー区切り `:` ＋ `Scan(prefix) []string`（ページングなし・Tx 内可）
+- 上流 es4 **v0.11.0**: キー区切り `:` ＋ `Scan` ＋ `Set` options（Go `WithExpiresAt` / Node `{ expiresAt }`）。参照 [es4#52](https://github.com/b4moss/es4/pull/52)（`5aa6b41`）
 
-固定セマンティクス（決定）:
+固定セマンティクス（v0.12 PO 決定込み）:
 
 | 項目 | 決定 |
 |------|------|
-| DB 所有権 | **A** — Driver が `Open` / `Close` を所有 |
+| DB 所有権 | **A** — Driver が `Open` / `Close` を所有（v0.11） |
 | Backend | **D** — Firestore まで全 Backend 公式サポート（CI は memory_only 基本） |
-| Entry JSON | **B** — `{"value": <payload>, "expires_at": "<RFC3339>"}`。`expires_at` 省略＝期限なし |
-| Incr 再試行 | **A** — 既存 Firestore Driver に揃える |
-| PurgeExact | **A** — **Scan なし**。キー既知で version data のみ削除 |
+| TTL（v0.12） | es4 `Set(..., WithExpiresAt(t))` / `set(..., { expiresAt })`。**`SetWithExpiry` は使わない**。Firestore では日時型 `expires_at`。期限なしはフィールド省略 |
+| Entry value | キャッシュ payload の JSON。**value 内に文字列 `expires_at` を書かない**。読み取りは **旧形式フォールバック**（決定 3-A） |
+| Incr | 新規は期限なし。既存に期限があるキーは **期限削除して無期限**（決定 5-A） |
+| Incr 再試行 | Firestore Driver に揃える |
+| PurgeExact | Scan なし。キー既知で version data のみ削除 |
 | PurgePrefix | es4 `Scan(prefix)` → 各キー `Delete` |
-| HTTP アダプタ | **C** — v0.11.0 に埋め込みと並列 |
+| HTTP アダプタ | 埋め込みと同セマンティクス。上流 HTTP はクエリ `expires_at` |
+| 依存 | es4 ≥ **v0.11.0**（タグ後に実装） |
 
-Entry は es4 値（JSON）として上記 B 形で保存する。es4 本体に TTL API は足さない。  
+Entry は es4 値（JSON）として上記固定セマンティクスで保存する。es4 本体に TTL API は足さない。  
 `created_at` は Entry JSON に **含めない**（決定 B）。必要なら実装メモのみ。
 
 config `layers[].driver` 名は **`es4`**。本スイートは Driver 直接生成でも Config 経由でもよい。
@@ -40,9 +44,6 @@ config `layers[].driver` 名は **`es4`**。本スイートは Driver 直接生�
 ---
 
 ### Open / Close（所有権 A）
-
-- Driver 生成時に `es4.Open`（または Node `open`）を行い、`Close` で DB を閉じる。
-- 呼び出し側が DB を注入する形（OpenWith 相当）は第一版の必須にしない。
 
 #### テスト：正常系
 
@@ -54,35 +55,55 @@ config `layers[].driver` 名は **`es4`**。本スイートは Driver 直接生�
 
 - 不正 Options（到達不能 Backend 等）で Open 失敗し、半端な Driver を返さない
 - Close 済み Driver への Set/Get はパニックせず error
--（任意）Firestore Options 欠落は Open エラー（Backend D の範囲）
+-（任意）firestore Options 欠落は Open エラー（Backend D の範囲）
 
 ---
 
-### Entry JSON（決定 B）・Get / Set
+### Get / Set（期限付き書き込み・v0.12）
 
-- Set は `value` と、TTL>0 なら `expires_at`（RFC3339）を JSON 化して es4 に書く。
-- TTL=0 / 無期限は `expires_at` を **省略**する。
-- Get は Entry JSON を decode。`expires_at` が過去なら論理 Miss（必要なら Delete）。
-- 欠落 / es4 `ErrNotFound` → Miss（`hit=false`）。エラーにしない。
+- Set は payload を es4 value として書く（エンベロープなし）。
+- TTL>0（または Entry.ExpiresAt）なら `Set(..., WithExpiresAt(t))` / `set(..., { expiresAt })` を呼ぶ。
+- TTL=0 かつ ExpiresAt ゼロなら options なし Set（期限なし）。
+- Get は欠落 / es4 期限切れ不在 / 壊れた value → Miss（`hit=false`）。エラーにしない（壊れた JSON は Miss で固定しキー削除可）。
+- 負の TTL → `ErrNegativeTTL`。空キー → `ErrEmptyKey`。
 
 #### テスト：正常系
 
 - Set → Get で同じ `value` が取れる（オブジェクト・数値・文字列）
-- TTL 付き Set のあと、期限前は Hit、過去 `expires_at` を書けば Get で Miss
-- `expires_at` 省略のエントリは無期限として Hit し続ける
+- TTL 付き Set のあと、期限前は Hit、期限を過去にしたものは Get で Miss
+- 期限なし Set のエントリは無期限として Hit し続ける
+-（スパイ）TTL 付き Set が `WithExpiresAt` / `{ expiresAt }` 付きで呼ばれ、`SetWithExpiry` は呼ばない
+-（Firestore Emulator）TTL 付きドキュメントに日時型フィールド `expires_at` がある
+-（Firestore Emulator）期限なしドキュメントに `expires_at` フィールドが **無い**
 
 #### テスト: 異常系
 
 - 空キーは `ErrEmptyKey`
 - 負の TTL は `ErrNegativeTTL`
-- 壊れた Entry JSON（フィールド欠落・型不正）でもパニックせず Miss または error（**Miss で固定**しキー削除可）
+- 壊れた value JSON でもパニックせず Miss（キー削除可）
 - es4 が拒否する不正キー（先頭/末尾 `:`・連続 `::`）は error
+- Close 後 Set/Get は error
+
+---
+
+### 旧 Entry JSON（v0.11 形式）の読み取り（決定 3-A・フォールバック必須）
+
+v0.11 は `{"value": ..., "expires_at": "<RFC3339>"}` を es4 value に書いた。v0.12 は **書かない**が、Get では旧形式を解釈する。
+
+#### テスト：正常系
+
+- 旧形式（文字列 `expires_at` 付き）を Get でき、期限前は Hit・期限切れは Miss
+- 新形式（payload のみ・期限は es4 メタ）も同様
+- 旧形式の無期限（`expires_at` 省略）は Hit し続ける
+
+#### テスト: 異常系
+
+- 新旧混在でパニックしない
+- 旧形式の壊れた `expires_at` 文字列は Miss（キー削除可）
 
 ---
 
 ### Delete
-
-- Layer は冪等。es4 の欠落エラーは握りつぶして成功。
 
 #### テスト：正常系
 
@@ -98,32 +119,31 @@ config `layers[].driver` 名は **`es4`**。本スイートは Driver 直接生�
 
 ---
 
-### Incr（再試行は Firestore 揃え・決定 A）
+### Incr（決定 5-A）
 
 - es4 Tx 上で read-modify-write。未作成は 0+1→1。
-- 競合（Aborted 等）時の再試行回数・方針は **既存 Firestore Driver と同一**。
-- 非整数 → `ErrNotInteger`。溢位 → `ErrIncrOverflow`。
+- 競合時の再試行は Firestore Driver と同型。
+- 新規カウンタは **期限なし**（`WithExpiresAt` を付けない）。
+- 既存キーに期限がある場合、Incr 後は **期限を削除して無期限**。
 
 #### テスト：正常系
 
 - 未作成 Incr → 1、再 Incr → 2
 - 既存整数 n へ Incr → n+1
 - 並行 Incr の最終値が呼び出し回数と一致する（memory_only または Emulator）
+- 新規 Incr 後、Firestore 上に `expires_at` が無い（Emulator / スパイ）
+- 期限付きキーへ Incr したあと、期限フィールドが消え無期限として Hit し続ける
 
 #### テスト: 異常系
 
 - 空キーはエラー
-- 整数以外が格納されているキーへ Incr → `ErrNotInteger`
-- 溢位付近 → `ErrIncrOverflow`
--（任意）Tx 競合を起こしても再試行後に正しい最終値、または契約どおりの error（Firestore Driver と同型）
+- 整数以外 → `ErrNotInteger`
+- 溢位 → `ErrIncrOverflow`
+-（任意）Tx 競合を起こしても再試行後に正しい最終値、または契約どおりの error
 
 ---
 
-### PurgeExact（Scan なし・決定 A）
-
-- `PurgeExact(..., logicalPrefix)` は `{logicalPrefix}:{n}`（n≥1 の数字）だけを削除する。
-- **es4 `Scan` を使わない**。キーは論理規則から既知（memory/firestore と同型: `IsVersionDataKey`）。
-- `{logicalPrefix}:__version__` および別プレフィックスは残す。対象無しでも成功（冪等）。
+### PurgeExact（Scan なし）
 
 #### テスト：正常系
 
@@ -134,16 +154,12 @@ config `layers[].driver` 名は **`es4`**。本スイートは Driver 直接生�
 #### テスト: 異常系
 
 - 空の logicalPrefix は `ErrEmptyKey`
-- PurgeExact 実装が Scan を呼ばないこと（ユニットでモック／スパイ、またはコードレビュー＋契約テストで担保）
+- PurgeExact 実装が Scan を呼ばないこと（モック／スパイまたは契約テスト）
 - `__version__` だけがあるときも残る
 
 ---
 
 ### PurgePrefix（Scan + Delete）
-
-- `PurgePrefix(..., prefix)` は es4 `Scan(prefix)` の結果キーへ `Delete` を回す。
-- `__version__`・非数字サフィックスも含む（Exact より広い）。
-- 空 prefix → `ErrEmptyKey`。対象無しでも成功（冪等）。
 
 #### テスト：正常系
 
@@ -154,20 +170,17 @@ config `layers[].driver` 名は **`es4`**。本スイートは Driver 直接生�
 #### テスト: 異常系
 
 - 空 prefix は `ErrEmptyKey`
-- Scan 失敗は error として返す（部分削除の有無は実装で固定しテスト）
+- Scan 失敗は error として返す
 - 先頭一致のみ（途中一致では消さない）
 
 ---
 
-### Backend 範囲（決定 D）
-
-- 第一版は memory / sqlite / redis|valkey / firestore を Options 経由で公式サポート。
-- CI 既定は **memory_only**（軽い）。Firestore 等は Emulator／任意ジョブ。
+### Backend 範囲
 
 #### テスト：正常系
 
-- memory_only で Layer 契約（上記 Get/Set/Delete/Incr/Purge*）が緑
--（任意ジョブ）firestore Emulator で同セマンティクスのスモークが通る
+- memory_only で Layer 契約（Get/Set/Delete/Incr/Purge*・期限付き）が緑
+-（任意ジョブ）firestore Emulator で日時型 `expires_at` の有無スモークが通る
 
 #### テスト: 異常系
 
@@ -176,37 +189,33 @@ config `layers[].driver` 名は **`es4`**。本スイートは Driver 直接生�
 
 ---
 
-### HTTP Es4 Server アダプタ（決定 C・同版）
-
-埋め込み open と並列で、HTTP Es4 Server 経由の Layer／アダプタを v0.11.0 に含める。  
-キー写像は上流 es4 決定 A（`/v1/keys/a:b:c`）。詳細エンドポイント形は実装時に plans／本節へ追随。
+### HTTP Es4 Server アダプタ
 
 #### テスト：正常系
 
 - アダプタ経由で Set → Get が埋め込みと同セマンティクス（memory_only Server で可）
-- PurgePrefix が Server 背後の State でも期待どおり消える（Scan 利用）
+- TTL 付き Set が Server 経路でも期限切れ Miss になる（上流クエリ `expires_at`）
+- PurgePrefix が期待どおり消える
 - Close／シャットダウン後は操作が error
 
 #### テスト: 異常系
 
 - Server 未起動／接続失敗は Open または初回操作で error
 - 空キー・負 TTL は埋め込みと同じ sentinel
-- Ready 前相当の 503 をアダプタがどう写すかを固定しテスト（error またはリトライ。**error で固定**推奨）
+- Ready 前相当の 503 は **error で固定**
 
 ---
 
-### 多層（任意だが推奨）
-
-- memory L1 + es4 L2 で既存 layer テストに Driver を差し込める。
+### 多層（推奨）
 
 #### テスト：正常系
 
 - L1 Miss → L2 Hit → 書き戻し後 L1 Hit
-- L2 への PurgeExact / PurgePrefix が L1 に残したキーと矛盾しない（アプリ Purge 契約は [purge](../purge/)）
+- L2 への PurgeExact / PurgePrefix が L1 に残したキーと矛盾しない
 
 #### テスト: 異常系
 
-- L2 失敗時の失敗方針は既存 Layer 契約（L1 成功・L2 ログ等）に従う
+- L2 失敗時の失敗方針は既存 Layer 契約に従う
 
 ----
 

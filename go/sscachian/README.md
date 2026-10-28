@@ -1,6 +1,6 @@
 # ss-cachian (Go)
 
-Go module: `github.com/b4moss/ss-cachian/go/sscachian` · **VERSION `0.11.1`**
+Go module: `github.com/b4moss/ss-cachian/go/sscachian` · **VERSION `0.12.0`**
 
 Shared product overview, config schema, and pitfalls: [root README](../../README.md).  
 Specs: [docs/specs](../../docs/specs/).
@@ -11,7 +11,7 @@ This module lives under `go/sscachian/` (monorepo). Publish with the **subdirect
 `go/sscachian/vX.Y.Z` (not a root `v*` tag alone — that zip omits nested modules).
 
 ```bash
-go get github.com/b4moss/ss-cachian/go/sscachian@v0.11.1
+go get github.com/b4moss/ss-cachian/go/sscachian@v0.12.0
 ```
 
 Requires **Go 1.26+**.
@@ -87,7 +87,7 @@ go/sscachian/driver/firestore/
 go/sscachian/driver/es4/
 ```
 
-Release tags: `go/sscachian/v0.11.1` (Go) and `v0.11.1` (npm CD) on the same commit.
+Release tags: `go/sscachian/v0.12.0` (Go). npm remains `@b4moss/ss-cachian@0.11.1` until Node parity.
 
 ## Develop
 

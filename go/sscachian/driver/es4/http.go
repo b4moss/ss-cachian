@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+	"time"
 
 	es4lib "github.com/b4moss/es4/packages/go/pkg/es4"
 )
@@ -70,8 +71,12 @@ func (b *httpBackend) keyURL(key string) string {
 	return b.base + "/v1/keys/" + url.PathEscape(key)
 }
 
-func (b *httpBackend) Set(ctx context.Context, key string, value json.RawMessage) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, b.keyURL(key), bytes.NewReader(value))
+func (b *httpBackend) Set(ctx context.Context, key string, value json.RawMessage, expiresAt *time.Time) error {
+	u := b.keyURL(key)
+	if expiresAt != nil {
+		u += "?expires_at=" + url.QueryEscape(expiresAt.UTC().Format(time.RFC3339))
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, u, bytes.NewReader(value))
 	if err != nil {
 		return err
 	}
@@ -147,7 +152,7 @@ func (b *httpBackend) Scan(ctx context.Context, prefix string) ([]string, error)
 	return keys, nil
 }
 
-func (b *httpBackend) BeginTx(ctx context.Context) (es4lib.Tx, error) {
+func (b *httpBackend) BeginTx(ctx context.Context) (Tx, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, b.base+"/v1/tx", nil)
 	if err != nil {
 		return nil, err
@@ -187,8 +192,12 @@ func (t *httpTx) txKeyURL(key string) string {
 	return t.b.base + "/v1/tx/" + url.PathEscape(t.id) + "/keys/" + url.PathEscape(key)
 }
 
-func (t *httpTx) Set(ctx context.Context, key string, value json.RawMessage) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, t.txKeyURL(key), bytes.NewReader(value))
+func (t *httpTx) Set(ctx context.Context, key string, value json.RawMessage, expiresAt *time.Time) error {
+	u := t.txKeyURL(key)
+	if expiresAt != nil {
+		u += "?expires_at=" + url.QueryEscape(expiresAt.UTC().Format(time.RFC3339))
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, u, bytes.NewReader(value))
 	if err != nil {
 		return err
 	}

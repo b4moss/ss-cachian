@@ -1,58 +1,40 @@
 ---
 type: Spec
 title: driver-es4
-description: es4 Layer Driver（埋め込み open・Entry TTL ラップ・HTTP アダプタ）。v0.11.0。
-tags: [specs, driver-es4, v0.11.0]
-timestamp: 2026-10-12T05:20:00Z
+description: es4 Layer（埋め込み open・HTTP アダプタ）。v0.12.0 で WithExpiresAt と旧 Entry JSON フォールバック。
+tags: [specs, driver-es4, v0.11.0, v0.12.0]
+timestamp: 2026-10-28T16:20:00+09:00
 ---
 
 # driver-es4
 
-現行プロダクトに存在する **es4** Layer Driver の仕様正本。  
-コード: `go/sscachian/driver/es4` · `node/sscachian/src/driver/es4.ts`。  
-検証手順: [tests/driver-es4](../../tests/driver-es4/)。完了注記: [plans/v0.11.0/es4-layer-driver.md](../../plans/v0.11.0/es4-layer-driver.md)。
+対象: `go/sscachian/driver/es4`（`Store` / `New` / `NewHTTP` / `NewWithBackend`）  
+関連: [layer](../layer/) / [tests/driver-es4](../../tests/driver-es4/) / [plans/v0.12.0/plan.md](../../plans/v0.12.0/plan.md)  
+依存: es4 Go **`v0.11.0`**（`WithExpiresAt`）。Node ドライバは es4 npm 公開後に追随。
 
-## 概要
+## 構築
 
-ss-cachian の Layer 契約を、埋め込み `es4.Open`（または HTTP Es4 Server）で満たす。Driver が DB の **Open / Close を所有**する。依存: es4 **v0.10.0**（キー区切り `:` ＋ `Scan(prefix)`）。
+- 埋め込み: `New(ctx, Options{...})` — Driver が `es4.Open` / `Close` を所有。未指定時は memory_only。
+- HTTP: `NewHTTP(ctx, HTTPOptions{BaseURL})` — Es4 Server。キーは `/v1/keys/...`。期限付き PUT はクエリ `expires_at`（RFC3339）。
+- テスト注入: `NewWithBackend(Backend)`。
 
-## 接続形態
+## 値と期限（v0.12.0）
 
-| 形態 | 起動 | config `options` |
-|------|------|------------------|
-| 埋め込み | `es4.Open` / Node `open` | `memory_only` または `state_backend` / `state_path` / redis・firestore 系 |
-| HTTP | Es4 Server へ REST | `base_url` のみ（他キー拒否） |
+- **書き込み:** es4 value はキャッシュ payload の JSON のみ。期限は `Set(..., WithExpiresAt(t))`（HTTP は `?expires_at=`）。value 内に文字列 `expires_at` は **書かない**。
+- **期限なし:** options なしの Set。Firestore 上の `expires_at` フィールドは付かない（es4 が上書き時に削除）。
+- **読み取り:** es4 が期限切れを不在返す。加えて **旧形式フォールバック** — `{"value":...,"expires_at":"<RFC3339>"}`（キー ⊆ `{value,expires_at}`）を解釈し、期限切れは Miss。
+- 負 TTL → `ErrNegativeTTL`。空キー → `ErrEmptyKey`。
 
-未指定時の埋め込み既定は **memory_only**（CI 向け）。
+## 操作
 
-## Entry JSON（決定 B）
+- `Incr`: Tx 上で read-modify-write。未作成 0+1→1。**既存期限は削除して無期限**。再試行は Firestore Driver に揃える。
+- `PurgeExact`: Scan なし。論理規則から version data キーのみ削除。
+- `PurgePrefix`: es4 `Scan(prefix)` → Delete。
 
-es4 値として次を保存する（`created_at` なし）:
+## TTL ポリシー
 
-```json
-{ "value": <payload>, "expires_at": "<RFC3339>" }
-```
+es4 `state_backend=firestore` 利用時の collection / フィールドは [driver-firestore 運用節](../driver-firestore/) を参照。
 
-- `expires_at` **省略**＝無期限
-- Get 時に過去 `expires_at` → 論理 Miss（削除してよい）
-- 壊れた Entry JSON → Miss（パニックしない）
+----
 
-## Layer 契約
-
-| 操作 | 振る舞い |
-|------|----------|
-| `Get` / `Set` / `Delete` | Entry JSON 経由。空キー `ErrEmptyKey`、負 TTL `ErrNegativeTTL` |
-| `Incr` | es4 Tx 上の read-modify-write。再試行は Firestore Driver に揃える |
-| `PurgeExact` | **Scan なし**。キー既知で version data のみ削除（`IsVersionDataKey`） |
-| `PurgePrefix` | es4 `Scan(prefix)` → 各キー `Delete` |
-| `Close` | 所有 DB を閉じる。冪等 |
-
-## Backend
-
-第一版は **Firestore まで全 Backend 公式サポート**（CI 既定は memory_only）。Valkey 固有委譲は対象外（v0.12）。
-
-## 関連
-
-- Layer: [specs/layer](../layer/)
-- Config: [specs/config](../config/)
-- 上流 es4: [b4moss/es4 specs/state](https://github.com/b4moss/es4/blob/main/docs/specs/state/state.md)
+以上

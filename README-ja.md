@@ -11,7 +11,7 @@
 
 - [English README (default)](./README.md)
 
-現行版: **v0.11.1**（Go `VERSION` と `@b4moss/ss-cachian` を揃えています）。
+現行版: **Go v0.12.0**（npm `@b4moss/ss-cachian` は当面 **0.11.1**。Node パリティ後に揃える）。
 
 ## できること
 
@@ -41,13 +41,13 @@
 | | Go | Node |
 |--|----|------|
 | Runtime | Go **1.26+** | Node.js **≥ 20** |
-| Package | `github.com/b4moss/ss-cachian/go/sscachian` | `@b4moss/ss-cachian@0.11.1` |
+| Package | `github.com/b4moss/ss-cachian/go/sscachian`（`VERSION=0.12.0`） | `@b4moss/ss-cachian@0.11.1`（Node 後続） |
 
 公開パッケージ利用にリポジトリ clone は不要です。
 
 ## 使い方（要約）
 
-1. ポートを選びインストール（`go get github.com/b4moss/ss-cachian/go/sscachian@v0.11.1` / `npm i @b4moss/ss-cachian@0.11.1`）。Go はサブディレクトリタグ `go/sscachian/v0.11.1` が必要
+1. ポートを選びインストール（`go get github.com/b4moss/ss-cachian/go/sscachian@v0.12.0` / `npm i @b4moss/ss-cachian@0.11.1`）。Go はサブディレクトリタグ `go/sscachian/v0.12.0` が必要
 2. コード組み立て（`Define`）か設定ファイル（YAML）かを決める
 3. Loader / カスタム KeyBuilder は Registry に名前登録（設定は参照のみ）
 4. Layer 順 = L1…Ln。TTL は `ParseDuration` 文字列。優先: layer TTL → type TTL → `0`

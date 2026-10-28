@@ -11,7 +11,7 @@ Not a thin key/value wrapper. Applications define *how* caching works (keys, TTL
 
 - [日本語版 README](./README-ja.md)
 
-Current line: **v0.11.1** (Go `VERSION` and `@b4moss/ss-cachian` stay in lockstep for this release).
+Current line: **Go v0.12.0** (npm `@b4moss/ss-cachian` remains **0.11.1** until Node parity).
 
 ## What you get
 
@@ -44,7 +44,7 @@ This root README is the **shared host workflow** (concepts, config file, pitfall
 | | Go | Node |
 |--|----|------|
 | Runtime | Go **1.26+** | Node.js **≥ 20** |
-| Package | `github.com/b4moss/ss-cachian/go/sscachian` (`VERSION=0.11.1`) | `@b4moss/ss-cachian@0.11.1` |
+| Package | `github.com/b4moss/ss-cachian/go/sscachian` (`VERSION=0.12.0`) | `@b4moss/ss-cachian@0.11.1` (Node 後続) |
 | Firestore (optional) | Emulator or GCP project | Same (`@google-cloud/firestore`) |
 
 You do **not** need this monorepo cloned to consume published packages. Clone for contributing, Emulator CI, or editing docs.
@@ -56,8 +56,8 @@ You do **not** need this monorepo cloned to consume published packages. Clone fo
 ### Step 1 — Pick a port and install
 
 ```bash
-# Go (subdirectory module — tag go/sscachian/v0.11.1)
-go get github.com/b4moss/ss-cachian/go/sscachian@v0.11.1
+# Go (subdirectory module — tag go/sscachian/v0.12.0)
+go get github.com/b4moss/ss-cachian/go/sscachian@v0.12.0
 
 # Node
 npm install @b4moss/ss-cachian@0.11.1
