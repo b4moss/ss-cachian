@@ -36,5 +36,5 @@
 
 1. インメモリ — **実装済み**（[driver-memory](../../specs/driver-memory/)）
 2. Firestore — **実装済み**（[driver-firestore](../../specs/driver-firestore/)）
-3. Redis / Valkey（Phase 2）
+3. Redis / Valkey（Phase 2・[v0.13.0](../v0.13.0/)）
 4. 以降: MongoDB、Object Storage、Filesystem 等

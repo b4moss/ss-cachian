@@ -20,7 +20,7 @@ timestamp: 2026-09-27T05:56:00Z
 
 ## やらぬこと
 
-- Valkey、PHP、Purge Prefix/Tag（v0.10.0）、設定ファイル（v0.9.0）
+- Valkey（→ v0.13.0）、PHP（→ v0.14.0）、セッション TTL / Firestore TTL（→ [v0.12.0](../v0.12.0/plan.md)）、Purge Prefix/Tag（v0.10.0）、設定ファイル（v0.9.0）
 - es4 本体のキーデリミタ変更 / `Scan`（[b4moss/es4 v0.10.0](https://github.com/b4moss/es4/milestone/1) 側）
 
 ## 受け入れ条件（概要）

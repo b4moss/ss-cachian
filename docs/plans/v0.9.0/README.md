@@ -22,8 +22,9 @@ timestamp: 2026-09-27T06:28:00Z
 
 - Purge 拡張（Prefix/Tag）・便利 API（Has/Remember 等）→ v0.10.0
 - SWR / SIE / negative / 分散 L1 → v0.11.0
-- Valkey Driver → v0.12.0
-- PHP ポート → v0.13.0
+- Valkey Driver → v0.13.0（旧 v0.12.0 から繰り下げ）
+- PHP ポート → v0.14.0（旧 v0.13.0 から繰り下げ）
+- セッション TTL / Firestore TTL → v0.12.0
 - ブラウザ向けバンドル
 - 設定ファイルへの認証情報・秘密鍵の埋め込み
 - ランタイム間共通シリアライズ形式の変更（現行どおり）

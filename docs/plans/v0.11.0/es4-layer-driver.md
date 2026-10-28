@@ -24,7 +24,7 @@
 | 10 | Incr 再試行 | **A** — 既存 Firestore Driver に揃える |
 | 11 | PurgeExact | **A** — Scan なし（キー既知で version data のみ削除） |
 | 12 | HTTP Es4 Server アダプタ | **C** — **v0.11.0 に埋め込みと並列で含める** |
-| 13 | v0.11 内の順序 | **C** — SWR と並行（別 PR）。Valkey は v0.12 並存 |
+| 13 | v0.11 内の順序 | **C** — SWR と並行（別 PR）。Valkey は v0.13 並存（旧 v0.12 枠は [セッション TTL](../v0.12.0/plan.md) に転用・要決定） |
 
 **前提（上流）:** es4 v0.10.0 でデリミタ `:` ＋ `Scan` が先。TTL は Driver Entry ラップ。PurgePrefix は es4 `Scan` + Delete。
 
@@ -36,7 +36,7 @@
 
 ### 目的
 
-ss-cachian の **Layer 契約**を満たす **es4 Driver** を追加し、埋め込み `es4.Open` をストレージとして使えるようにする。Valkey Driver（roadmap **v0.12.0**・意図スタブ）と **並存**する別 Backend。HTTP Es4 Server アダプタは **埋め込みと並列で v0.11.0 に含める**（決定 C）。
+ss-cachian の **Layer 契約**を満たす **es4 Driver** を追加し、埋め込み `es4.Open` をストレージとして使えるようにする。Valkey Driver（roadmap **v0.13.0**・意図スタブ）と **並存**する別 Backend。HTTP Es4 Server アダプタは **埋め込みと並列で v0.11.0 に含める**（決定 C）。
 
 ### 入れる（第一版・承認済み）
 
@@ -50,7 +50,7 @@ ss-cachian の **Layer 契約**を満たす **es4 Driver** を追加し、埋め
 | PurgeExact | **Scan なし**。キー既知で version data のみ削除（`IsVersionDataKey`） |
 | Backend | **Firestore まで全サポート**（第一版） |
 | DB 寿命 | **Driver が Open / Close を所有** |
-| 並存 | Valkey Driver 計画を置き換えない（v0.12）。SWR と並行・別 PR |
+| 並存 | Valkey Driver 計画を置き換えない（v0.13）。SWR と並行・別 PR |
 
 ### 入れない（第一版）
 
@@ -69,7 +69,7 @@ ss-cachian の **Layer 契約**を満たす **es4 Driver** を追加し、埋め
 | 現行線 **v0.10.0**。Drivers は **memory** / **firestore** のみ | ルート README・`docs/specs/driver-*` |
 | Layer 契約: `Get` / `Set` / `Delete` / `Incr` / `PurgeExact` / `PurgePrefix` | `docs/specs/layer/README.md`・Go `types.go`・Node `types.ts` |
 | 既定 KeyBuilder は **`:` 区切り**（`{app}:cache:{tenant}:{query}`） | Node `defaultKeyBuilder` / specs |
-| Valkey は roadmap **v0.12.0**・plans は意図スタブ | `docs/roadmap.md`・`docs/plans/v0.12.0/`・`unscheduled/future-apis.md` |
+| Valkey は roadmap **v0.13.0**・plans は意図スタブ | `docs/roadmap.md`・`docs/plans/v0.13.0/`・`unscheduled/future-apis.md` |
 | TTL は Layer `Set` 引数。memory は Entry + `ExpiresAt` の遅延削除 | `driver/memory/memory.go`・`docs/specs/driver-memory/` |
 | config `layers[].driver` は `memory` \| `firestore`（未知は拒否） | specs/config・config テスト |
 
@@ -100,7 +100,7 @@ ss-cachian の **Layer 契約**を満たす **es4 Driver** を追加し、埋め
 
 - **ハード依存:** PurgePrefix 実装前に es4 側 `Scan(prefix)` が必要（承認済み）。
 - **推奨依存:** Driver 実装・契約テストのキー語彙は、es4 が **`:` デリミタ**になった後（または同一 es4 マイルストーン内でデリミタ確定後）に合わせる。
-- **Valkey（ss-cachian v0.12.0）:** 並存のまま。本計画は **v0.11.0**（SWR と並行・別 PR）。
+- **Valkey（ss-cachian v0.13.0）:** 並存のまま。本計画は **v0.11.0**（SWR と並行・別 PR）。v0.12.0 は [セッション TTL](../v0.12.0/plan.md)。
 
 ----
 
@@ -205,7 +205,7 @@ charter `tdd.md`: 正常系〜3 / 異常系 3〜5 を目安。既存 `docs/tests
 | es4 `Delete`/`Get` の ErrNotFound 写像漏れ | Layer 冪等・miss 契約破壊 | 異常系テスト必須 |
 | Incr の Tx 競合 | 失われた更新 | Firestore Driver 再試行に揃える |
 | 大きな Scan + 逐次 Delete | PurgePrefix が重い | 第一版は正しさ優先。バッチ API は入れない |
-| v0.11.0 内で SWR と作業競合 | 版の混乱 | 並行・別 PR（決定 C）。Valkey は v0.12.0 |
+| v0.11.0 内で SWR と作業競合 | 版の混乱 | 並行・別 PR（決定 C）。Valkey は v0.13.0 |
 
 ----
 
@@ -213,7 +213,7 @@ charter `tdd.md`: 正常系〜3 / 異常系 3〜5 を目安。既存 `docs/tests
 
 先頭の **決定事項（2026-10-11）** と同内容。記録用の詳細:
 
-1. **SemVer / roadmap 上の版** — **v0.11.0**。**C:** SWR と es4 Driver は並行・別 PR、順序不問。Valkey は v0.12 並存のまま。
+1. **SemVer / roadmap 上の版** — **v0.11.0**。**C:** SWR と es4 Driver は並行・別 PR、順序不問。Valkey は v0.13 並存のまま。
 2. **config の `driver` 文字列と options キー** — **D:** Firestore まで含む全 Backend を第一版サポート。driver 名文字列の細部は実装時に既存に合わせる。
 3. **Entry JSON スキーマ** — **B:** `{"value": <payload>, "expires_at": "<RFC3339>"}`。`expires_at` 省略＝期限なし。
 4. **Incr 競合時の再試行** — **A:** 既存 Firestore Driver に揃える。
@@ -227,7 +227,8 @@ charter `tdd.md`: 正常系〜3 / 異常系 3〜5 を目安。既存 `docs/tests
 
 - Layer 契約: `docs/specs/layer/`
 - Purge: `docs/specs/purge/`
-- Valkey 意図スタブ: `docs/plans/v0.12.0/`
+- Valkey 意図スタブ: `docs/plans/v0.13.0/`
+- セッション TTL / Firestore TTL: `docs/plans/v0.12.0/plan.md`
 - es4 State: es4 `docs/specs/state/state.md`
 - es4 キーデリミタ計画: [b4moss/es4 `docs/plans/v0.10.0/key-delimiter.md`](https://github.com/b4moss/es4/blob/main/docs/plans/v0.10.0/key-delimiter.md)
 

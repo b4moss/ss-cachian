@@ -17,10 +17,10 @@
 | version | [version/](./version/) | v0.3.0 | `cache_test.go`（Version 節） | v0.8.0 適用 |
 | cache-type | [cache-type/](./cache-type/) | v0.3.0 | `cache_test.go`（単一 L1） | v0.8.0 適用（v0.10.0: 便利 API） |
 | layer | [layer/](./layer/) | v0.5.0 | `layer_test.go` | v0.8.0 適用 |
-| driver-firestore | [driver-firestore/](./driver-firestore/) | v0.5.0 | `driver/firestore/*_test.go` | v0.8.0 適用（v0.10.0: PurgePrefix） |
+| driver-firestore | [driver-firestore/](./driver-firestore/) | v0.5.0 | `driver/firestore/*_test.go` | v0.8.0 適用（v0.10.0: PurgePrefix・v0.12.0: ゼロ値 expires_at 抑止） |
 | purge | [purge/](./purge/) | v0.7.0 | `purge_test.go` + driver PurgeExact/Prefix | v0.8.0 適用（v0.10.0: Prefix/Tag） |
 | config | [config/](./config/) | v0.9.0 | `config*_test.go` | v0.9.0 適用 |
-| driver-es4 | [driver-es4/](./driver-es4/) | v0.11.0 | `driver/es4/*_test.go`（仮） | v0.11.0 適用（HTTP アダプタ含む） |
+| driver-es4 | [driver-es4/](./driver-es4/) | v0.11.0 | `driver/es4/*_test.go` | v0.11.0 適用（HTTP アダプタ含む）・v0.12.0: es4 期限付き書き込み |
 
 ## ランタイム差分（Node）
 
@@ -38,7 +38,8 @@
 - `Set` は **Bump してから**書く。`Delete` は削除後 Bump。`GetOrLoad` 書き戻しは Bump しない（**全 Layer**）
 - 多層: 上位 hit で下位スキップ。書き戻し失敗はログ無視。Bump / `__version__` は L1 のみ
 - Layer TTL は `WithLayerTTLs`（不足分 0）。負 TTL は Build 拒否
-- Firestore: 1キー1doc、読み時 TTL、ドキュメント ID = キー文字列（エンコードなし）。既定 collection `sscachian`
+- Firestore: 1キー1doc、読み時 TTL、ドキュメント ID = キー文字列（エンコードなし）。既定 collection `sscachian`。v0.12.0: 期限なしは `expires_at` 省略（ゼロ値禁止）。利用側 TTL ポリシー向け設定は [plans/v0.12.0/plan.md](../plans/v0.12.0/plan.md)
 - `Purge` = Exact。`layerIdx ...int`（重複除去）。`__version__` 非接触。失敗方針は Delete と同型
 - v0.10.0: `PurgePrefix`（先頭一致・`__version__` 含む）/ `PurgeTag`（L1 タグ索引 → Exact）/ 便利 API（`Has`/`Exists`/`GetEntry`/`Forget`/`Remember`/`RememberForever`）。`Remember` 充填は Bump しない
-- v0.11.0: es4 Driver（埋め込み open・Entry JSON B・PurgeExact は Scan なし・PurgePrefix は Scan+Delete・HTTP アダプタ並列）。詳細は [driver-es4/](./driver-es4/)
+- v0.11.0: es4 Driver（埋め込み open・Entry JSON B・PurgeExact は Scan なし・PurgePrefix は Scan+Delete・HTTP アダプタ並列）
+- v0.12.0: es4 期限付き書き込みで Firestore 日時型 `expires_at`。firestore ドライバのゼロ値抑止。詳細は [driver-es4/](./driver-es4/) · [driver-firestore/](./driver-firestore/) · [plans/v0.12.0/plan.md](../plans/v0.12.0/plan.md)
