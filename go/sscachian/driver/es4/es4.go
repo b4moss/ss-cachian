@@ -101,7 +101,7 @@ func (s *Store) Get(ctx context.Context, key string) (sscachian.Entry, bool, err
 		}
 		return sscachian.Entry{}, false, err
 	}
-	val, exp, ok := decodeEntry(raw)
+	val, exp, ok := decodeStored(raw)
 	if !ok {
 		_ = s.deleteIgnoreMissing(ctx, key)
 		return sscachian.Entry{}, false, nil
@@ -130,11 +130,16 @@ func (s *Store) Set(ctx context.Context, key string, entry sscachian.Entry, ttl 
 	} else if ttl == 0 && entry.ExpiresAt.IsZero() {
 		exp = time.Time{}
 	}
-	raw, err := encodeEntry(entry.Value, exp)
+	raw, err := encodePayload(entry.Value)
 	if err != nil {
-		return fmt.Errorf("sscachian/es4: marshal entry: %w", err)
+		return fmt.Errorf("sscachian/es4: marshal value: %w", err)
 	}
-	return s.backend.Set(ctx, key, raw)
+	var expPtr *time.Time
+	if !exp.IsZero() {
+		u := exp.UTC()
+		expPtr = &u
+	}
+	return s.backend.Set(ctx, key, raw, expPtr)
 }
 
 func (s *Store) Delete(ctx context.Context, key string) error {
@@ -198,7 +203,7 @@ func (s *Store) incrOnce(ctx context.Context, key string, out *int64) error {
 		}
 		n = 0
 	} else {
-		val, _, ok := decodeEntry(raw)
+		val, _, ok := decodeStored(raw)
 		if !ok {
 			return sscachian.ErrNotInteger
 		}
@@ -213,11 +218,12 @@ func (s *Store) incrOnce(ctx context.Context, key string, out *int64) error {
 	}
 	n++
 	*out = n
-	encoded, err := encodeEntry(n, time.Time{})
+	encoded, err := encodePayload(n)
 	if err != nil {
 		return err
 	}
-	if err := tx.Set(ctx, key, encoded); err != nil {
+	// Clear any prior expiry (PO decision 5-A).
+	if err := tx.Set(ctx, key, encoded, nil); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -256,7 +262,7 @@ func (s *Store) PurgeExact(ctx context.Context, logicalPrefix string) error {
 		}
 		max = 0
 	} else {
-		val, _, ok := decodeEntry(raw)
+		val, _, ok := decodeStored(raw)
 		if ok {
 			if n, err := asInt64(val); err == nil {
 				max = n

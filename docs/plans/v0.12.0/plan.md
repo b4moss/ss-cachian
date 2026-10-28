@@ -11,7 +11,7 @@ status: 仕様詳細
 
 | 項目 | 値 |
 |------|-----|
-| 状態 | **仕様詳細**（計画 PR・コード未変更。PO 決定反映済み 2026-10-28） |
+| 状態 | **仕様詳細**（PO 決定反映済み 2026-10-28。**Go 実装先行**・Node は es4 npm `0.11.0` 公開後） |
 | マイルストーン | **v0.12.0**（PO 決定。Valkey→v0.13.0 / PHP→v0.14.0） |
 | 対象リポジトリ | [b4moss/ss-cachian](https://github.com/b4moss/ss-cachian) |
 | 上流依存 | [b4moss/es4](https://github.com/b4moss/es4) **v0.11.0**（期限付き `Set` options。計画 [es4#52](https://github.com/b4moss/es4/pull/52) · `5aa6b41`）。**タグ後に実装開始** |
@@ -180,7 +180,7 @@ gcloud firestore fields ttls update expires_at \
 | firestore ドライバがゼロ値を書かない／上書き・Incr でフィールド削除 | ストレージ形が変わる。TTL ポリシー利用時は必須 | minor |
 | 最小 es4 版を **v0.11.0** へ引き上げ | 利用者は es4 を更新する必要 | minor |
 
-`VERSION` / `package.json` = `0.12.0`。タグ `v0.12.0`。
+Go `VERSION` = `0.12.0`。`package.json`（Node）は **es4 npm `@b4moss/es4@0.11.0` 公開後の後続**で `0.12.0` に揃える（PO 決定 2026-10-28 16:11 JST: Go 先行）。タグ `v0.12.0` は公開手順時。
 
 ----
 
@@ -188,11 +188,12 @@ gcloud firestore fields ttls update expires_at \
 
 1. ~~計画・テスト仕様・PO 決定反映~~（本 PR）
 2. **es4 `v0.11.0` タグ**を待つ（決定 6-A）
-3. firestore ドライバ: ゼロ値抑止 + 上書き／Incr 時フィールド削除（Go / Node）— テスト先行
-4. es4 ドライバ: `WithExpiresAt` / `{ expiresAt }` 対応。Entry JSON 廃止＋旧形式フォールバック。Backend / HTTP 追随（Go / Node）
+3. firestore ドライバ: ゼロ値抑止 + 上書き／Incr 時フィールド削除（**先に Go**）— テスト先行
+4. es4 ドライバ: `WithExpiresAt` 対応。Entry JSON 廃止＋旧形式フォールバック。Backend / HTTP 追随（**先に Go**）
 5. docs: TTL ポリシー設定を **`docs/specs/driver-firestore/` 運用節**へ反映
-6. es4 `v0.11.0` 依存ピン・CI（memory_only 必須、Firestore Emulator はフィールド有無のスモーク）
-7. `VERSION` / npm = `0.12.0` → develop → main → タグ
+6. es4 Go `v0.11.0` 依存ピン・CI（memory_only 必須、Firestore Emulator はフィールド有無のスモーク）
+7. Go `VERSION` = `0.12.0` → develop →（指示後）main → タグ
+8. **後続:** es4 npm `@b4moss/es4@0.11.0` 公開後に Node パリティ（`{ expiresAt }`・firestore 同修正・`package.json` 0.12.0）
 
 実装 Agent は charter どおり **コード + 当該 `docs/tests/`** のみ。plans / roadmap / specs の昇格は main 側。
 
@@ -204,9 +205,9 @@ gcloud firestore fields ttls update expires_at \
 - [ ] 期限なし書き込みで Firestore 上に `expires_at` が無い（es4 経路・firestore ドライバ直接の両方）
 - [ ] firestore ドライバがゼロ値 `expires_at` を書かない。期限あり→なし上書き／Incr でフィールドが消える
 - [ ] Get は期限切れを Miss。旧 Entry JSON（文字列 `expires_at`）もフォールバックで解釈できる
-- [ ] Go / Node パリティ。既存 Layer / Purge / config 回帰なし
+- [ ] Go パリティ（本実装）。**Node は es4 npm 公開後**（PO 2026-10-28 16:11）
 - [ ] `docs/specs/driver-firestore/` 運用節に TTL ポリシー用のフィールド名・collection・注意がある
-- [ ] 依存 es4 ≥ `v0.11.0`。`VERSION` / `@b4moss/ss-cachian` = `0.12.0`
+- [ ] 依存 es4 Go ≥ `v0.11.0`。Go `VERSION` = `0.12.0`（npm パッケージ版は後続）
 
 ----
 

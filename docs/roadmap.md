@@ -38,7 +38,7 @@ timestamp: 2026-09-27T09:27:00Z
 | **v0.9.0** | 設定ファイル駆動（Cache Type の YAML/JSON ロード） | 完了（タグ + npm・[plans/v0.9.0](./plans/v0.9.0/)） |
 | **v0.10.0** | Purge 拡張（Prefix/Tag）＋ 便利読み書き API（Has/GetEntry/Remember 等） | 完了（タグ + npm・[plans/v0.10.0](./plans/v0.10.0/)） |
 | **v0.11.0** | SWR / SIE / negative cache ＋ 運用系（旧 version 列挙、分散 L1 無効化）＋ es4 Layer Driver | es4 Driver 実装済み（VERSION 0.11.0）。SWR 等は意図スタブ残り（[plans/v0.11.0](./plans/v0.11.0/) · [es4-layer-driver](./plans/v0.11.0/es4-layer-driver.md)） |
-| **v0.12.0** | セッション TTL / Firestore TTL（es4 `WithExpiresAt`・firestore ゼロ値抑止・TTL ポリシー docs） | 計画中・**PO 決定済み**（[plans/v0.12.0](./plans/v0.12.0/) · [plan.md](./plans/v0.12.0/plan.md)）。実装は es4 `v0.11.0` タグ後 |
+| **v0.12.0** | セッション TTL / Firestore TTL（es4 `WithExpiresAt`・firestore ゼロ値抑止・TTL ポリシー docs） | **Go 実装中**（[plans/v0.12.0](./plans/v0.12.0/) · [plan.md](./plans/v0.12.0/plan.md)）。Node は es4 npm `@b4moss/es4@0.11.0` 公開後に続行（PO 2026-10-28 16:11） |
 | **v0.13.0** | Valkey Driver（固有機能委譲含む） | 未着手（[plans/v0.13.0](./plans/v0.13.0/)）。旧 v0.12.0 から繰り下げ（PO 決定） |
 | **v0.14.0** | PHP ポート | 未着手（[plans/v0.14.0](./plans/v0.14.0/)）。旧 v0.13.0 から繰り下げ（PO 決定） |
 | **v1.0.0** | Phase 2 締め（安定化・破壊的変更の凍結） | 未着手（[plans/v1.0.0](./plans/v1.0.0/)） |

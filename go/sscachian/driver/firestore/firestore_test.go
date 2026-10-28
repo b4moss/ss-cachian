@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	gfirestore "cloud.google.com/go/firestore"
 	"github.com/b4moss/ss-cachian"
 	fsdriver "github.com/b4moss/ss-cachian/driver/firestore"
 )
@@ -88,6 +89,52 @@ func TestSet_OverwriteAndTTL(t *testing.T) {
 	}
 }
 
+func TestSet_NoExpiryOmitsExpiresAtField(t *testing.T) {
+	s := newStore(t)
+	ctx := context.Background()
+	coll := "sscachian_test_" + t.Name()
+	if err := s.Set(ctx, "k", sscachian.Entry{Value: "x"}, 0); err != nil {
+		t.Fatal(err)
+	}
+	raw := readDocFields(t, coll, "k")
+	if _, ok := raw["expires_at"]; ok {
+		t.Fatalf("expires_at must be omitted: %#v", raw)
+	}
+	e, ok, err := s.Get(ctx, "k")
+	if err != nil || !ok || !e.ExpiresAt.IsZero() {
+		t.Fatalf("entry=%+v ok=%v err=%v", e, ok, err)
+	}
+}
+
+func TestSet_TimedThenUntimedRemovesExpiresAt(t *testing.T) {
+	s := newStore(t)
+	ctx := context.Background()
+	coll := "sscachian_test_" + t.Name()
+	_ = s.Set(ctx, "k", sscachian.Entry{Value: "a"}, time.Hour)
+	if _, ok := readDocFields(t, coll, "k")["expires_at"]; !ok {
+		t.Fatal("expected expires_at after timed set")
+	}
+	_ = s.Set(ctx, "k", sscachian.Entry{Value: "b"}, 0)
+	if _, ok := readDocFields(t, coll, "k")["expires_at"]; ok {
+		t.Fatal("expires_at should be removed after untimed overwrite")
+	}
+}
+
+func readDocFields(t *testing.T, collection, key string) map[string]any {
+	t.Helper()
+	ctx := context.Background()
+	client, err := gfirestore.NewClient(ctx, "ss-cachian-dev")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = client.Close() })
+	snap, err := client.Collection(collection).Doc(key).Get(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return snap.Data()
+}
+
 func TestSet_NegativeTTL(t *testing.T) {
 	s := newStore(t)
 	if err := s.Set(context.Background(), "k", sscachian.Entry{Value: 1}, -time.Second); err == nil {
@@ -144,6 +191,30 @@ func TestIncr(t *testing.T) {
 	n, err = s.Incr(ctx, "c")
 	if err != nil || n != 2 {
 		t.Fatalf("n=%d err=%v", n, err)
+	}
+}
+
+func TestIncr_OmitsExpiresAtAndClearsPrior(t *testing.T) {
+	s := newStore(t)
+	ctx := context.Background()
+	coll := "sscachian_test_" + t.Name()
+	n, err := s.Incr(ctx, "c")
+	if err != nil || n != 1 {
+		t.Fatalf("n=%d err=%v", n, err)
+	}
+	if _, ok := readDocFields(t, coll, "c")["expires_at"]; ok {
+		t.Fatal("new incr must not write expires_at")
+	}
+	_ = s.Set(ctx, "c", sscachian.Entry{Value: float64(5)}, time.Hour)
+	if _, ok := readDocFields(t, coll, "c")["expires_at"]; !ok {
+		t.Fatal("expected expires_at after timed set")
+	}
+	n, err = s.Incr(ctx, "c")
+	if err != nil || n != 6 {
+		t.Fatalf("n=%d err=%v", n, err)
+	}
+	if _, ok := readDocFields(t, coll, "c")["expires_at"]; ok {
+		t.Fatal("incr should clear expires_at")
 	}
 }
 
