@@ -1,8 +1,8 @@
 # specs
 
 現行プロダクト振る舞いの仕様正本。  
-コード正本: `go/sscachian`（`VERSION=0.12.0`・モジュール `github.com/b4moss/ss-cachian`）および `node/sscachian`（npm は後続で 0.12.0 に揃える）。  
-ドメイン分割は [tests](../tests/) と同じ。検証手順は tests、憲章ライフサイクルは [doc-rule](../charter/doc-rule.md)。  
+コード正本: `go/sscachian`（`VERSION=0.12.0`、モジュール `github.com/b4moss/ss-cachian/go/sscachian`）および `node/sscachian`（npm は後続で 0.12.0 に揃える；現状 `@b4moss/ss-cachian@0.11.1`）。  
+ドメイン分割は [tests](../tests/) と同じ。検証手順は tests、憲章ライフサイクルは [doc-rule](https://github.com/b4moss/charter/blob/v1/docs/charter/doc-rule.md)。  
 プロダクトの目的・スコープは [README.md](../README.md)（pillar）。
 
 | ドメイン | パス | コード |
@@ -13,7 +13,7 @@
 | purge | [purge/](./purge/) | `Purge` / `PurgeExact` / `PurgePrefix` / `PurgeTag` / `IsVersionDataKey` |
 | driver-memory | [driver-memory/](./driver-memory/) | `driver/memory` |
 | driver-firestore | [driver-firestore/](./driver-firestore/) | `driver/firestore` |
-| driver-es4 | [driver-es4/](./driver-es4/) | `driver/es4` |
+| driver-es4 | [driver-es4/](./driver-es4/) | `driver/es4`（埋め込み + HTTP） |
 | config | [config/](./config/) | `registry.go` / `config.go`（Go）、`config.ts`（Node） |
 
 未実装の拡張は [plans](../plans/)。

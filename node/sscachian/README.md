@@ -2,7 +2,7 @@
 
 TypeScript / JavaScript port of [ss-cachian](https://github.com/b4moss/ss-cachian).
 
-Semantics match the Go package at `go/sscachian` (**v0.10.0**): versioned keys, multilayer
+Semantics match the Go package at `go/sscachian` (**v0.11.1**): versioned keys, multilayer
 write-back, Exact/Prefix/Tag Purge, convenience APIs, Memory / Firestore drivers, and
 **config-driven** `loadTypes`.
 Specs: [docs/specs](../../docs/specs/). Config schema notes: [docs/specs/config](../../docs/specs/config/).
@@ -10,8 +10,10 @@ Specs: [docs/specs](../../docs/specs/). Config schema notes: [docs/specs/config]
 ## Install
 
 ```bash
-npm install @b4moss/ss-cachian
+npm install @b4moss/ss-cachian@0.11.1
 ```
+
+Depends on registry `@b4moss/es4@0.10.0` (do not use `file:` vendor pins in published `package.json`).
 
 ## Quick start
 
@@ -159,6 +161,9 @@ Same-name re-register is **last-wins**. Already-built Cache Types keep their sna
 
 ### Drivers and options
 
+**es4** (v0.11.0): embedded or HTTP (`base_url`). See [specs/driver-es4](../../docs/specs/driver-es4/) and root README.
+
+
 #### `memory`
 
 No `options` (omit or empty). Unknown keys rejected.
@@ -236,7 +241,7 @@ Semantics match code-built types (upper hit skips lower layers, write-back, Exac
 - Non-string or invalid/negative `ttl`
 - Unknown `options` keys or non-string option values
 
-### Out of scope (v0.10.0)
+### Out of scope (v0.11.0)
 
 - Valkey / PHP / browser bundles
 - SWR · SIE (later)

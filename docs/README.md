@@ -3,14 +3,14 @@ type: Hub
 title: ss-cachian（pillar）
 description: プロダクト目的・スコープ・技術方針の pillar 正本（旧 main.md）。
 tags: [hub, pillar]
-timestamp: 2026-09-27T05:56:00Z
+timestamp: 2026-10-12T05:20:00Z
 ---
 
 # ss-cachian
 
 サーバーサイドのキャッシュ戦略ライブラリ。  
-**Phase 1 PoC 完了（v0.7.0）** — コード正本は `go/sscachian`（モジュール `github.com/b4moss/ss-cachian`）。  
-**Phase 2** — Node（`@b4moss/ss-cachian@0.10.0`）パリティ済み。**v0.9.0** 設定駆動、**v0.10.0** Purge 拡張（Prefix/Tag）＋ 便利 API。
+**Phase 1 PoC 完了（v0.7.0）** — コード正本は `go/sscachian`（モジュール `github.com/b4moss/ss-cachian/go/sscachian`）。  
+**Phase 2** — Node（`@b4moss/ss-cachian@0.11.1`）パリティ済み。**v0.9.0** 設定駆動、**v0.10.0** Purge 拡張、**v0.11.0** es4 Layer Driver、**v0.11.1** 公開コンシューマ hotfix。
 
 OKF の版索引は [index.md](./index.md)（`okf_version` のみ）。本文の pillar 正本は本ファイル。
 
@@ -24,7 +24,7 @@ ss-cachian は、単一キャッシュストアの薄い抽象ではない。
 
 ## スコープ
 
-- やること: Cache Type による多層キャッシュ、Version 第1級 invalidate、Exact / Prefix / Tag Purge、便利 API（Has/GetEntry/Remember 等）、Driver（memory / Firestore ほか）、設定ファイル駆動（v0.9.0）
+- やること: Cache Type による多層キャッシュ、Version 第1級 invalidate、Exact / Prefix / Tag Purge、便利 API（Has/GetEntry/Remember 等）、Driver（memory / Firestore / **es4**）、設定ファイル駆動（v0.9.0）
 - やらぬこと（現行）: SWR / SIE / negative cache、分散 L1 無効化、Valkey、PHP（後続は [roadmap](./roadmap.md) / [plans](./plans/)）。
 
 設定ファイルの書き方: [ルート README（英語）](../README.md#config-file-yaml--json) ／ [雛形](./plans/v0.9.0/sscachian.example.yaml) ／ [仕様](./specs/config/) ／ [日本語ルート](../README-ja.md)。
@@ -49,29 +49,23 @@ ss-cachian は、単一キャッシュストアの薄い抽象ではない。
 ## 技術方針
 
 - マルチランタイム移植を前提に、言語ごとにトップレベルディレクトリを並べる。
-- 先行実装は **Go 1.26**（`go/sscachian`、Driver は `go/sscachian/driver/...`）。import: `github.com/b4moss/ss-cachian`。
-- Node 公開面は `node/sscachian`（npm: `@b4moss/ss-cachian@0.10.0`）。Go パリティ（v0.8.0 以降）。
+- 先行実装は **Go 1.26**（`go/sscachian`、Driver は `go/sscachian/driver/...`）。import: `github.com/b4moss/ss-cachian/go/sscachian`（タグ `go/sscachian/vX.Y.Z`）。
+- Node 公開面は `node/sscachian`（npm: `@b4moss/ss-cachian@0.11.1`）。Go パリティ（v0.8.0 以降）。
 - 開発は **devcontainer**（Go 1.26 / Firestore Emulator / `act`）。
-- テストは単体結合（正常系・異常系）。仕様は [tests](./tests/)、方針は [憲章 TDD](./charter/tdd.md)。
+- テストは単体結合（正常系・異常系）。仕様は [tests](./tests/)、方針は [憲章 TDD](https://github.com/b4moss/charter/blob/v1/docs/charter/tdd.md)。
 - CI/CD・バッジの詳細は [.github/CI.md](../.github/CI.md)。
 
 ```text
 go/sscachian/           # Go 公開モジュール
-go/sscachian/driver/    # Driver 実装（memory, firestore, …）
-node/sscachian/         # @b4moss/ss-cachian（v0.10.0）
+go/sscachian/driver/    # Driver 実装（memory, firestore, es4, …）
+node/sscachian/         # @b4moss/ss-cachian（v0.11.1）
 docs/                   # 知識バンドル正本（OKF v0.1）
 ```
 
-### 憲章の取り込み
+### 憲章
 
-憲章本体は編集せず、`b4moss/charter` の **`main` の `docs/charter/`**（OKF v0.1）を取り込む。  
+憲章はリポ外の [b4moss/charter v1](https://github.com/b4moss/charter/tree/v1/docs/charter) を参照する（[AGENTS.md の「開発憲章（charter）」節](../AGENTS.md)）。  
 プロジェクト固有の上書きは [override-charter.md](./override-charter.md)。
-
-```bash
-git remote add charter https://github.com/b4moss/charter.git  # 未追加時のみ
-git fetch charter main
-git checkout charter/main -- docs/charter
-```
 
 ## 索引
 
@@ -79,7 +73,6 @@ git checkout charter/main -- docs/charter
 - [specs](./specs/) — 現行仕様（ドメイン別）
 - [plans](./plans/) — これからやる内容
 - [tests](./tests/) — テスト仕様（specs と同じドメイン切り）
-- [憲章](./charter/) — 開発ルール
-- [OKF v0.1](./charter/okf/) — 本バンドルの版定義
+- [憲章](https://github.com/b4moss/charter/tree/v1/docs/charter) — 開発ルール（AGENTS.md の charter 節）
 - [override-charter](./override-charter.md) — 憲章オーバーライド
 - [_archived](./_archived/) — 歴史資料

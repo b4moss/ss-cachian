@@ -11,12 +11,12 @@ timestamp: 2026-10-28T15:25:00+09:00
 対象:
 
 - Go: `go/sscachian/driver/es4`
-- Node: `node/sscachian` の es4 ドライバ
+- Node: `node/sscachian/src/driver/es4.ts`
 - HTTP Es4 Server アダプタ（埋め込みと並列）
 
 前提:
 
-- [plans/v0.11.0/es4-layer-driver.md](../../plans/v0.11.0/es4-layer-driver.md)（Driver 導入・決定 2026-10-11）
+- [specs/driver-es4](../../specs/driver-es4/)（正本）· [plans/v0.11.0/es4-layer-driver.md](../../plans/v0.11.0/es4-layer-driver.md)（完了注記）
 - [plans/v0.12.0/plan.md](../../plans/v0.12.0/plan.md)（期限付き書き込み・Firestore TTL・PO 決定 2026-10-28）
 - [specs/layer](../../specs/layer/) / [tests 索引](../README.md)
 - 上流 es4 **v0.11.0**: キー区切り `:` ＋ `Scan` ＋ `Set` options（Go `WithExpiresAt` / Node `{ expiresAt }`）。参照 [es4#52](https://github.com/b4moss/es4/pull/52)（`5aa6b41`）
@@ -36,7 +36,10 @@ timestamp: 2026-10-28T15:25:00+09:00
 | HTTP アダプタ | 埋め込みと同セマンティクス。上流 HTTP はクエリ `expires_at` |
 | 依存 | es4 ≥ **v0.11.0**（タグ後に実装） |
 
-config `layers[].driver` 名は `es4`。本スイートは Driver 直接生成でも Config 経由でもよい。
+Entry は es4 値（JSON）として上記固定セマンティクスで保存する。es4 本体に TTL API は足さない。  
+`created_at` は Entry JSON に **含めない**（決定 B）。必要なら実装メモのみ。
+
+config `layers[].driver` 名は **`es4`**。本スイートは Driver 直接生成でも Config 経由でもよい。
 
 ---
 

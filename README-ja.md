@@ -11,7 +11,7 @@
 
 - [English README (default)](./README.md)
 
-現行版: **v0.10.0**（Go `VERSION` と `@b4moss/ss-cachian` を揃えています）。
+現行版: **Go v0.12.0**（npm `@b4moss/ss-cachian` は当面 **0.11.1**。Node パリティ後に揃える）。
 
 ## できること
 
@@ -22,7 +22,7 @@
 | **Version キー** | current-version は L1。Mutation で Bump。`GetOrLoad` / `Remember` の充填は Bump しない |
 | **多層** | L1→L2→…。下位 hit / Loader 成功時は上位へ書き戻し |
 | **Purge（v0.10.0）** | Exact（`Purge` / `PurgeExact`）、Prefix（先頭一致）、Tag（L1 索引 → Exact） |
-| **Driver** | **memory** / **Firestore**（`FIRESTORE_EMULATOR_HOST` 対応） |
+| **Driver** | **memory** / **Firestore** / **es4**（埋め込み open + HTTP。`FIRESTORE_EMULATOR_HOST` は es4 経由時も可） |
 | **設定駆動（v0.9.0）** | YAML（正）または同等 JSON → `LoadTypes` / `loadTypes` |
 
 現行スコープ外: SWR / SIE / negative cache、Valkey、PHP、ブラウザ向け。→ [roadmap](./docs/roadmap.md)
@@ -31,7 +31,7 @@
 
 | Port | Package | Language hub |
 |------|---------|--------------|
-| **Go** | `github.com/b4moss/ss-cachian` | [`go/sscachian/README.md`](./go/sscachian/README.md) |
+| **Go** | `github.com/b4moss/ss-cachian/go/sscachian` | [`go/sscachian/README.md`](./go/sscachian/README.md) |
 | **TypeScript** | `@b4moss/ss-cachian` | [`node/sscachian/README.md`](./node/sscachian/README.md) |
 
 ルート README（英語）が共有ホスト手順の正本です。インストール・import・API 詳細は各 language hub を見てください。
@@ -41,13 +41,13 @@
 | | Go | Node |
 |--|----|------|
 | Runtime | Go **1.26+** | Node.js **≥ 20** |
-| Package | `github.com/b4moss/ss-cachian` | `@b4moss/ss-cachian@0.10.0` |
+| Package | `github.com/b4moss/ss-cachian/go/sscachian`（`VERSION=0.12.0`） | `@b4moss/ss-cachian@0.11.1`（Node 後続） |
 
 公開パッケージ利用にリポジトリ clone は不要です。
 
 ## 使い方（要約）
 
-1. ポートを選びインストール（`go get …@v0.10.0` / `npm i @b4moss/ss-cachian`）
+1. ポートを選びインストール（`go get github.com/b4moss/ss-cachian/go/sscachian@v0.12.0` / `npm i @b4moss/ss-cachian@0.11.1`）。Go はサブディレクトリタグ `go/sscachian/v0.12.0` が必要
 2. コード組み立て（`Define`）か設定ファイル（YAML）かを決める
 3. Loader / カスタム KeyBuilder は Registry に名前登録（設定は参照のみ）
 4. Layer 順 = L1…Ln。TTL は `ParseDuration` 文字列。優先: layer TTL → type TTL → `0`

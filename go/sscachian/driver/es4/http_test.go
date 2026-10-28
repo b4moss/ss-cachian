@@ -9,8 +9,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/b4moss/ss-cachian"
-	es4driver "github.com/b4moss/ss-cachian/driver/es4"
+	"github.com/b4moss/ss-cachian/go/sscachian"
+	es4driver "github.com/b4moss/ss-cachian/go/sscachian/driver/es4"
 )
 
 // mockEs4Server approximates Es4 HTTP Server for adapter tests.
