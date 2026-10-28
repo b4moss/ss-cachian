@@ -1,9 +1,9 @@
 ---
 type: TestSpec
 title: driver-es4 テスト仕様
-description: es4 Layer Driver。v0.11.0 導入。v0.12.0 で期限付き書き込み（es4 API）＋ Firestore 日時型 expires_at。
+description: es4 Layer Driver。v0.11.0 導入。v0.12.0 で Set+WithExpiresAt／{ expiresAt } ＋ 旧 Entry JSON フォールバック。
 tags: [tests, driver-es4, v0.11.0, v0.12.0, node]
-timestamp: 2026-10-28T00:00:00Z
+timestamp: 2026-10-28T15:25:00+09:00
 ---
 
 # driver-es4
@@ -17,22 +17,24 @@ timestamp: 2026-10-28T00:00:00Z
 前提:
 
 - [plans/v0.11.0/es4-layer-driver.md](../../plans/v0.11.0/es4-layer-driver.md)（Driver 導入・決定 2026-10-11）
-- [plans/v0.12.0/plan.md](../../plans/v0.12.0/plan.md)（期限付き書き込み・Firestore TTL）
+- [plans/v0.12.0/plan.md](../../plans/v0.12.0/plan.md)（期限付き書き込み・Firestore TTL・PO 決定 2026-10-28）
 - [specs/layer](../../specs/layer/) / [tests 索引](../README.md)
-- 上流 es4: キー区切り `:` ＋ `Scan` ＋ **期限付き書き込み**（API 名は仮。es4 計画 PR で確定後に本仕様の表記を置換）
+- 上流 es4 **v0.11.0**: キー区切り `:` ＋ `Scan` ＋ `Set` options（Go `WithExpiresAt` / Node `{ expiresAt }`）。参照 [es4#52](https://github.com/b4moss/es4/pull/52)（`5aa6b41`）
 
-固定セマンティクス:
+固定セマンティクス（v0.12 PO 決定込み）:
 
 | 項目 | 決定 |
 |------|------|
 | DB 所有権 | **A** — Driver が `Open` / `Close` を所有（v0.11） |
 | Backend | **D** — Firestore まで全 Backend 公式サポート（CI は memory_only 基本） |
-| TTL（v0.12） | es4 の期限付き書き込みを使う。Firestore では日時型 `expires_at`。期限なしはフィールド省略 |
-| Entry value | キャッシュ payload の JSON。**value 内に文字列 `expires_at` を二重持ちしない**（推奨。旧形式フォールバックは要決定） |
+| TTL（v0.12） | es4 `Set(..., WithExpiresAt(t))` / `set(..., { expiresAt })`。**`SetWithExpiry` は使わない**。Firestore では日時型 `expires_at`。期限なしはフィールド省略 |
+| Entry value | キャッシュ payload の JSON。**value 内に文字列 `expires_at` を書かない**。読み取りは **旧形式フォールバック**（決定 3-A） |
+| Incr | 新規は期限なし。既存に期限があるキーは **期限削除して無期限**（決定 5-A） |
 | Incr 再試行 | Firestore Driver に揃える |
 | PurgeExact | Scan なし。キー既知で version data のみ削除 |
 | PurgePrefix | es4 `Scan(prefix)` → 各キー `Delete` |
-| HTTP アダプタ | 埋め込みと同セマンティクス（期限付き含む） |
+| HTTP アダプタ | 埋め込みと同セマンティクス。上流 HTTP はクエリ `expires_at` |
+| 依存 | es4 ≥ **v0.11.0**（タグ後に実装） |
 
 config `layers[].driver` 名は `es4`。本スイートは Driver 直接生成でも Config 経由でもよい。
 
@@ -50,15 +52,15 @@ config `layers[].driver` 名は `es4`。本スイートは Driver 直接生成�
 
 - 不正 Options（到達不能 Backend 等）で Open 失敗し、半端な Driver を返さない
 - Close 済み Driver への Set/Get はパニックせず error
--（任意）Firestore Options 欠落は Open エラー（Backend D の範囲）
+-（任意）firestore Options 欠落は Open エラー（Backend D の範囲）
 
 ---
 
 ### Get / Set（期限付き書き込み・v0.12）
 
-- Set は payload を es4 value として書く。
-- TTL>0（または Entry.ExpiresAt）なら **es4 期限付き API**（仮: `SetWithExpiry` / `Set(..., WithExpiry)`）を呼ぶ。
-- TTL=0 かつ ExpiresAt ゼロなら通常 Set（期限なし）。
+- Set は payload を es4 value として書く（エンベロープなし）。
+- TTL>0（または Entry.ExpiresAt）なら `Set(..., WithExpiresAt(t))` / `set(..., { expiresAt })` を呼ぶ。
+- TTL=0 かつ ExpiresAt ゼロなら options なし Set（期限なし）。
 - Get は欠落 / es4 期限切れ不在 / 壊れた value → Miss（`hit=false`）。エラーにしない（壊れた JSON は Miss で固定しキー削除可）。
 - 負の TTL → `ErrNegativeTTL`。空キー → `ErrEmptyKey`。
 
@@ -67,7 +69,7 @@ config `layers[].driver` 名は `es4`。本スイートは Driver 直接生成�
 - Set → Get で同じ `value` が取れる（オブジェクト・数値・文字列）
 - TTL 付き Set のあと、期限前は Hit、期限を過去にしたものは Get で Miss
 - 期限なし Set のエントリは無期限として Hit し続ける
--（Firestore Emulator / スパイ）TTL 付き Set が期限付き API を呼び、通常 Set は呼ばない
+-（スパイ）TTL 付き Set が `WithExpiresAt` / `{ expiresAt }` 付きで呼ばれ、`SetWithExpiry` は呼ばない
 -（Firestore Emulator）TTL 付きドキュメントに日時型フィールド `expires_at` がある
 -（Firestore Emulator）期限なしドキュメントに `expires_at` フィールドが **無い**
 
@@ -81,19 +83,20 @@ config `layers[].driver` 名は `es4`。本スイートは Driver 直接生成�
 
 ---
 
-### 旧 Entry JSON（v0.11 形式）の読み取り（要決定次第）
+### 旧 Entry JSON（v0.11 形式）の読み取り（決定 3-A・フォールバック必須）
 
-v0.11 は `{"value": ..., "expires_at": "<RFC3339>"}` を es4 value に書いた。v0.12 推奨は二重持ち廃止。
+v0.11 は `{"value": ..., "expires_at": "<RFC3339>"}` を es4 value に書いた。v0.12 は **書かない**が、Get では旧形式を解釈する。
 
-#### テスト：正常系（フォールバック採用時のみ）
+#### テスト：正常系
 
 - 旧形式（文字列 `expires_at` 付き）を Get でき、期限前は Hit・期限切れは Miss
-- 新形式（期限は es4 メタのみ）も同様
+- 新形式（payload のみ・期限は es4 メタ）も同様
+- 旧形式の無期限（`expires_at` 省略）は Hit し続ける
 
 #### テスト: 異常系
 
 - 新旧混在でパニックしない
--（フォールバック非採用時）旧形式は Miss または error で固定しテスト
+- 旧形式の壊れた `expires_at` 文字列は Miss（キー削除可）
 
 ---
 
@@ -113,12 +116,12 @@ v0.11 は `{"value": ..., "expires_at": "<RFC3339>"}` を es4 value に書いた
 
 ---
 
-### Incr
+### Incr（決定 5-A）
 
 - es4 Tx 上で read-modify-write。未作成は 0+1→1。
 - 競合時の再試行は Firestore Driver と同型。
-- 新規カウンタは **期限なし**（期限付き API を使わない）。
-- 既存キーに期限がある場合の Incr 後の期限（維持 / 削除）は計画の要決定に従い固定する。
+- 新規カウンタは **期限なし**（`WithExpiresAt` を付けない）。
+- 既存キーに期限がある場合、Incr 後は **期限を削除して無期限**。
 
 #### テスト：正常系
 
@@ -126,6 +129,7 @@ v0.11 は `{"value": ..., "expires_at": "<RFC3339>"}` を es4 value に書いた
 - 既存整数 n へ Incr → n+1
 - 並行 Incr の最終値が呼び出し回数と一致する（memory_only または Emulator）
 - 新規 Incr 後、Firestore 上に `expires_at` が無い（Emulator / スパイ）
+- 期限付きキーへ Incr したあと、期限フィールドが消え無期限として Hit し続ける
 
 #### テスト: 異常系
 
@@ -187,7 +191,7 @@ v0.11 は `{"value": ..., "expires_at": "<RFC3339>"}` を es4 value に書いた
 #### テスト：正常系
 
 - アダプタ経由で Set → Get が埋め込みと同セマンティクス（memory_only Server で可）
-- TTL 付き Set が Server 経路でも期限切れ Miss になる（上流が対応している前提）
+- TTL 付き Set が Server 経路でも期限切れ Miss になる（上流クエリ `expires_at`）
 - PurgePrefix が期待どおり消える
 - Close／シャットダウン後は操作が error
 

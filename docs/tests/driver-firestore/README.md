@@ -3,7 +3,7 @@ type: TestSpec
 title: driver-firestore テスト仕様
 description: Firestore Layer（Emulator）。Go v0.5.0 導入・Node v0.8.0・PurgePrefix v0.10.0・v0.12.0 でゼロ値 expires_at 抑止。
 tags: [tests, driver-firestore, v0.5.0, v0.8.0, v0.10.0, v0.12.0, node]
-timestamp: 2026-10-28T00:00:00Z
+timestamp: 2026-10-28T15:25:00+09:00
 ---
 
 # driver-firestore
@@ -13,23 +13,24 @@ timestamp: 2026-10-28T00:00:00Z
 - Go: `go/sscachian/driver/firestore`（`New` 既定: ProjectID `ss-cachian-dev` / Collection `sscachian`）
 - Node: `node/sscachian` の Firestore ドライバ（`@google-cloud/firestore`）
 
-前提: [specs/driver-firestore](../../specs/driver-firestore/) / [plans/v0.12.0/plan.md](../../plans/v0.12.0/plan.md) / [specs/layer](../../specs/layer/) / [tests 索引（Node 差分）](../README.md)  
+前提: [specs/driver-firestore](../../specs/driver-firestore/) / [plans/v0.12.0/plan.md](../../plans/v0.12.0/plan.md)（PO 決定 2026-10-28） / [specs/layer](../../specs/layer/) / [tests 索引（Node 差分）](../README.md)  
 実行: Firestore Emulator（`FIRESTORE_EMULATOR_HOST`）。Go は既存 `test-go`、Node は `test-node` で起動する。
 
 ドキュメント:
 
 - 1 キャッシュキー = 1 ドキュメント
 - フィールド: `value`（JSON）、`created_at`、**期限があるときだけ** `expires_at`（日時型）
-- Get 時に `expires_at` 判定（論理 Miss）。利用側が Firestore TTL ポリシーを掛ける前提（ポリシー作成はライブラリ外。設定は docs）
+- Get 時に `expires_at` 判定（論理 Miss）。利用側が Firestore TTL ポリシーを掛ける前提（ポリシー作成はライブラリ外。設定は **`docs/specs/driver-firestore/` 運用節**）
 - **ゼロ値（`0001-01-01` / Unix epoch）の `expires_at` を書かない**（v0.12.0）
 - ドキュメント ID: キー文字列をそのまま使う（URL エンコード／サニタイズは現行では行わない）
 
-固定セマンティクス:
+固定セマンティクス（v0.12 PO 決定込み）:
 
 - `Incr` 未作成 → **0+1 → 1**（トランザクション。Aborted はリトライ）
 - Driver は JSON 往復し、Get 時はデコードして Entry.Value に載せる
 - null value の Set は JSON `null` として保存可
-- 期限なし Set / Incr は `expires_at` フィールドを **省略**する。期限あり→なし上書きでは既存フィールドを **削除**する
+- 期限なし Set は `expires_at` を **省略**。期限あり→なし上書きでは既存フィールドを **削除**（決定 4-A）
+- Incr はゼロ値を書かない。既存に `expires_at` があるキーへの Incr は **フィールド削除して無期限**（決定 5-A）
 
 ---
 
@@ -102,7 +103,7 @@ timestamp: 2026-10-28T00:00:00Z
 - トランザクションで整数カウンタを +1。
 - 未作成は 1。既存 n は n+1。
 - 値は `value` に JSON 数値として保持。
-- 書き込み時に **ゼロ値 `expires_at` を付けない**（フィールド省略）。既存に `expires_at` がある場合の扱い（削除して無期限化 / 維持）は計画の要決定に従い固定する。
+- 書き込み時に **ゼロ値 `expires_at` を付けない**。既存に `expires_at` があるキーへの Incr は **フィールドを削除して無期限**（決定 5-A）。
 
 #### テスト：正常系
 
@@ -110,6 +111,7 @@ timestamp: 2026-10-28T00:00:00Z
 - 既存 10 へ Incr → 11
 - 並行 Incr の最終値が呼び出し回数と一致する（Emulator 上）
 - 未作成 Incr 後、ドキュメントに `expires_at` が無い（ゼロ値も無い）
+- 期限付きキーへ Incr したあと、`expires_at` フィールドが消え無期限として Hit し続ける
 
 #### テスト: 異常系
 

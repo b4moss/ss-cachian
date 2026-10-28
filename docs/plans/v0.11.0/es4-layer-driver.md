@@ -24,7 +24,7 @@
 | 10 | Incr 再試行 | **A** — 既存 Firestore Driver に揃える |
 | 11 | PurgeExact | **A** — Scan なし（キー既知で version data のみ削除） |
 | 12 | HTTP Es4 Server アダプタ | **C** — **v0.11.0 に埋め込みと並列で含める** |
-| 13 | v0.11 内の順序 | **C** — SWR と並行（別 PR）。Valkey は v0.13 並存（旧 v0.12 枠は [セッション TTL](../v0.12.0/plan.md) に転用・要決定） |
+| 13 | v0.11 内の順序 | **C** — SWR と並行（別 PR）。Valkey は v0.13 並存（旧 v0.12 枠は [セッション TTL](../v0.12.0/plan.md) に転用・PO 決定済み） |
 
 **前提（上流）:** es4 v0.10.0 でデリミタ `:` ＋ `Scan` が先。TTL は Driver Entry ラップ。PurgePrefix は es4 `Scan` + Delete。
 
